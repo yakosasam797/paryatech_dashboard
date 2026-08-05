@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=major2" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -27,13 +27,13 @@
           <p class="nav-group-title">Workspace</p>
           <ul class="nav-list">
             <li>
-              <a class="nav-item" href="#home" data-nav="Home">
+              <a class="nav-item is-active" href="#home" data-nav="Home" aria-current="page">
                 <img class="nav-icon" src="assets/nav-home.svg" alt="" width="16" height="16" />
                 <span>Home</span>
               </a>
             </li>
             <li>
-              <a class="nav-item is-active" href="#inbox" data-nav="Inbox" aria-current="page">
+              <a class="nav-item" href="#inbox" data-nav="Inbox">
                 <img class="nav-icon" src="assets/nav-inbox.svg" alt="" width="16" height="16" />
                 <span>Inbox</span>
               </a>
@@ -170,10 +170,9 @@
         </div>
 
         <div class="topbar-right">
-          <button class="search-trigger" type="button" id="search-trigger" aria-label="Search anything. Keyboard shortcut Control K">
+          <button class="search-trigger" type="button" id="search-trigger" aria-label="Search anything">
             <img src="assets/search.svg" alt="" width="13" height="13" />
             <span>Search anything</span>
-            <kbd class="kbd">Ctrl K</kbd>
           </button>
           <button class="icon-btn notif-btn" type="button" id="notif-btn" aria-label="Notifications, 3 unread" aria-expanded="false" aria-controls="notif-panel">
             <img src="assets/bell.svg" alt="" width="15" height="15" />
@@ -189,7 +188,7 @@
           <div class="hero-copy">
             <p class="hero-date" id="hero-date">Monday · 3 August</p>
             <h1 id="greeting">Good evening, Vrushabh</h1>
-            <p class="hero-sub">Here's what needs your attention across the travel pipeline today.</p>
+            <p class="data-freshness">Updated 3 minutes ago</p>
           </div>
           <div class="hero-actions">
             <button class="btn btn-outline btn-sm" type="button" data-open-modal="new-customer">
@@ -204,50 +203,34 @@
         </section>
 
         <section class="kpi-grid" aria-label="Key metrics">
-          <article class="kpi-card" data-search="booking value confirmed bookings">
-            <div class="kpi-head">
-              <p class="kpi-label">Booking value</p>
-              <img class="kpi-icon" src="assets/bookings.svg" alt="" width="15" height="15" />
-            </div>
+          <button type="button" class="kpi-card" data-search="booking value confirmed bookings" data-kpi-nav="Bookings" data-toast="Opened Bookings">
+            <p class="kpi-label">Booking value</p>
             <p class="kpi-value">₹18.40L</p>
             <p class="kpi-meta">6 confirmed · previous 30 days</p>
-            <a class="text-link" href="#bookings" data-nav="Bookings">View bookings →</a>
-          </article>
+          </button>
 
-          <article class="kpi-card" data-search="money snapshot finances overdue">
-            <div class="kpi-head">
-              <p class="kpi-label">Money snapshot</p>
-              <img class="kpi-icon" src="assets/rupee.svg" alt="" width="14" height="14" />
-            </div>
+          <button type="button" class="kpi-card" data-search="payment due collect overdue finances" data-kpi-nav="Finance" data-toast="Opened Finance">
+            <p class="kpi-label">Payment due</p>
             <p class="kpi-value">₹2.28L</p>
-            <p class="kpi-meta">₹80K overdue · Supplier payment due</p>
-            <a class="text-link" href="#finance" data-nav="Finance">Review finances →</a>
-          </article>
+            <p class="kpi-meta">to collect · ₹80K overdue</p>
+          </button>
 
-          <article class="kpi-card" data-search="at-risk bookings voucher travellers">
-            <div class="kpi-head">
-              <p class="kpi-label is-danger">At-risk bookings</p>
-              <img class="kpi-icon" src="assets/shield.svg" alt="" width="14" height="14" />
-            </div>
-            <p class="kpi-value">2</p>
+          <button type="button" class="kpi-card kpi-card-danger" data-search="at-risk bookings voucher travellers" data-kpi-target="attention-list" data-toast="Showing at-risk bookings">
+            <p class="kpi-label is-danger">At-risk bookings</p>
+            <p class="kpi-value is-danger">2</p>
             <p class="kpi-meta">1 voucher blocked · 5 travellers affected</p>
-            <a class="text-link" href="#bookings" data-nav="Bookings">Resolve risks →</a>
-          </article>
+          </button>
 
-          <article class="kpi-card" data-search="queries needing action unassigned overdue waiting">
-            <div class="kpi-head">
-              <p class="kpi-label">Queries needing action</p>
-              <img class="kpi-icon" src="assets/queries.svg" alt="" width="15" height="15" />
-            </div>
+          <button type="button" class="kpi-card" data-search="queries needing action unassigned overdue waiting" data-kpi-nav="Queries" data-toast="Opened Queries">
+            <p class="kpi-label">Queries needing action</p>
             <p class="kpi-value">7</p>
             <p class="kpi-meta">3 unassigned · 2 overdue · 2 waiting on us</p>
-            <a class="text-link" href="#queries" data-nav="Queries">Open queries →</a>
-          </article>
+          </button>
         </section>
 
         <div class="content-grid">
           <div class="content-primary">
-            <section class="card" aria-labelledby="attention-title">
+            <section class="card card-attention" aria-labelledby="attention-title" id="attention-section">
               <header class="card-head">
                 <div class="card-title-row">
                   <img src="assets/warning.svg" alt="" width="14" height="14" />
@@ -256,28 +239,46 @@
                 <a class="text-link" href="#tasks" data-nav="Tasks">View all →</a>
               </header>
               <ul class="attention-list" id="attention-list">
-                <li class="attention-item" data-search="tripura trip jain family voucher">
-                  <span class="status-dot critical" aria-hidden="true"></span>
+                <li class="attention-item" data-search="tripura trip jain family voucher critical">
                   <div class="attention-body">
-                    <p class="attention-title">Tripura Trip · Jain Family</p>
-                    <p class="attention-meta">Hotel voucher cannot be issued · Departure in 8 hours · 4 travellers affected · Priya</p>
-                    <button class="text-link text-link-btn" type="button" data-toast="Opening Tripura Trip booking…">Review booking →</button>
+                    <p class="attention-title">
+                      <span class="severity-badge is-critical">Critical</span>
+                      <span class="attention-sep" aria-hidden="true">·</span>
+                      <span>Tripura Trip</span>
+                    </p>
+                    <p class="attention-meta">Voucher blocked · Departure in 8 hours · 4 travellers</p>
+                    <p class="attention-footer">
+                      <span class="attention-owner">Owner: Priya</span>
+                      <button class="text-link text-link-btn attention-action" type="button" data-toast="Opening Tripura Trip booking…">Review booking</button>
+                    </p>
                   </div>
                 </li>
-                <li class="attention-item" data-search="goa weekend shah family payment overdue">
-                  <span class="status-dot warning" aria-hidden="true"></span>
+                <li class="attention-item" data-search="goa weekend shah family payment overdue warning">
                   <div class="attention-body">
-                    <p class="attention-title">Goa Weekend · Shah Family</p>
-                    <p class="attention-meta">Customer payment overdue by 3 days · Booking may be cancelled · ₹1.20L at risk · Rahul</p>
-                    <button class="text-link text-link-btn" type="button" data-toast="Reminder sent to Shah Family">Send reminder →</button>
+                    <p class="attention-title">
+                      <span class="severity-badge is-warning">Warning</span>
+                      <span class="attention-sep" aria-hidden="true">·</span>
+                      <span>Goa Weekend</span>
+                    </p>
+                    <p class="attention-meta">Payment overdue 3 days · Booking at risk · ₹1.20L</p>
+                    <p class="attention-footer">
+                      <span class="attention-owner">Owner: Rahul</span>
+                      <button class="text-link text-link-btn attention-action" type="button" data-toast="Reminder sent to Shah Family">Send reminder</button>
+                    </p>
                   </div>
                 </li>
-                <li class="attention-item" data-search="shimla package mehta group passport">
-                  <span class="status-dot warning" aria-hidden="true"></span>
+                <li class="attention-item" data-search="shimla package mehta group passport warning">
                   <div class="attention-body">
-                    <p class="attention-title">Shimla Package · Mehta Group</p>
-                    <p class="attention-meta">Passport details missing for 2 travellers · Departure in 5 days · visa window closing · Priya</p>
-                    <button class="text-link text-link-btn" type="button" data-toast="Document request sent to Mehta Group">Request documents →</button>
+                    <p class="attention-title">
+                      <span class="severity-badge is-warning">Warning</span>
+                      <span class="attention-sep" aria-hidden="true">·</span>
+                      <span>Shimla Package</span>
+                    </p>
+                    <p class="attention-meta">Passport missing · Departure in 5 days · 2 travellers</p>
+                    <p class="attention-footer">
+                      <span class="attention-owner">Owner: Priya</span>
+                      <button class="text-link text-link-btn attention-action" type="button" data-toast="Document request sent to Mehta Group">Request documents</button>
+                    </p>
                   </div>
                 </li>
               </ul>
@@ -292,26 +293,26 @@
                 <a class="text-link" href="#queries" data-nav="Queries">View all follow-ups →</a>
               </header>
               <ul class="followup-list" id="followup-list">
-                <li class="followup-item is-interactive" tabindex="0" role="button" data-search="jain family shimla" data-toast="Opening Jain Family follow-up…">
+                <li class="followup-item" data-search="jain family shimla follow-up due scheduled">
                   <p class="followup-title">
                     <span>Jain Family</span>
                     <span class="followup-dest"> · Shimla</span>
                   </p>
-                  <p class="followup-meta">₹3.80L · Awaiting response · Expires tomorrow</p>
+                  <p class="followup-meta">Scheduled follow-up due today · 16:00 IST</p>
                 </li>
-                <li class="followup-item is-interactive" tabindex="0" role="button" data-search="patel group rajasthan" data-toast="Opening Patel Group follow-up…">
+                <li class="followup-item" data-search="patel group rajasthan follow-up overdue">
                   <p class="followup-title">
                     <span>Patel Group</span>
                     <span class="followup-dest"> · Rajasthan Circuit</span>
                   </p>
-                  <p class="followup-meta">₹6.40L · Awaiting response for 2 days · Expires in 4 days</p>
+                  <p class="followup-meta">Follow-up overdue by 2 days · ₹6.40L proposal</p>
                 </li>
-                <li class="followup-item is-interactive" tabindex="0" role="button" data-search="kapoor family kerala" data-toast="Opening Kapoor Family follow-up…">
+                <li class="followup-item" data-search="kapoor family kerala proposal expiring">
                   <p class="followup-title">
                     <span>Kapoor Family</span>
                     <span class="followup-dest"> · Kerala Backwaters</span>
                   </p>
-                  <p class="followup-meta">₹2.80L · No update for 5 days · Expires in 7 days</p>
+                  <p class="followup-meta">Proposal expiring soon · Expires in 2 days · ₹2.80L</p>
                 </li>
               </ul>
             </section>
@@ -324,32 +325,44 @@
                 </div>
                 <a class="text-link" href="#bookings" data-nav="Bookings">View operations →</a>
               </header>
-              <ul class="ops-list" id="ops-list">
-                <li class="ops-item" data-search="goa weekend airport transfer">
-                  <time class="ops-time" datetime="13:15">13:15</time>
-                  <div class="ops-body">
-                    <p class="ops-title">Goa Weekend</p>
-                    <p class="ops-status is-success">Airport transfer · Supplier confirmed · Voucher ready</p>
-                  </div>
-                  <button class="text-link text-link-btn" type="button" data-toast="Opening Goa Weekend operation…">View →</button>
-                </li>
-                <li class="ops-item" data-search="kerala backwaters patel hotel">
-                  <time class="ops-time" datetime="15:30">15:30</time>
-                  <div class="ops-body">
-                    <p class="ops-title">Kerala Backwaters · Patel Group</p>
-                    <p class="ops-status is-warning">Hotel check-in · Supplier confirmation pending</p>
-                  </div>
-                  <button class="text-link text-link-btn" type="button" data-toast="Opening Kerala Backwaters operation…">View →</button>
-                </li>
-                <li class="ops-item" data-search="shimla package mehta transfer">
-                  <time class="ops-time" datetime="17:00">17:00</time>
-                  <div class="ops-body">
-                    <p class="ops-title">Shimla Package · Mehta Group</p>
-                    <p class="ops-status is-warning">Transfer · Confirmation pending</p>
-                  </div>
-                  <button class="text-link text-link-btn" type="button" data-toast="Opening Shimla Package operation…">View →</button>
-                </li>
-              </ul>
+              <div class="ops-list" id="ops-list">
+                <p class="ops-group-label">Today</p>
+                <ul class="ops-group">
+                  <li class="ops-item" data-search="goa weekend airport transfer today shah">
+                    <time class="ops-time" datetime="2026-08-05T13:15">13:15 IST</time>
+                    <div class="ops-body">
+                      <p class="ops-title">
+                        <span>Goa Weekend</span>
+                        <span class="ops-entity"> · Shah Family</span>
+                      </p>
+                      <p class="ops-status is-success">Airport transfer · Supplier confirmed · Voucher ready</p>
+                    </div>
+                  </li>
+                  <li class="ops-item" data-search="kerala backwaters patel hotel today">
+                    <time class="ops-time" datetime="2026-08-05T15:30">15:30 IST</time>
+                    <div class="ops-body">
+                      <p class="ops-title">
+                        <span>Kerala Backwaters</span>
+                        <span class="ops-entity"> · Patel Group</span>
+                      </p>
+                      <p class="ops-status is-warning">Hotel check-in · Supplier confirmation pending</p>
+                    </div>
+                  </li>
+                </ul>
+                <p class="ops-group-label">Tomorrow</p>
+                <ul class="ops-group">
+                  <li class="ops-item" data-search="shimla package mehta transfer tomorrow">
+                    <time class="ops-time" datetime="2026-08-06T09:00">09:00 IST</time>
+                    <div class="ops-body">
+                      <p class="ops-title">
+                        <span>Shimla Package</span>
+                        <span class="ops-entity"> · Mehta Group</span>
+                      </p>
+                      <p class="ops-status is-warning">Transfer · Confirmation pending · Trip local time</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
             </section>
           </div>
 
@@ -363,24 +376,26 @@
                 <a class="text-link" href="#team" data-nav="Team">Review workload →</a>
               </header>
               <ul class="workload-list" id="workload-list">
-                <li class="workload-item is-interactive" tabindex="0" role="button" data-search="priya critical tasks" data-toast="Opening Priya's workload…">
+                <li class="workload-item is-interactive" tabindex="0" role="button" data-search="priya critical tasks tripura" data-kpi-nav="Team" data-toast="Opening Priya's tasks…">
                   <div class="workload-person">
                     <span class="avatar" aria-hidden="true">PR</span>
                     <span class="workload-name">Priya</span>
                   </div>
-                  <p class="workload-meta">3 critical tasks · 2 active bookings</p>
+                  <p class="workload-meta">3 critical · Nearest due today 18:00</p>
+                  <p class="workload-cause">Tripura Trip · Hotel voucher</p>
                 </li>
-                <li class="workload-item is-interactive" tabindex="0" role="button" data-search="rahul overdue tasks" data-toast="Opening Rahul's workload…">
+                <li class="workload-item is-interactive" tabindex="0" role="button" data-search="rahul overdue tasks goa" data-kpi-nav="Team" data-toast="Opening Rahul's tasks…">
                   <div class="workload-person">
                     <span class="avatar" aria-hidden="true">RK</span>
                     <span class="workload-name">Rahul</span>
                   </div>
-                  <p class="workload-meta">1 overdue task · 1 active booking</p>
+                  <p class="workload-meta">1 overdue · Nearest due yesterday</p>
+                  <p class="workload-cause">Goa Weekend · Balance payment</p>
                 </li>
               </ul>
             </section>
 
-            <section class="card" aria-labelledby="activity-title">
+            <section class="card" aria-labelledby="activity-title" id="activity-card">
               <header class="card-head">
                 <div class="card-title-row">
                   <img src="assets/zap.svg" alt="" width="14" height="14" />
@@ -500,7 +515,7 @@
 
           <div class="content-grid">
             <div class="content-primary">
-              <section class="card" aria-labelledby="new-attention-title">
+              <section class="card card-attention" aria-labelledby="new-attention-title">
                 <header class="card-head">
                   <div class="card-title-row">
                     <img src="assets/warning.svg" alt="" width="14" height="14" />
@@ -579,7 +594,7 @@
                 </ul>
               </section>
 
-              <section class="card" id="setup-checklist" aria-labelledby="checklist-title">
+              <section class="card card-checklist" id="setup-checklist" aria-labelledby="checklist-title">
                 <header class="card-head">
                   <div class="card-title-row">
                     <img src="assets/nav-tasks.svg" alt="" width="14" height="14" />

@@ -131,7 +131,7 @@
     dashboardNew.hidden = !isNew;
     document.title = isNew ? "Paryatech — Welcome" : "Paryatech — Home";
     document.body.classList.toggle("is-new-user", isNew);
-    setActiveNav(isNew ? "Home" : "Inbox");
+    setActiveNav("Home");
     if (isNew) {
       notifDot.classList.add("is-hidden");
       notifBadge.classList.add("is-hidden");
@@ -385,7 +385,11 @@
       setActiveNav(name);
       setSidebarOpen(false);
       showToast(`Opened ${name}`);
-      if (name === "Home" || name === "Inbox") {
+      if (name === "Home") {
+        applyDashboardFilter("");
+        searchInput.value = "";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else if (name === "Inbox") {
         applyDashboardFilter("");
         searchInput.value = "";
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -655,13 +659,31 @@
 
   /* ---------- Inline actions ---------- */
 
-  document.querySelectorAll("[data-toast]").forEach((el) => {
-    const fire = () => showToast(el.dataset.toast);
-    el.addEventListener("click", fire);
+  function activateKpiOrToast(el) {
+    const targetId = el.dataset.kpiTarget;
+    const nav = el.dataset.kpiNav;
+    if (nav) setActiveNav(nav);
+    if (targetId) {
+      const node = document.getElementById(targetId);
+      const section = node?.closest(".card") || node;
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+        section.classList.add("is-section-highlight");
+        window.setTimeout(() => section.classList.remove("is-section-highlight"), 1600);
+      }
+    }
+    if (el.dataset.toast) showToast(el.dataset.toast);
+  }
+
+  document.querySelectorAll("[data-toast], [data-kpi-nav], [data-kpi-target]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      if (el.tagName === "A") e.preventDefault();
+      activateKpiOrToast(el);
+    });
     el.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        fire();
+        activateKpiOrToast(el);
       }
     });
   });

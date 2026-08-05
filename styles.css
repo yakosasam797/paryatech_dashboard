@@ -7,16 +7,20 @@
   --teal-700: #115553;
   --teal-600: #1c6e6b;
   --teal-500: #2a8784;
+  --teal-200: #c0e0dd;
   --teal-100: #e3f1ef;
   --teal-50: #f0f8f7;
   --pink-700: #a56383;
   --pink-500: #d28ead;
   --pink-100: #f8dee8;
   --pink-50: #fceff4;
+  --mint-200: #e7fef8;
   --mint-100: #f1fefb;
+  --mint-50: #f8fffe;
   --blue-700: #1d4ed8;
   --blue-100: #dbeafe;
   --amber-100: #fef3c7;
+  --red-100: #fce2e5;
 
   /* Semantic */
   --primary: #115553;
@@ -24,6 +28,9 @@
   --primary-foreground: #ffffff;
   --secondary-soft: #f8dee8;
   --secondary-strong: #d28ead;
+  --tertiary: #e7fef8;
+  --tertiary-soft: #f3fffc;
+  --tertiary-strong: #a5dccf;
   --background: #fdfffc;
   --card: #ffffff;
   --muted: #f5f5f4;
@@ -193,6 +200,7 @@ p {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background: var(--shell);
 }
 
 /* ========== Sidebar ========== */
@@ -340,7 +348,7 @@ p {
   gap: 16px;
   padding: 0 32px;
   border-bottom: 1px solid var(--border);
-  background: var(--background);
+  background: var(--card);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -842,19 +850,32 @@ p {
   font: inherit;
   color: inherit;
   width: 100%;
+  box-shadow: var(--shadow-sm);
   transition: box-shadow var(--dur-3) var(--ease-out), border-color var(--dur-3) var(--ease-out),
-    transform var(--dur-3) var(--ease-out);
+    transform var(--dur-3) var(--ease-out), background var(--dur-3) var(--ease-out);
 }
 
 .kpi-card:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--border-strong);
+  border-color: var(--teal-200);
+  background: var(--teal-50);
   transform: translateY(-1px);
 }
 
 .kpi-card:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+.kpi-card-danger {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.kpi-card-danger:hover {
+  background: var(--card);
+  border-color: color-mix(in srgb, var(--destructive) 28%, var(--border));
+  box-shadow: var(--shadow-md);
 }
 
 .kpi-label {
@@ -924,21 +945,19 @@ p {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 /* Needs Attention — strongest section */
 
 .card-attention {
-  border-color: color-mix(in srgb, var(--destructive) 32%, var(--border));
-  box-shadow: var(--shadow-sm);
+  background: color-mix(in srgb, var(--red-100) 35%, var(--card));
+  border-color: color-mix(in srgb, var(--destructive) 28%, var(--border));
+  box-shadow: var(--shadow-md);
 }
 
 .card-attention .card-head {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--destructive) 9%, #fff) 0%,
-    color-mix(in srgb, var(--destructive) 3%, #fff) 100%
-  );
+  background: var(--red-100);
   border-bottom-color: color-mix(in srgb, var(--destructive) 18%, var(--border));
 }
 
@@ -950,17 +969,17 @@ p {
 .card-attention .card-title-row img {
   padding: 5px;
   box-sizing: content-box;
-  background: color-mix(in srgb, var(--destructive) 12%, white);
+  background: color-mix(in srgb, var(--destructive) 14%, white);
   border-radius: var(--radius-md);
 }
 
 .card-checklist {
-  background: linear-gradient(180deg, var(--mint-100) 0%, var(--card) 48%);
-  border-color: color-mix(in srgb, var(--teal-700) 18%, var(--border));
+  background: linear-gradient(180deg, var(--mint-100) 0%, var(--card) 55%);
+  border-color: color-mix(in srgb, var(--teal-700) 16%, var(--border));
 }
 
 .card-checklist .card-head {
-  background: transparent;
+  background: var(--mint-100);
   border-bottom-color: color-mix(in srgb, var(--teal-700) 12%, var(--border));
 }
 
@@ -975,6 +994,7 @@ p {
   gap: 12px;
   padding: 18px 20px 14px;
   border-bottom: 1px solid var(--border);
+  background: var(--teal-50);
 }
 
 .card-title-row {
@@ -1070,7 +1090,9 @@ p {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 8px 12px;
+  width: 100%;
   margin-top: 8px;
 }
 

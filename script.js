@@ -113,8 +113,12 @@
     updateSetupProgress();
   }
 
+  function getViewFromSearchParams() {
+    return new URLSearchParams(window.location.search).get("view");
+  }
+
   function resolveView() {
-    const param = new URLSearchParams(window.location.search).get("view");
+    const param = getViewFromSearchParams();
     if (param === "new") return "new";
     if (param === "returning") return "returning";
     return hasDemoActivity() ? "returning" : "new";
@@ -333,6 +337,10 @@
   updateGreeting();
   initNewUserDashboard();
   applyView(resolveView());
+
+  window.addEventListener("popstate", () => {
+    applyView(resolveView());
+  });
 
   /* ---------- Demo navigation ---------- */
 

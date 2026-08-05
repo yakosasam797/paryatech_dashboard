@@ -1775,6 +1775,233 @@ p {
   }
 }
 
+/* ========== Dashboard views ========== */
+
+.dashboard-view[hidden] {
+  display: none !important;
+}
+
+/* ========== New user dashboard ========== */
+
+.hero-new .hero-date {
+  display: none;
+}
+
+.onboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+  width: 100%;
+}
+
+.onboard-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 148px;
+}
+
+.onboard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.onboard-label {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.onboard-icon {
+  flex: none;
+  opacity: 0.7;
+}
+
+.onboard-desc {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  line-height: 1.45;
+  flex: 1;
+  margin-bottom: 12px;
+}
+
+.onboard-card .text-link,
+.onboard-card .text-link-btn {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.setup-progress {
+  margin-top: 20px;
+  padding: 18px 20px;
+}
+
+.setup-progress-inner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.setup-progress-meta {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+
+.setup-progress-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+
+.setup-progress-pct {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--teal-700);
+}
+
+.progress-track {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--teal-700), var(--teal-500));
+  transition: width var(--dur-3) var(--ease-out);
+}
+
+.empty-state {
+  padding: 28px 20px 32px;
+  text-align: center;
+}
+
+.empty-state-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.empty-state-desc {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-top: 6px;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.45;
+}
+
+.empty-state .text-link-btn {
+  margin-top: 12px;
+}
+
+.checklist {
+  padding: 8px 12px 12px;
+}
+
+.checklist-item {
+  list-style: none;
+}
+
+.checklist-item.is-done .checklist-label {
+  color: var(--subtle-foreground);
+  text-decoration: line-through;
+}
+
+.checklist-check {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 1px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--card);
+  color: transparent;
+  transition: background var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+}
+
+.checklist-item.is-done .checklist-check {
+  background: var(--teal-700);
+  border-color: var(--teal-700);
+  color: var(--primary-foreground);
+}
+
+.checklist-label {
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.checklist-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 8px;
+  border-radius: var(--radius-md);
+}
+
+.checklist-btn:hover {
+  background: var(--muted);
+}
+
+.checklist-btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+#dashboard-new .workload-item {
+  padding: 16px 20px;
+}
+
+#dashboard-new .workload-item .text-link-btn {
+  margin-top: 8px;
+}
+
+#setup-checklist.is-highlighted {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal-700) 25%, transparent);
+}
+
+@media (max-width: 1100px) {
+  .onboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .onboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .setup-progress-inner {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .setup-progress-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 /* ========== Responsive ========== */
 
 @media (max-width: 1100px) {

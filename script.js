@@ -21,12 +21,171 @@
   const toastRegion = document.getElementById("toast-region");
   const heroDate = document.getElementById("hero-date");
   const greeting = document.getElementById("greeting");
+  const dashboardReturning = document.getElementById("dashboard-returning");
+  const dashboardNew = document.getElementById("dashboard-new");
+  const checklistList = document.getElementById("checklist-list");
+  const setupProgressMeta = document.getElementById("setup-progress-meta");
+  const setupProgressPct = document.getElementById("setup-progress-pct");
+  const setupProgressFill = document.getElementById("setup-progress-fill");
+  const setupProgressBar = document.getElementById("setup-progress-bar");
+  const setupChecklistCard = document.getElementById("setup-checklist");
+  const continueSetupBtn = document.getElementById("continue-setup-btn");
+  const viewChecklistBtn = document.getElementById("view-checklist-btn");
 
-  const filterable = document.querySelectorAll("[data-search]");
+  const STORAGE = {
+    customers: "paryatech_demo_customers",
+    queries: "paryatech_demo_queries",
+    bookings: "paryatech_demo_bookings",
+    checklist: "paryatech_setup_checklist",
+  };
+
+  const CHECKLIST_ITEMS = [
+    { id: "business", label: "Add business and tax details", defaultDone: true },
+    { id: "customers", label: "Add or import customers" },
+    { id: "query", label: "Create the first query" },
+    { id: "vendors", label: "Add vendors" },
+    { id: "team", label: "Invite team members" },
+    { id: "branding", label: "Configure proposal branding" },
+    { id: "channels", label: "Connect WhatsApp or Email" },
+  ];
+
+  let currentView = "returning";
+
+  const filterable = document.querySelectorAll("#dashboard-returning [data-search]");
   let liveFilter = "";
   let lastFocus = null;
 
   /* ---------- Helpers ---------- */
+
+  function getDemoCount(key) {
+    const raw = localStorage.getItem(STORAGE[key]);
+    const value = raw === null ? 0 : Number.parseInt(raw, 10);
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  function setDemoCount(key, value) {
+    localStorage.setItem(STORAGE[key], String(Math.max(0, value)));
+  }
+
+  function incrementDemoCount(key) {
+    setDemoCount(key, getDemoCount(key) + 1);
+  }
+
+  function hasDemoActivity() {
+    return getDemoCount("customers") > 0 || getDemoCount("queries") > 0 || getDemoCount("bookings") > 0;
+  }
+
+  function getChecklistDone() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE.checklist) || "[]");
+      if (!Array.isArray(saved)) return ["business"];
+      return saved.length ? saved : ["business"];
+    } catch {
+      return ["business"];
+    }
+  }
+
+  function saveChecklistDone(doneIds) {
+    localStorage.setItem(STORAGE.checklist, JSON.stringify(doneIds));
+  }
+
+  function isChecklistDone(id) {
+    return getChecklistDone().includes(id);
+  }
+
+  function completeChecklistItem(id) {
+    const done = getChecklistDone();
+    if (!done.includes(id)) {
+      done.push(id);
+      saveChecklistDone(done);
+      renderChecklist();
+      updateSetupProgress();
+    }
+  }
+
+  function toggleChecklistItem(id) {
+    const done = getChecklistDone();
+    const index = done.indexOf(id);
+    if (index >= 0) done.splice(index, 1);
+    else done.push(id);
+    saveChecklistDone(done);
+    renderChecklist();
+    updateSetupProgress();
+  }
+
+  function resolveView() {
+    const param = new URLSearchParams(window.location.search).get("view");
+    if (param === "new") return "new";
+    if (param === "returning") return "returning";
+    return hasDemoActivity() ? "returning" : "new";
+  }
+
+  function applyView(view) {
+    currentView = view;
+    const isNew = view === "new";
+    dashboardReturning.hidden = isNew;
+    dashboardNew.hidden = !isNew;
+    document.title = isNew ? "Paryatech — Welcome" : "Paryatech — Home";
+    document.body.classList.toggle("is-new-user", isNew);
+    setActiveNav(isNew ? "Home" : "Inbox");
+    if (isNew) {
+      notifDot.classList.add("is-hidden");
+      notifBadge.classList.add("is-hidden");
+      notifBtn.setAttribute("aria-label", "Notifications, no unread");
+    } else {
+      updateUnreadUI();
+      updateGreeting();
+    }
+  }
+
+  function renderChecklist() {
+    if (!checklistList) return;
+    const done = getChecklistDone();
+    checklistList.innerHTML = "";
+    CHECKLIST_ITEMS.forEach((item) => {
+      const li = document.createElement("li");
+      const isDone = done.includes(item.id);
+      li.className = `checklist-item${isDone ? " is-done" : ""}`;
+      li.innerHTML = `
+        <button type="button" class="checklist-btn" data-checklist-id="${item.id}" aria-pressed="${isDone}">
+          <span class="checklist-check" aria-hidden="true">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+          </span>
+          <span class="checklist-label">${item.label}</span>
+        </button>
+      `;
+      checklistList.appendChild(li);
+    });
+  }
+
+  function updateSetupProgress() {
+    const total = CHECKLIST_ITEMS.length;
+    const doneCount = getChecklistDone().length;
+    const remaining = Math.max(total - doneCount, 0);
+    const pct = Math.round((doneCount / total) * 100);
+    if (setupProgressMeta) {
+      setupProgressMeta.textContent = `${doneCount} of ${total} done · ${remaining} remaining`;
+    }
+    if (setupProgressPct) setupProgressPct.textContent = `${pct}%`;
+    if (setupProgressFill) setupProgressFill.style.width = `${pct}%`;
+    if (setupProgressBar) setupProgressBar.setAttribute("aria-valuenow", String(pct));
+  }
+
+  function scrollToChecklist() {
+    if (!setupChecklistCard) return;
+    setupChecklistCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    setupChecklistCard.classList.add("is-highlighted");
+    window.setTimeout(() => setupChecklistCard.classList.remove("is-highlighted"), 1600);
+  }
+
+  function initNewUserDashboard() {
+    const done = getChecklistDone();
+    if (!done.length) {
+      saveChecklistDone(["business"]);
+    }
+    renderChecklist();
+    updateSetupProgress();
+  }
 
   function showToast(message, variant = "success") {
     if (!message) return;
@@ -100,7 +259,11 @@
 
   function buildSearchIndex() {
     const items = [];
-    document.querySelectorAll(".attention-item, .followup-item, .ops-item, .activity-item, .kpi-card, .workload-item").forEach((el) => {
+    document
+      .querySelectorAll(
+        "#dashboard-returning .attention-item, #dashboard-returning .followup-item, #dashboard-returning .ops-item, #dashboard-returning .activity-item, #dashboard-returning .kpi-card, #dashboard-returning .workload-item"
+      )
+      .forEach((el) => {
       const title =
         el.querySelector(".attention-title, .followup-title, .ops-title, .activity-title, .kpi-label, .workload-name")
           ?.textContent?.trim() || "Result";
@@ -155,6 +318,7 @@
   /* ---------- Greeting / date ---------- */
 
   function updateGreeting() {
+    if (currentView !== "returning") return;
     const now = new Date();
     const hour = now.getHours();
     const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
@@ -167,6 +331,41 @@
   }
 
   updateGreeting();
+  initNewUserDashboard();
+  applyView(resolveView());
+
+  /* ---------- Demo navigation ---------- */
+
+  document.querySelectorAll("[data-demo-nav]").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      const target = el.dataset.demoNav;
+      if (el.tagName === "A") e.preventDefault();
+      if (target === "customers") {
+        setActiveNav("Customers");
+        openModal("modal-new-customer");
+        return;
+      }
+      if (target === "queries") {
+        setActiveNav("Queries");
+        openModal("modal-new-query");
+        return;
+      }
+      if (target === "vendors") {
+        setActiveNav("Vendors");
+        completeChecklistItem("vendors");
+        showToast("Opened Vendors — add your first supplier");
+      }
+    });
+  });
+
+  checklistList?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-checklist-id]");
+    if (!btn) return;
+    toggleChecklistItem(btn.dataset.checklistId);
+  });
+
+  continueSetupBtn?.addEventListener("click", scrollToChecklist);
+  viewChecklistBtn?.addEventListener("click", scrollToChecklist);
 
   /* ---------- Navigation ---------- */
 
@@ -412,6 +611,8 @@
     }
     closeModal(customerModal);
     resetCustomerForm();
+    incrementDemoCount("customers");
+    completeChecklistItem("customers");
     showToast(`Customer “${name}” created`);
   });
 
@@ -429,7 +630,19 @@
     const dest = data.get("destination");
     closeModal(document.getElementById("modal-new-query"));
     e.target.reset();
+    incrementDemoCount("queries");
+    completeChecklistItem("query");
     showToast(`Query for “${dest}” created`);
+  });
+
+  document.getElementById("invite-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const data = new FormData(e.target);
+    const email = data.get("email");
+    closeModal(document.getElementById("modal-invite-team"));
+    e.target.reset();
+    completeChecklistItem("team");
+    showToast(`Invite sent to ${email}`);
   });
 
   /* ---------- Inline actions ---------- */

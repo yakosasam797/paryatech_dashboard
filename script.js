@@ -2611,7 +2611,6 @@
 
   /* ---------- Roles & access ---------- */
 
-  const rolesPermTbody = document.getElementById("roles-perm-tbody");
   const rolesSaveBar = document.getElementById("roles-save-bar");
   const rolesSaveStatus = document.getElementById("roles-save-status");
   const rolesSaveBtn = document.getElementById("roles-save-btn");
@@ -2620,29 +2619,126 @@
   const roleChangeCancel = document.getElementById("role-change-cancel");
   const roleChangeConfirm = document.getElementById("role-change-confirm");
 
+  const ACCESS_MODULES = [
+    { id: "queries", label: "Queries" },
+    { id: "packages", label: "Packages" },
+    { id: "marketing", label: "Marketing" },
+    { id: "bookings", label: "Bookings" },
+    { id: "customers", label: "Customers" },
+    { id: "vendors", label: "Vendors" },
+    { id: "finance", label: "Finance" },
+    { id: "reports", label: "Reports" },
+    { id: "automation", label: "Automation" },
+    { id: "team", label: "Team" },
+  ];
+
+  function allModulesOn() {
+    return Object.fromEntries(ACCESS_MODULES.map((m) => [m.id, true]));
+  }
+
+  function cloneAccessMap(map) {
+    const next = {};
+    Object.keys(map || {}).forEach((memberId) => {
+      next[memberId] = { ...map[memberId] };
+    });
+    return next;
+  }
+
+  const DEFAULT_MEMBER_ACCESS = {
+    aditi: allModulesOn(),
+    vikram: {
+      queries: true,
+      packages: true,
+      marketing: true,
+      bookings: true,
+      customers: true,
+      vendors: true,
+      finance: true,
+      reports: true,
+      automation: true,
+      team: false,
+    },
+    neha: {
+      queries: true,
+      packages: true,
+      marketing: false,
+      bookings: true,
+      customers: true,
+      vendors: false,
+      finance: false,
+      reports: true,
+      automation: false,
+      team: false,
+    },
+    imran: {
+      queries: true,
+      packages: false,
+      marketing: false,
+      bookings: true,
+      customers: true,
+      vendors: false,
+      finance: false,
+      reports: true,
+      automation: false,
+      team: false,
+    },
+    rohan: {
+      queries: true,
+      packages: true,
+      marketing: true,
+      bookings: true,
+      customers: true,
+      vendors: true,
+      finance: false,
+      reports: true,
+      automation: true,
+      team: false,
+    },
+    sara: {
+      queries: true,
+      packages: false,
+      marketing: false,
+      bookings: true,
+      customers: true,
+      vendors: true,
+      finance: false,
+      reports: true,
+      automation: false,
+      team: false,
+    },
+    priya: {
+      queries: true,
+      packages: true,
+      marketing: false,
+      bookings: true,
+      customers: true,
+      vendors: true,
+      finance: false,
+      reports: true,
+      automation: false,
+      team: false,
+    },
+    karan: {
+      queries: true,
+      packages: false,
+      marketing: false,
+      bookings: true,
+      customers: true,
+      vendors: false,
+      finance: false,
+      reports: false,
+      automation: false,
+      team: false,
+    },
+  };
+
   const rolesState = {
-    permissions: {},
-    savedPermissions: {},
+    memberAccess: cloneAccessMap(DEFAULT_MEMBER_ACCESS),
+    savedMemberAccess: cloneAccessMap(DEFAULT_MEMBER_ACCESS),
     memberRoles: {},
     savedMemberRoles: {},
     pendingRoleChange: null,
-  };
-
-  function snapshotRolePermissions() {
-    const map = { Admin: {}, Member: {} };
-    document.querySelectorAll(".role-perm-select").forEach((select) => {
-      const role = select.dataset.role;
-      const moduleId = select.dataset.module;
-      if (!map[role] || !moduleId) return;
-      map[role][moduleId] = select.value;
-    });
-    return map;
-  }
-
-  rolesState.permissions = snapshotRolePermissions();
-  rolesState.savedPermissions = {
-    Admin: { ...rolesState.permissions.Admin },
-    Member: { ...rolesState.permissions.Member },
+    openModulesFor: null,
   };
 
   document.querySelectorAll(".role-assign-select").forEach((select) => {
@@ -2653,17 +2749,91 @@
     select.dataset.committed = select.value;
   });
 
+  function countMemberAccess(memberId) {
+    const access = rolesState.memberAccess[memberId] || {};
+    const on = ACCESS_MODULES.filter((m) => access[m.id]).length;
+    return { on, total: ACCESS_MODULES.length };
+  }
+
+  function updateAccessCount(memberId) {
+    const el = document.querySelector(`[data-access-count="${memberId}"]`);
+    const { on, total } = countMemberAccess(memberId);
+    if (el) el.textContent = `${on}/${total}`;
+    if (rolesState.openModulesFor === memberId) {
+      const modalCount = document.querySelector("[data-modules-modal-count]");
+      if (modalCount) modalCount.textContent = `${on}/${total}`;
+    }
+  }
+
+  function isOwnerMember(memberId) {
+    const row = document.querySelector(`.roles-member-row[data-member-id="${memberId}"]`);
+    return (row?.dataset.memberRole || "").toLowerCase() === "owner";
+  }
+
+  function canEditMemberAccess() {
+    const viewing = viewTeam?.dataset.viewingAs || "Owner";
+    return viewing === "Owner" || viewing === "Admin";
+  }
+
+  const modulesModal = document.getElementById("modal-member-modules");
+  const modulesModalTitle = document.getElementById("modules-modal-title");
+  const modulesGrid = document.getElementById("roles-modules-grid");
+
+  function renderModulesGrid(memberId) {
+    if (!modulesGrid) return;
+    const access = rolesState.memberAccess[memberId] || {};
+    const locked = isOwnerMember(memberId) || !canEditMemberAccess();
+    modulesGrid.innerHTML = ACCESS_MODULES.map((module) => {
+      const checked = !!access[module.id];
+      return `<li class="roles-modules-item${checked ? " is-on" : ""}">
+        <span class="roles-modules-label">${module.label}</span>
+        <label class="roles-switch">
+          <input type="checkbox" data-access-member="${memberId}" data-access-module="${module.id}" ${checked ? "checked" : ""} ${locked ? "disabled" : ""} aria-label="${module.label} access for ${memberId}" />
+          <span class="roles-switch-ui" aria-hidden="true"></span>
+        </label>
+      </li>`;
+    }).join("");
+  }
+
+  function refreshAllAccessCounts() {
+    Object.keys(rolesState.memberAccess).forEach((memberId) => updateAccessCount(memberId));
+  }
+
+  function closeModulesModalState() {
+    rolesState.openModulesFor = null;
+    document.querySelectorAll(".roles-modules-btn").forEach((btn) => {
+      btn.setAttribute("aria-expanded", "false");
+      btn.classList.remove("is-open");
+    });
+  }
+
+  function openModulesModal(memberId) {
+    const select = document.querySelector(`.role-assign-select[data-member="${memberId}"]`);
+    const name = select?.dataset.memberName || memberId;
+    rolesState.openModulesFor = memberId;
+    if (modulesModalTitle) modulesModalTitle.textContent = `Module access · ${name}`;
+    renderModulesGrid(memberId);
+    updateAccessCount(memberId);
+    document.querySelectorAll(".roles-modules-btn").forEach((btn) => {
+      const active = btn.dataset.modulesFor === memberId;
+      btn.setAttribute("aria-expanded", String(active));
+      btn.classList.toggle("is-open", active);
+    });
+    openModal("modal-member-modules");
+  }
+
   function rolesAreDirty() {
-    const current = snapshotRolePermissions();
-    const permDirty = ["Admin", "Member"].some((role) =>
-      Object.keys(current[role] || {}).some(
-        (key) => current[role][key] !== rolesState.savedPermissions[role]?.[key]
-      )
-    );
     const memberDirty = Object.keys(rolesState.memberRoles).some(
       (id) => rolesState.memberRoles[id] !== rolesState.savedMemberRoles[id]
     );
-    return permDirty || memberDirty;
+    const accessDirty = Object.keys(rolesState.memberAccess).some((memberId) =>
+      ACCESS_MODULES.some(
+        (module) =>
+          !!rolesState.memberAccess[memberId]?.[module.id] !==
+          !!rolesState.savedMemberAccess[memberId]?.[module.id]
+      )
+    );
+    return memberDirty || accessDirty;
   }
 
   function updateRolesDirtyUI() {
@@ -2675,7 +2845,7 @@
     if (rolesSaveBtn) rolesSaveBtn.disabled = !dirty;
   }
 
-  function describeRolesChanges(currentPermissions) {
+  function describeRolesChanges() {
     const before = [];
     const after = [];
 
@@ -2689,23 +2859,22 @@
       after.push(`${name}: ${nextRole}`);
     });
 
-    ["Admin", "Member"].forEach((role) => {
-      Object.keys(currentPermissions[role] || {}).forEach((module) => {
-        const previousAccess = rolesState.savedPermissions[role]?.[module];
-        const nextAccess = currentPermissions[role][module];
-        if (previousAccess === nextAccess) return;
-        const moduleLabel =
-          document.querySelector(`#roles-perm-tbody tr[data-module="${module}"] td`)?.textContent.trim() ||
-          module;
-        before.push(`${role} · ${moduleLabel}: ${previousAccess}`);
-        after.push(`${role} · ${moduleLabel}: ${nextAccess}`);
+    Object.keys(rolesState.memberAccess).forEach((memberId) => {
+      const select = document.querySelector(`.role-assign-select[data-member="${memberId}"]`);
+      const name = select?.dataset.memberName || memberId;
+      ACCESS_MODULES.forEach((module) => {
+        const prev = !!rolesState.savedMemberAccess[memberId]?.[module.id];
+        const next = !!rolesState.memberAccess[memberId]?.[module.id];
+        if (prev === next) return;
+        before.push(`${name} · ${module.label}: ${prev ? "On" : "Off"}`);
+        after.push(`${name} · ${module.label}: ${next ? "On" : "Off"}`);
       });
     });
 
     return {
       count: before.length,
-      before: before.join("; "),
-      after: after.join("; "),
+      before: before.join("; ") || "—",
+      after: after.join("; ") || "—",
     };
   }
 
@@ -2723,16 +2892,42 @@
       supporting: `${changes.count} ${changes.count === 1 ? "change" : "changes"}`,
       previousValue: changes.before,
       newValue: changes.after,
-      relatedRecord: "Roles & access · Workspace permissions",
-      reason: "Role or permission change saved",
+      relatedRecord: "Roles & access · Member module access",
+      reason: "Role or module access change saved",
     });
   }
 
-  rolesPermTbody?.addEventListener("change", (e) => {
-    const select = e.target.closest(".role-perm-select");
-    if (!select) return;
-    rolesState.permissions = snapshotRolePermissions();
+  document.getElementById("roles-assign-tbody")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".roles-modules-btn");
+    if (!btn) return;
+    e.stopPropagation();
+    const memberId = btn.dataset.modulesFor;
+    if (!memberId) return;
+    openModulesModal(memberId);
+  });
+
+  modulesModal?.addEventListener("change", (e) => {
+    const input = e.target.closest("input[data-access-module]");
+    if (!input) return;
+    const memberId = input.dataset.accessMember;
+    const moduleId = input.dataset.accessModule;
+    if (!memberId || !moduleId) return;
+    if (isOwnerMember(memberId) || !canEditMemberAccess()) {
+      input.checked = true;
+      return;
+    }
+    if (!rolesState.memberAccess[memberId]) rolesState.memberAccess[memberId] = {};
+    rolesState.memberAccess[memberId][moduleId] = input.checked;
+    input.closest(".roles-modules-item")?.classList.toggle("is-on", input.checked);
+    updateAccessCount(memberId);
     updateRolesDirtyUI();
+  });
+
+  modulesModal?.querySelectorAll("[data-close-modal]").forEach((btn) => {
+    btn.addEventListener("click", () => closeModulesModalState());
+  });
+  modulesModal?.addEventListener("click", (e) => {
+    if (e.target === modulesModal) closeModulesModalState();
   });
 
   document.querySelectorAll(".role-assign-select").forEach((select) => {
@@ -2785,25 +2980,27 @@
     pending.select.value = pending.to;
     pending.select.dataset.committed = pending.to;
     rolesState.memberRoles[pending.memberId] = pending.to;
+    const row = document.querySelector(`.roles-member-row[data-member-id="${pending.memberId}"]`);
+    if (row) row.dataset.memberRole = pending.to.toLowerCase();
     rolesState.pendingRoleChange = null;
     closeModal(roleChangeModal);
+    if (rolesState.openModulesFor === pending.memberId) {
+      renderModulesGrid(pending.memberId);
+    }
     updateRolesDirtyUI();
   });
 
   rolesSaveBtn?.addEventListener("click", () => {
     if (!rolesAreDirty()) return;
-    rolesState.permissions = snapshotRolePermissions();
-    const auditChanges = describeRolesChanges(rolesState.permissions);
-    rolesState.savedPermissions = {
-      Admin: { ...rolesState.permissions.Admin },
-      Member: { ...rolesState.permissions.Member },
-    };
+    const auditChanges = describeRolesChanges();
+    rolesState.savedMemberAccess = cloneAccessMap(rolesState.memberAccess);
     rolesState.savedMemberRoles = { ...rolesState.memberRoles };
     appendAuditRolesSave(auditChanges);
     updateRolesDirtyUI();
     showToast("Roles & access saved");
   });
 
+  refreshAllAccessCounts();
   updateRolesDirtyUI();
 
   const rolesMemberSearch = document.getElementById("roles-member-search");
@@ -2821,14 +3018,6 @@
       const match = searchMatch && roleMatch;
       row.hidden = !match;
       if (match) visible += 1;
-    });
-
-    document.querySelectorAll("#roles-perm-tbody tr[data-module]").forEach((row) => {
-      const moduleId = row.dataset.module || "";
-      const moduleLabel = row.querySelector("td")?.textContent?.trim() || "";
-      const hay = `${moduleLabel} ${moduleId}`.toLowerCase();
-      const match = !query || hay.includes(query);
-      row.hidden = !match;
     });
 
     if (rolesMemberCount) {
@@ -3576,6 +3765,7 @@
       const openModalEl = [...document.querySelectorAll(".modal-backdrop")].find((m) => !m.hidden);
       if (openModalEl) {
         if (openModalEl.id === "modal-role-change") rolesState.pendingRoleChange = null;
+        if (openModalEl.id === "modal-member-modules") closeModulesModalState();
         closeModal(openModalEl);
         return;
       }

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=invitesfix2" />
+  <link rel="stylesheet" href="styles.css?v=memberaccess8" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -1086,9 +1086,9 @@
 
             <div class="roles-toolbar">
               <label class="roles-member-search">
-                <span class="sr-only">Search members or modules</span>
+                <span class="sr-only">Search members</span>
                 <img src="assets/search.svg" alt="" width="14" height="14" />
-                <input type="search" id="roles-member-search" placeholder="Search members or modules…" autocomplete="off" />
+                <input type="search" id="roles-member-search" placeholder="Search members…" autocomplete="off" />
               </label>
               <div class="roster-filters roles-role-filters" role="group" aria-label="Role filters">
                 <button type="button" class="roster-filter is-active" data-roles-filter="all">All</button>
@@ -1098,113 +1098,101 @@
               </div>
             </div>
 
-            <div class="roles-layout">
-              <section class="card roles-members-card">
-                <header class="card-head roles-card-head">
-                  <div class="card-title-row">
-                    <h2>Member access</h2>
-                    <span class="team-count-pill" id="roles-member-count">8 members</span>
-                  </div>
-                </header>
-                <div class="roles-members-scroll table-scroll">
-                  <table class="team-table roles-member-table">
-                    <thead>
-                      <tr>
-                        <th scope="col">Member</th>
-                        <th scope="col">Team</th>
-                        <th scope="col">Role</th>
-                      </tr>
-                    </thead>
-                    <tbody id="roles-assign-tbody">
-                      <tr class="roles-member-row" data-member-role-row="aditi" data-member-role="owner" data-member-search="aditi rao international owner">
-                        <td><div class="member-cell"><span class="avatar" aria-hidden="true">AR</span><span class="member-name">Aditi Rao</span></div></td>
-                        <td>International</td>
-                        <td><select class="team-select role-assign-select" data-member="aditi" data-member-name="Aditi Rao" disabled aria-label="Role for Aditi Rao"><option selected>Owner</option></select></td>
-                      </tr>
-                      <tr class="roles-member-row" data-member-role-row="vikram" data-member-role="admin" data-member-search="vikram singh international admin">
-                        <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">VS</span><span class="member-name">Vikram Singh</span></div></td>
-                        <td>International</td>
-                        <td><select class="team-select role-assign-select" data-member="vikram" data-member-name="Vikram Singh" aria-label="Role for Vikram Singh"><option selected>Admin</option><option>Member</option></select></td>
-                      </tr>
-                      <tr class="roles-member-row" data-member-role-row="neha" data-member-role="member" data-member-search="neha kapoor international member">
-                        <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">NK</span><span class="member-name">Neha Kapoor</span></div></td>
-                        <td>International</td>
-                        <td><select class="team-select role-assign-select" data-member="neha" data-member-name="Neha Kapoor" aria-label="Role for Neha Kapoor"><option selected>Member</option><option>Admin</option></select></td>
-                      </tr>
-                      <tr class="roles-member-row" data-member-role-row="imran" data-member-role="member" data-member-search="imran sheikh visa international member">
-                        <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">IS</span><span class="member-name">Imran Sheikh</span></div></td>
-                        <td>Visa · Intl</td>
-                        <td><select class="team-select role-assign-select" data-member="imran" data-member-name="Imran Sheikh" aria-label="Role for Imran Sheikh"><option selected>Member</option><option>Admin</option></select></td>
-                      </tr>
-                      <tr class="roles-member-row" data-member-role-row="rohan" data-member-role="admin" data-member-search="rohan mehta domestic admin">
-                        <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">RM</span><span class="member-name">Rohan Mehta</span></div></td>
-                        <td>Domestic</td>
-                        <td><select class="team-select role-assign-select" data-member="rohan" data-member-name="Rohan Mehta" aria-label="Role for Rohan Mehta"><option selected>Admin</option><option>Member</option></select></td>
-                      </tr>
-                      <tr class="roles-member-row" data-member-role-row="sara" data-member-role="member" data-member-search="sara pinto domestic member">
-                        <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">SP</span><span class="member-name">Sara Pinto</span></div></td>
-                        <td>Domestic</td>
-                        <td><select class="team-select role-assign-select" data-member="sara" data-member-name="Sara Pinto" aria-label="Role for Sara Pinto"><option selected>Member</option><option>Admin</option></select></td>
-                      </tr>
-                      <tr class="roles-member-row" data-member-role-row="priya" data-member-role="member" data-member-search="priya nair domestic member">
-                        <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">PN</span><span class="member-name">Priya Nair</span></div></td>
-                        <td>Domestic</td>
-                        <td><select class="team-select role-assign-select" data-member="priya" data-member-name="Priya Nair" aria-label="Role for Priya Nair"><option selected>Member</option><option>Admin</option></select></td>
-                      </tr>
-                      <tr class="roles-member-row" data-member-role-row="karan" data-member-role="member" data-member-search="karan shah domestic member">
-                        <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">KS</span><span class="member-name">Karan Shah</span></div></td>
-                        <td>Domestic</td>
-                        <td><select class="team-select role-assign-select" data-member="karan" data-member-name="Karan Shah" aria-label="Role for Karan Shah"><option selected>Member</option><option>Admin</option></select></td>
-                      </tr>
-                    </tbody>
-                  </table>
+            <section class="card roles-members-card">
+              <header class="card-head roles-card-head">
+                <div class="card-title-row">
+                  <h2>Member access</h2>
+                  <span class="team-count-pill" id="roles-member-count">8 members</span>
                 </div>
-              </section>
-
-              <section class="card roles-permissions-card owner-admin-only">
-                <header class="card-head roles-card-head">
-                  <h2>Permissions by role</h2>
-                </header>
-                <div class="table-scroll">
-                  <table class="team-table roles-matrix-table" id="roles-perm-table">
-                    <thead>
-                      <tr>
-                        <th scope="col">Module</th>
-                        <th scope="col">Admin</th>
-                        <th scope="col">Member</th>
-                      </tr>
-                    </thead>
-                    <tbody id="roles-perm-tbody">
-                      <tr data-module="queries">
-                        <td>Queries</td>
-                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="queries" aria-label="Queries access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
-                        <td><select class="team-select role-perm-select" data-role="Member" data-module="queries" aria-label="Queries access for Member"><option>Full</option><option selected>Own</option><option>View</option><option>None</option></select></td>
-                      </tr>
-                      <tr data-module="proposals">
-                        <td>Proposals</td>
-                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="proposals" aria-label="Proposals access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
-                        <td><select class="team-select role-perm-select" data-role="Member" data-module="proposals" aria-label="Proposals access for Member"><option>Full</option><option selected>Own</option><option>View</option><option>None</option></select></td>
-                      </tr>
-                      <tr data-module="bookings">
-                        <td>Bookings</td>
-                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="bookings" aria-label="Bookings access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
-                        <td><select class="team-select role-perm-select" data-role="Member" data-module="bookings" aria-label="Bookings access for Member"><option>Full</option><option selected>Own</option><option>View</option><option>None</option></select></td>
-                      </tr>
-                      <tr data-module="customers">
-                        <td>Customers</td>
-                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="customers" aria-label="Customers access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
-                        <td><select class="team-select role-perm-select" data-role="Member" data-module="customers" aria-label="Customers access for Member"><option>Full</option><option>Own</option><option selected>View</option><option>None</option></select></td>
-                      </tr>
-                      <tr data-module="vendors">
-                        <td>Vendors</td>
-                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="vendors" aria-label="Vendors access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
-                        <td><select class="team-select role-perm-select" data-role="Member" data-module="vendors" aria-label="Vendors access for Member"><option>Full</option><option>Own</option><option selected>View</option><option>None</option></select></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            </div>
+              </header>
+              <div class="roles-members-scroll table-scroll">
+                <table class="team-table roles-member-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Member</th>
+                      <th scope="col">Team</th>
+                      <th scope="col">Role</th>
+                      <th scope="col">Access</th>
+                      <th scope="col">Modules</th>
+                    </tr>
+                  </thead>
+                  <tbody id="roles-assign-tbody">
+                    <tr class="roles-member-row" data-member-role-row="aditi" data-member-id="aditi" data-member-role="owner" data-member-search="aditi rao international owner">
+                      <td><div class="member-cell"><span class="avatar" aria-hidden="true">AR</span><span class="member-name">Aditi Rao</span></div></td>
+                      <td>International</td>
+                      <td><select class="team-select role-assign-select" data-member="aditi" data-member-name="Aditi Rao" disabled aria-label="Role for Aditi Rao"><option selected>Owner</option></select></td>
+                      <td><span class="roles-access-count" data-access-count="aditi">10/10</span></td>
+                      <td class="roles-modules-cell">
+                        <button type="button" class="btn btn-outline btn-xs roles-modules-btn" data-modules-for="aditi" aria-haspopup="dialog" aria-controls="modal-member-modules">Modules</button>
+                      </td>
+                    </tr>
+                    <tr class="roles-member-row" data-member-role-row="vikram" data-member-id="vikram" data-member-role="admin" data-member-search="vikram singh international admin">
+                      <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">VS</span><span class="member-name">Vikram Singh</span></div></td>
+                      <td>International</td>
+                      <td><select class="team-select role-assign-select" data-member="vikram" data-member-name="Vikram Singh" aria-label="Role for Vikram Singh"><option selected>Admin</option><option>Member</option></select></td>
+                      <td><span class="roles-access-count" data-access-count="vikram">9/10</span></td>
+                      <td class="roles-modules-cell">
+                        <button type="button" class="btn btn-outline btn-xs roles-modules-btn" data-modules-for="vikram" aria-haspopup="dialog" aria-controls="modal-member-modules">Modules</button>
+                      </td>
+                    </tr>
+                    <tr class="roles-member-row" data-member-role-row="neha" data-member-id="neha" data-member-role="member" data-member-search="neha kapoor international member">
+                      <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">NK</span><span class="member-name">Neha Kapoor</span></div></td>
+                      <td>International</td>
+                      <td><select class="team-select role-assign-select" data-member="neha" data-member-name="Neha Kapoor" aria-label="Role for Neha Kapoor"><option selected>Member</option><option>Admin</option></select></td>
+                      <td><span class="roles-access-count" data-access-count="neha">5/10</span></td>
+                      <td class="roles-modules-cell">
+                        <button type="button" class="btn btn-outline btn-xs roles-modules-btn" data-modules-for="neha" aria-haspopup="dialog" aria-controls="modal-member-modules">Modules</button>
+                      </td>
+                    </tr>
+                    <tr class="roles-member-row" data-member-role-row="imran" data-member-id="imran" data-member-role="member" data-member-search="imran sheikh visa international member">
+                      <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">IS</span><span class="member-name">Imran Sheikh</span></div></td>
+                      <td>Visa · Intl</td>
+                      <td><select class="team-select role-assign-select" data-member="imran" data-member-name="Imran Sheikh" aria-label="Role for Imran Sheikh"><option selected>Member</option><option>Admin</option></select></td>
+                      <td><span class="roles-access-count" data-access-count="imran">4/10</span></td>
+                      <td class="roles-modules-cell">
+                        <button type="button" class="btn btn-outline btn-xs roles-modules-btn" data-modules-for="imran" aria-haspopup="dialog" aria-controls="modal-member-modules">Modules</button>
+                      </td>
+                    </tr>
+                    <tr class="roles-member-row" data-member-role-row="rohan" data-member-id="rohan" data-member-role="admin" data-member-search="rohan mehta domestic admin">
+                      <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">RM</span><span class="member-name">Rohan Mehta</span></div></td>
+                      <td>Domestic</td>
+                      <td><select class="team-select role-assign-select" data-member="rohan" data-member-name="Rohan Mehta" aria-label="Role for Rohan Mehta"><option selected>Admin</option><option>Member</option></select></td>
+                      <td><span class="roles-access-count" data-access-count="rohan">8/10</span></td>
+                      <td class="roles-modules-cell">
+                        <button type="button" class="btn btn-outline btn-xs roles-modules-btn" data-modules-for="rohan" aria-haspopup="dialog" aria-controls="modal-member-modules">Modules</button>
+                      </td>
+                    </tr>
+                    <tr class="roles-member-row" data-member-role-row="sara" data-member-id="sara" data-member-role="member" data-member-search="sara pinto domestic member">
+                      <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">SP</span><span class="member-name">Sara Pinto</span></div></td>
+                      <td>Domestic</td>
+                      <td><select class="team-select role-assign-select" data-member="sara" data-member-name="Sara Pinto" aria-label="Role for Sara Pinto"><option selected>Member</option><option>Admin</option></select></td>
+                      <td><span class="roles-access-count" data-access-count="sara">5/10</span></td>
+                      <td class="roles-modules-cell">
+                        <button type="button" class="btn btn-outline btn-xs roles-modules-btn" data-modules-for="sara" aria-haspopup="dialog" aria-controls="modal-member-modules">Modules</button>
+                      </td>
+                    </tr>
+                    <tr class="roles-member-row" data-member-role-row="priya" data-member-id="priya" data-member-role="member" data-member-search="priya nair domestic member">
+                      <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">PN</span><span class="member-name">Priya Nair</span></div></td>
+                      <td>Domestic</td>
+                      <td><select class="team-select role-assign-select" data-member="priya" data-member-name="Priya Nair" aria-label="Role for Priya Nair"><option selected>Member</option><option>Admin</option></select></td>
+                      <td><span class="roles-access-count" data-access-count="priya">6/10</span></td>
+                      <td class="roles-modules-cell">
+                        <button type="button" class="btn btn-outline btn-xs roles-modules-btn" data-modules-for="priya" aria-haspopup="dialog" aria-controls="modal-member-modules">Modules</button>
+                      </td>
+                    </tr>
+                    <tr class="roles-member-row" data-member-role-row="karan" data-member-id="karan" data-member-role="member" data-member-search="karan shah domestic member">
+                      <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">KS</span><span class="member-name">Karan Shah</span></div></td>
+                      <td>Domestic</td>
+                      <td><select class="team-select role-assign-select" data-member="karan" data-member-name="Karan Shah" aria-label="Role for Karan Shah"><option selected>Member</option><option>Admin</option></select></td>
+                      <td><span class="roles-access-count" data-access-count="karan">3/10</span></td>
+                      <td class="roles-modules-cell">
+                        <button type="button" class="btn btn-outline btn-xs roles-modules-btn" data-modules-for="karan" aria-haspopup="dialog" aria-controls="modal-member-modules">Modules</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
 
             <div class="roles-save-bar owner-admin-only" id="roles-save-bar">
               <p class="roles-save-status" id="roles-save-status">No unsaved changes</p>
@@ -2144,6 +2132,24 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="modal-member-modules" hidden>
+    <div class="modal modal-modules" role="dialog" aria-modal="true" aria-labelledby="modules-modal-title">
+      <header class="modal-head">
+        <h2 id="modules-modal-title">Module access</h2>
+        <button class="icon-btn" type="button" data-close-modal aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <p class="roles-modules-modal-meta">Access: <span data-modules-modal-count>0/10</span></p>
+        <ul class="roles-modules-grid" id="roles-modules-grid"></ul>
+        <div class="modal-actions">
+          <button class="btn btn-primary btn-sm" type="button" data-close-modal>Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Notifications drawer -->
   <div class="notif-backdrop" id="notif-backdrop" hidden></div>
   <aside class="notif-drawer" id="notif-panel" role="dialog" aria-modal="true" aria-labelledby="notif-title" hidden>
@@ -2203,6 +2209,6 @@
 
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="script.js?v=invitesfix2"></script>
+  <script src="script.js?v=memberaccess8"></script>
 </body>
 </html>

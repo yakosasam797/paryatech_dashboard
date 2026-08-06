@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=surfaces4" />
+  <link rel="stylesheet" href="styles.css?v=teamrefine10" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -163,13 +163,21 @@
             </svg>
           </button>
           <nav class="breadcrumb" aria-label="Breadcrumb">
-            <span class="breadcrumb-muted">Workspace</span>
+            <span class="breadcrumb-muted" id="breadcrumb-root">Workspace</span>
             <img class="breadcrumb-chevron" src="assets/chevron.svg" alt="" width="12" height="12" />
             <span class="breadcrumb-current" id="breadcrumb-current">Home</span>
           </nav>
         </div>
 
         <div class="topbar-right">
+          <div class="viewing-as" id="viewing-as" hidden>
+            <span class="viewing-as-label">Viewing as</span>
+            <div class="viewing-as-toggle" role="group" aria-label="Viewing as">
+              <button type="button" class="viewing-as-btn is-active" data-viewing-as="Owner">Owner</button>
+              <button type="button" class="viewing-as-btn" data-viewing-as="Admin">Admin</button>
+              <button type="button" class="viewing-as-btn" data-viewing-as="Member">Member</button>
+            </div>
+          </div>
           <button class="search-trigger" type="button" id="search-trigger" aria-label="Search anything">
             <img src="assets/search.svg" alt="" width="13" height="13" />
             <span>Search anything</span>
@@ -204,25 +212,37 @@
 
         <section class="kpi-grid" aria-label="Key metrics">
           <button type="button" class="kpi-card" data-search="booking value confirmed bookings" data-kpi-nav="Bookings" data-toast="Opened Bookings">
-            <p class="kpi-label">Booking value</p>
+            <div class="kpi-card-head">
+              <p class="kpi-label">Booking value</p>
+              <span class="kpi-icon" aria-hidden="true"><img src="assets/currency-rupee.svg" alt="" width="14" height="14" /></span>
+            </div>
             <p class="kpi-value">₹18.40L</p>
             <p class="kpi-meta">6 confirmed · previous 30 days</p>
           </button>
 
           <button type="button" class="kpi-card" data-search="payment due collect overdue finances" data-kpi-nav="Finance" data-toast="Opened Finance">
-            <p class="kpi-label">Payment due</p>
+            <div class="kpi-card-head">
+              <p class="kpi-label">Payment due</p>
+              <span class="kpi-icon" aria-hidden="true"><img src="assets/nav-finance.svg" alt="" width="14" height="14" /></span>
+            </div>
             <p class="kpi-value">₹2.28L</p>
             <p class="kpi-meta">to collect · ₹80K overdue</p>
           </button>
 
           <button type="button" class="kpi-card kpi-card-danger" data-search="at-risk bookings voucher travellers" data-kpi-target="attention-list" data-toast="Showing at-risk bookings">
-            <p class="kpi-label is-danger">At-risk bookings</p>
+            <div class="kpi-card-head">
+              <p class="kpi-label is-danger">At-risk bookings</p>
+              <span class="kpi-icon kpi-icon-danger" aria-hidden="true"><img src="assets/warning.svg" alt="" width="14" height="14" /></span>
+            </div>
             <p class="kpi-value is-danger">2</p>
             <p class="kpi-meta">1 voucher blocked · 5 travellers affected</p>
           </button>
 
           <button type="button" class="kpi-card" data-search="queries needing action unassigned overdue waiting" data-kpi-nav="Queries" data-toast="Opened Queries">
-            <p class="kpi-label">Queries needing action</p>
+            <div class="kpi-card-head">
+              <p class="kpi-label">Queries needing action</p>
+              <span class="kpi-icon" aria-hidden="true"><img src="assets/queries.svg" alt="" width="14" height="14" /></span>
+            </div>
             <p class="kpi-value">7</p>
             <p class="kpi-meta">3 unassigned · 2 overdue · 2 waiting on us</p>
           </button>
@@ -606,6 +626,867 @@
             </div>
           </div>
         </div>
+
+        <!-- Team module -->
+        <div id="view-team" class="dashboard-view team-view" hidden data-viewing-as="Owner">
+          <header class="team-page-head">
+            <div class="team-page-copy">
+              <h1 class="team-page-title" id="team-page-title">Team</h1>
+              <p class="team-page-sub" id="team-page-sub">8 people · Paryatech — performance, live queries and access in one place.</p>
+            </div>
+          </header>
+
+          <nav class="team-tabs" role="tablist" aria-label="Team sections">
+            <button type="button" class="team-tab is-active" role="tab" id="team-tab-overview" data-team-tab="overview" aria-selected="true" aria-controls="team-panel-overview" tabindex="0">Overview</button>
+            <button type="button" class="team-tab" role="tab" id="team-tab-goals" data-team-tab="goals" aria-selected="false" aria-controls="team-panel-goals" tabindex="-1">Goals &amp; targets</button>
+            <button type="button" class="team-tab" role="tab" id="team-tab-org" data-team-tab="org" aria-selected="false" aria-controls="team-panel-org" tabindex="-1">Team structure</button>
+            <button type="button" class="team-tab" role="tab" id="team-tab-roles" data-team-tab="roles" aria-selected="false" aria-controls="team-panel-roles" tabindex="-1">Roles &amp; access</button>
+            <button type="button" class="team-tab" role="tab" id="team-tab-invitations" data-team-tab="invitations" aria-selected="false" aria-controls="team-panel-invitations" tabindex="-1">Invitations</button>
+            <button type="button" class="team-tab owner-admin-only" role="tab" id="team-tab-audit" data-team-tab="audit" aria-selected="false" aria-controls="team-panel-audit" tabindex="-1">Workspace Audit Log</button>
+            <button type="button" class="team-tab" role="tab" id="team-tab-myview" data-team-tab="myview" aria-selected="false" aria-controls="team-panel-myview" tabindex="-1">My view</button>
+          </nav>
+
+          <!-- Overview -->
+          <section class="team-panel is-active" id="team-panel-overview" data-team-panel="overview">
+            <div class="team-section-bar">
+              <p class="team-kicker">Performance · This month</p>
+              <div class="period-pills" role="group" aria-label="Period">
+                <button type="button" class="period-pill is-active">This month</button>
+                <button type="button" class="period-pill">This quarter</button>
+                <button type="button" class="period-pill">Last 6 months</button>
+                <button type="button" class="period-pill">This year</button>
+              </div>
+            </div>
+            <section class="kpi-grid team-kpi-grid" aria-label="Team metrics">
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Team size</p><span class="kpi-icon" aria-hidden="true"><img src="assets/nav-team.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">8</p><p class="kpi-meta">1 owner · 2 admins</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Live queries</p><span class="kpi-icon" aria-hidden="true"><img src="assets/queries.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">73</p><p class="kpi-meta">in flight now</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Avg 1st response</p><span class="kpi-icon" aria-hidden="true"><img src="assets/zap.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">14m</p><p class="kpi-meta">avg reply time</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Win rate</p><span class="kpi-icon" aria-hidden="true"><img src="assets/nav-reports.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">33%</p><p class="kpi-meta">This month</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Revenue</p><span class="kpi-icon" aria-hidden="true"><img src="assets/currency-rupee.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">₹44L</p><p class="kpi-meta kpi-meta-up">↑ 12%</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">CSAT</p><span class="kpi-icon" aria-hidden="true"><img src="assets/users.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">4.7</p><p class="kpi-meta">avg rating</p>
+              </article>
+            </section>
+            <div class="team-assign-banner" id="team-assign-banner">
+              <div>
+                <p class="team-assign-title" id="team-assign-title">4 new enquiries waiting to be assigned</p>
+                <p class="team-assign-meta" id="team-assign-meta">Bali honeymoon · Coorg weekend · Europe group (25 pax) · Andaman family</p>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-open-assign-drawer">Assign</button>
+            </div>
+            <section class="card team-roster-card">
+              <header class="card-head roster-card-head">
+                <div class="card-title-row"><h2>Team performance</h2><span class="team-count-pill">8 people</span></div>
+                <div class="roster-toolbar">
+                  <label class="roster-period-field">
+                    <span class="sr-only">Period</span>
+                    <select class="team-select roster-period" id="roster-period" aria-label="Performance period">
+                      <option value="month" selected>This month</option>
+                      <option value="quarter">This quarter</option>
+                      <option value="year">This year</option>
+                    </select>
+                  </label>
+                  <div class="roster-filters" role="group" aria-label="Performance filters">
+                    <button type="button" class="roster-filter is-active" data-roster-filter="all">All</button>
+                    <button type="button" class="roster-filter" data-roster-filter="high-workload">High workload</button>
+                    <button type="button" class="roster-filter" data-roster-filter="open-tasks">Open tasks</button>
+                    <button type="button" class="roster-filter" data-roster-filter="top-win-rate">Top win rate</button>
+                  </div>
+                </div>
+              </header>
+              <div class="table-scroll">
+                <table class="team-table roster-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Member</th>
+                      <th scope="col">Owned queries</th>
+                      <th scope="col">Open tasks</th>
+                      <th scope="col">Win rate</th>
+                      <th scope="col">Revenue</th>
+                      <th scope="col" class="roster-actions-col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="roster-tbody">
+                    <tr class="roster-row" data-member="neha" data-owned-queries="14" data-open-tasks="5" data-win-rate="29">
+                      <td>
+                        <div class="member-cell">
+                          <span class="avatar avatar-pink" aria-hidden="true">NK</span>
+                          <div>
+                            <p class="member-name-row">
+                              <button type="button" class="member-name-btn" data-toast="Opening Neha Kapoor profile">Neha Kapoor</button>
+                              <span class="status-dot-inline is-on" title="Active" aria-label="Active"></span>
+                            </p>
+                            <p class="member-role">Member · International</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="roster-metric">14</span></td>
+                      <td><span class="roster-metric">5</span> <span class="roster-metric-unit">open</span></td>
+                      <td><span class="roster-metric">29%</span></td>
+                      <td><span class="roster-revenue">₹6.4L</span></td>
+                      <td class="roster-actions-col">
+                        <div class="roster-row-actions">
+                          <button type="button" class="btn btn-primary btn-xs" data-toast="Assign to Neha Kapoor">Assign</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Neha Kapoor profile">View profile</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr class="roster-row" data-member="aditi" data-owned-queries="6" data-open-tasks="2" data-win-rate="41">
+                      <td>
+                        <div class="member-cell">
+                          <span class="avatar" aria-hidden="true">AR</span>
+                          <div>
+                            <p class="member-name-row">
+                              <button type="button" class="member-name-btn" data-toast="Opening Aditi Rao profile">Aditi Rao</button>
+                              <span class="status-dot-inline is-on" title="Active" aria-label="Active"></span>
+                            </p>
+                            <p class="member-role">Owner · International</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="roster-metric">6</span></td>
+                      <td><span class="roster-metric">2</span> <span class="roster-metric-unit">open</span></td>
+                      <td><span class="roster-metric">41%</span></td>
+                      <td><span class="roster-revenue">₹9.2L</span></td>
+                      <td class="roster-actions-col">
+                        <div class="roster-row-actions">
+                          <button type="button" class="btn btn-primary btn-xs" data-toast="Assign to Aditi Rao">Assign</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Aditi Rao profile">View profile</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr class="roster-row" data-member="vikram" data-owned-queries="11" data-open-tasks="4" data-win-rate="36">
+                      <td>
+                        <div class="member-cell">
+                          <span class="avatar avatar-mint" aria-hidden="true">VS</span>
+                          <div>
+                            <p class="member-name-row">
+                              <button type="button" class="member-name-btn" data-toast="Opening Vikram Singh profile">Vikram Singh</button>
+                              <span class="status-dot-inline is-on" title="Active" aria-label="Active"></span>
+                            </p>
+                            <p class="member-role">Admin · International</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="roster-metric">11</span></td>
+                      <td><span class="roster-metric">4</span> <span class="roster-metric-unit">open</span></td>
+                      <td><span class="roster-metric">36%</span></td>
+                      <td><span class="roster-revenue">₹7.8L</span></td>
+                      <td class="roster-actions-col">
+                        <div class="roster-row-actions">
+                          <button type="button" class="btn btn-primary btn-xs" data-toast="Assign to Vikram Singh">Assign</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Vikram Singh profile">View profile</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr class="roster-row" data-member="imran" data-owned-queries="9" data-open-tasks="3" data-win-rate="31">
+                      <td>
+                        <div class="member-cell">
+                          <span class="avatar avatar-mint" aria-hidden="true">IS</span>
+                          <div>
+                            <p class="member-name-row">
+                              <button type="button" class="member-name-btn" data-toast="Opening Imran Sheikh profile">Imran Sheikh</button>
+                              <span class="status-dot-inline is-on" title="Active" aria-label="Active"></span>
+                            </p>
+                            <p class="member-role">Member · Visa · Intl</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="roster-metric">9</span></td>
+                      <td><span class="roster-metric">3</span> <span class="roster-metric-unit">open</span></td>
+                      <td><span class="roster-metric">31%</span></td>
+                      <td><span class="roster-revenue">₹5.1L</span></td>
+                      <td class="roster-actions-col">
+                        <div class="roster-row-actions">
+                          <button type="button" class="btn btn-primary btn-xs" data-toast="Assign to Imran Sheikh">Assign</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Imran Sheikh profile">View profile</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr class="roster-row" data-member="rohan" data-owned-queries="12" data-open-tasks="6" data-win-rate="34">
+                      <td>
+                        <div class="member-cell">
+                          <span class="avatar avatar-pink" aria-hidden="true">RM</span>
+                          <div>
+                            <p class="member-name-row">
+                              <button type="button" class="member-name-btn" data-toast="Opening Rohan Mehta profile">Rohan Mehta</button>
+                              <span class="status-dot-inline is-on" title="Active" aria-label="Active"></span>
+                            </p>
+                            <p class="member-role">Admin · Domestic</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="roster-metric">12</span></td>
+                      <td><span class="roster-metric">6</span> <span class="roster-metric-unit">open</span></td>
+                      <td><span class="roster-metric">34%</span></td>
+                      <td><span class="roster-revenue">₹6.9L</span></td>
+                      <td class="roster-actions-col">
+                        <div class="roster-row-actions">
+                          <button type="button" class="btn btn-primary btn-xs" data-toast="Assign to Rohan Mehta">Assign</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Rohan Mehta profile">View profile</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr class="roster-row" data-member="sara" data-owned-queries="8" data-open-tasks="2" data-win-rate="28">
+                      <td>
+                        <div class="member-cell">
+                          <span class="avatar avatar-pink" aria-hidden="true">SP</span>
+                          <div>
+                            <p class="member-name-row">
+                              <button type="button" class="member-name-btn" data-toast="Opening Sara Pinto profile">Sara Pinto</button>
+                              <span class="status-dot-inline is-on" title="Active" aria-label="Active"></span>
+                            </p>
+                            <p class="member-role">Member · Domestic</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="roster-metric">8</span></td>
+                      <td><span class="roster-metric">2</span> <span class="roster-metric-unit">open</span></td>
+                      <td><span class="roster-metric">28%</span></td>
+                      <td><span class="roster-revenue">₹4.2L</span></td>
+                      <td class="roster-actions-col">
+                        <div class="roster-row-actions">
+                          <button type="button" class="btn btn-primary btn-xs" data-toast="Assign to Sara Pinto">Assign</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Sara Pinto profile">View profile</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr class="roster-row" data-member="priya" data-owned-queries="7" data-open-tasks="3" data-win-rate="30">
+                      <td>
+                        <div class="member-cell">
+                          <span class="avatar avatar-mint" aria-hidden="true">PN</span>
+                          <div>
+                            <p class="member-name-row">
+                              <button type="button" class="member-name-btn" data-toast="Opening Priya Nair profile">Priya Nair</button>
+                              <span class="status-dot-inline is-on" title="Active" aria-label="Active"></span>
+                            </p>
+                            <p class="member-role">Member · Domestic</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="roster-metric">7</span></td>
+                      <td><span class="roster-metric">3</span> <span class="roster-metric-unit">open</span></td>
+                      <td><span class="roster-metric">30%</span></td>
+                      <td><span class="roster-revenue">₹3.8L</span></td>
+                      <td class="roster-actions-col">
+                        <div class="roster-row-actions">
+                          <button type="button" class="btn btn-primary btn-xs" data-toast="Assign to Priya Nair">Assign</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Priya Nair profile">View profile</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr class="roster-row" data-member="karan" data-owned-queries="6" data-open-tasks="1" data-win-rate="27">
+                      <td>
+                        <div class="member-cell">
+                          <span class="avatar avatar-pink" aria-hidden="true">KS</span>
+                          <div>
+                            <p class="member-name-row">
+                              <button type="button" class="member-name-btn" data-toast="Opening Karan Shah profile">Karan Shah</button>
+                              <span class="status-dot-inline is-on" title="Active" aria-label="Active"></span>
+                            </p>
+                            <p class="member-role">Member · Domestic</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="roster-metric">6</span></td>
+                      <td><span class="roster-metric">1</span> <span class="roster-metric-unit">open</span></td>
+                      <td><span class="roster-metric">27%</span></td>
+                      <td><span class="roster-revenue">₹2.9L</span></td>
+                      <td class="roster-actions-col">
+                        <div class="roster-row-actions">
+                          <button type="button" class="btn btn-primary btn-xs" data-toast="Assign to Karan Shah">Assign</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Karan Shah profile">View profile</button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <!-- Goals -->
+          <section class="team-panel" id="team-panel-goals" data-team-panel="goals" hidden>
+            <div class="goals-toolbar">
+              <div class="goals-period-group" role="group" aria-label="Goals period">
+                <button type="button" class="period-pill is-active" data-goals-period="quarter">This quarter</button>
+                <button type="button" class="period-pill" data-goals-period="month">This month</button>
+                <button type="button" class="period-pill" data-goals-period="last-quarter">Last quarter <span class="lock-chip">Locked</span></button>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm owner-admin-only" id="btn-set-targets" data-open-modal="set-targets">Set targets</button>
+            </div>
+
+            <div class="goals-summary" id="goals-summary">
+              <article class="kpi-card kpi-card-static goal-progress-card" data-goal="revenue">
+                <div class="kpi-card-head">
+                  <p class="kpi-label">Booking value</p>
+                  <span class="kpi-icon" aria-hidden="true"><img src="assets/currency-rupee.svg" alt="" width="14" height="14" /></span>
+                </div>
+                <p class="kpi-value" id="goal-revenue-label">₹44L</p>
+                <p class="kpi-meta" id="goal-revenue-meta">of ₹46L target · <span id="goal-revenue-pct">96%</span> attained</p>
+                <div class="goal-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="96" aria-labelledby="goal-revenue-label" id="goal-revenue-track"><span class="goal-progress-fill" id="goal-revenue-bar" style="width:96%"></span></div>
+              </article>
+              <article class="kpi-card kpi-card-static goal-progress-card" data-goal="bookings">
+                <div class="kpi-card-head">
+                  <p class="kpi-label">Bookings</p>
+                  <span class="kpi-icon" aria-hidden="true"><img src="assets/bookings.svg" alt="" width="14" height="14" /></span>
+                </div>
+                <p class="kpi-value" id="goal-bookings-label">64</p>
+                <p class="kpi-meta" id="goal-bookings-meta">of 70 target · <span id="goal-bookings-pct">91%</span> attained</p>
+                <div class="goal-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="91" aria-labelledby="goal-bookings-label" id="goal-bookings-track"><span class="goal-progress-fill" id="goal-bookings-bar" style="width:91%"></span></div>
+              </article>
+              <article class="kpi-card kpi-card-static goal-progress-card" data-goal="winrate">
+                <div class="kpi-card-head">
+                  <p class="kpi-label">Win rate</p>
+                  <span class="kpi-icon" aria-hidden="true"><img src="assets/nav-reports.svg" alt="" width="14" height="14" /></span>
+                </div>
+                <p class="kpi-value" id="goal-winrate-label">33%</p>
+                <p class="kpi-meta" id="goal-winrate-meta">of 35% target · Team benchmark · <span id="goal-winrate-pct">94%</span> attained</p>
+                <div class="goal-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="94" aria-labelledby="goal-winrate-label" id="goal-winrate-track"><span class="goal-progress-fill" id="goal-winrate-bar" style="width:94%"></span></div>
+              </article>
+            </div>
+
+            <section class="card">
+              <header class="card-head">
+                <div class="card-title-row">
+                  <h2 id="goals-table-title">Individual targets · this quarter</h2>
+                  <span class="team-count-pill">Sales members only</span>
+                </div>
+              </header>
+              <div class="table-scroll">
+                <table class="team-table goals-member-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Member</th>
+                      <th scope="col">Current</th>
+                      <th scope="col">Target</th>
+                      <th scope="col">Progress</th>
+                      <th scope="col">Bookings</th>
+                    </tr>
+                  </thead>
+                  <tbody id="goals-member-tbody">
+                    <tr class="goals-member-row" data-goals-member="aditi" data-sales="true">
+                      <td><div class="member-cell"><span class="avatar" aria-hidden="true">AR</span><div><p class="member-name">Aditi Rao</p><p class="member-role">Owner · International</p></div></div></td>
+                      <td class="goals-current">₹9.1L</td>
+                      <td class="goals-target">₹9.5L</td>
+                      <td><div class="attain-bar"><span style="width:96%"></span></div> <span class="goals-pct">96%</span></td>
+                      <td class="goals-bookings">12 / 14</td>
+                    </tr>
+                    <tr class="goals-member-row" data-goals-member="vikram" data-sales="true">
+                      <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">VS</span><div><p class="member-name">Vikram Singh</p><p class="member-role">Admin · International</p></div></div></td>
+                      <td class="goals-current">₹7.4L</td>
+                      <td class="goals-target">₹8.0L</td>
+                      <td><div class="attain-bar"><span style="width:93%"></span></div> <span class="goals-pct">93%</span></td>
+                      <td class="goals-bookings">11 / 12</td>
+                    </tr>
+                    <tr class="goals-member-row" data-goals-member="neha" data-sales="true">
+                      <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">NK</span><div><p class="member-name">Neha Kapoor</p><p class="member-role">Member · International</p></div></div></td>
+                      <td class="goals-current">₹6.4L</td>
+                      <td class="goals-target">₹7.2L</td>
+                      <td><div class="attain-bar"><span style="width:89%"></span></div> <span class="goals-pct">89%</span></td>
+                      <td class="goals-bookings">8 / 10</td>
+                    </tr>
+                    <tr class="goals-member-row" data-goals-member="rohan" data-sales="true">
+                      <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">RM</span><div><p class="member-name">Rohan Mehta</p><p class="member-role">Admin · Domestic</p></div></div></td>
+                      <td class="goals-current">₹6.8L</td>
+                      <td class="goals-target">₹7.6L</td>
+                      <td><div class="attain-bar"><span style="width:89%"></span></div> <span class="goals-pct">89%</span></td>
+                      <td class="goals-bookings">9 / 11</td>
+                    </tr>
+                    <tr class="goals-member-row" data-goals-member="imran" data-sales="true">
+                      <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">IS</span><div><p class="member-name">Imran Sheikh</p><p class="member-role">Member · Visa · Intl</p></div></div></td>
+                      <td class="goals-current">₹5.0L</td>
+                      <td class="goals-target">₹5.5L</td>
+                      <td><div class="attain-bar"><span style="width:91%"></span></div> <span class="goals-pct">91%</span></td>
+                      <td class="goals-bookings">7 / 8</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <!-- Team structure -->
+          <section class="team-panel" id="team-panel-org" data-team-panel="org" hidden>
+            <div class="team-info-bar">
+              <p>Visible to everyone · reporting lines &amp; desks</p>
+              <p class="team-info-muted">Admins manage structure</p>
+            </div>
+            <div class="org-chart">
+              <div class="org-level">
+                <article class="org-card">
+                  <span class="avatar avatar-pink">AR</span>
+                  <div><p class="member-name">Aditi Rao</p><p class="member-role">Owner · International</p></div>
+                  <span class="role-badge is-owner">Owner</span>
+                </article>
+              </div>
+              <div class="org-level org-level-2">
+                <article class="org-card">
+                  <span class="avatar avatar-mint">VS</span>
+                  <div><p class="member-name">Vikram Singh</p><p class="member-role">International pod</p></div>
+                  <span class="role-badge">Admin</span>
+                </article>
+                <article class="org-card">
+                  <span class="avatar avatar-pink">RM</span>
+                  <div><p class="member-name">Rohan Mehta</p><p class="member-role">Domestic pod</p></div>
+                  <span class="role-badge">Admin</span>
+                </article>
+              </div>
+              <div class="org-pods">
+                <div class="org-pod">
+                  <article class="org-card org-card-sm"><span class="avatar avatar-pink">NK</span><div><p class="member-name">Neha Kapoor</p><p class="member-role">International</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
+                  <article class="org-card org-card-sm"><span class="avatar avatar-mint">IS</span><div><p class="member-name">Imran Sheikh</p><p class="member-role">Visa · Intl</p></div><span class="status-dot-inline" aria-label="Away"></span></article>
+                </div>
+                <div class="org-pod">
+                  <article class="org-card org-card-sm"><span class="avatar avatar-pink">SP</span><div><p class="member-name">Sara Pinto</p><p class="member-role">Domestic</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
+                  <article class="org-card org-card-sm"><span class="avatar avatar-mint">PN</span><div><p class="member-name">Priya Nair</p><p class="member-role">Domestic</p></div><span class="status-dot-inline" aria-label="Away"></span></article>
+                  <article class="org-card org-card-sm"><span class="avatar avatar-pink">KS</span><div><p class="member-name">Karan Shah</p><p class="member-role">Domestic</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Roles -->
+          <section class="team-panel" id="team-panel-roles" data-team-panel="roles" hidden>
+            <div class="team-owner-banner owner-only">
+              <p>Owner-only area. Changes to roles and permissions apply across the whole workspace.</p>
+            </div>
+
+            <div class="roles-toolbar">
+              <label class="roles-member-search">
+                <span class="sr-only">Search members or modules</span>
+                <img src="assets/search.svg" alt="" width="14" height="14" />
+                <input type="search" id="roles-member-search" placeholder="Search members or modules…" autocomplete="off" />
+              </label>
+              <div class="roster-filters roles-role-filters" role="group" aria-label="Role filters">
+                <button type="button" class="roster-filter is-active" data-roles-filter="all">All</button>
+                <button type="button" class="roster-filter" data-roles-filter="owner">Owner</button>
+                <button type="button" class="roster-filter" data-roles-filter="admin">Admin</button>
+                <button type="button" class="roster-filter" data-roles-filter="member">Member</button>
+              </div>
+            </div>
+
+            <div class="roles-layout">
+              <section class="card roles-members-card">
+                <header class="card-head roles-card-head">
+                  <div class="card-title-row">
+                    <h2>Member access</h2>
+                    <span class="team-count-pill" id="roles-member-count">8 members</span>
+                  </div>
+                </header>
+                <div class="roles-members-scroll table-scroll">
+                  <table class="team-table roles-member-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Member</th>
+                        <th scope="col">Team</th>
+                        <th scope="col">Role</th>
+                      </tr>
+                    </thead>
+                    <tbody id="roles-assign-tbody">
+                      <tr class="roles-member-row" data-member-role-row="aditi" data-member-role="owner" data-member-search="aditi rao international owner">
+                        <td><div class="member-cell"><span class="avatar" aria-hidden="true">AR</span><span class="member-name">Aditi Rao</span></div></td>
+                        <td>International</td>
+                        <td><select class="team-select role-assign-select" data-member="aditi" data-member-name="Aditi Rao" disabled aria-label="Role for Aditi Rao"><option selected>Owner</option></select></td>
+                      </tr>
+                      <tr class="roles-member-row" data-member-role-row="vikram" data-member-role="admin" data-member-search="vikram singh international admin">
+                        <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">VS</span><span class="member-name">Vikram Singh</span></div></td>
+                        <td>International</td>
+                        <td><select class="team-select role-assign-select" data-member="vikram" data-member-name="Vikram Singh" aria-label="Role for Vikram Singh"><option selected>Admin</option><option>Member</option></select></td>
+                      </tr>
+                      <tr class="roles-member-row" data-member-role-row="neha" data-member-role="member" data-member-search="neha kapoor international member">
+                        <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">NK</span><span class="member-name">Neha Kapoor</span></div></td>
+                        <td>International</td>
+                        <td><select class="team-select role-assign-select" data-member="neha" data-member-name="Neha Kapoor" aria-label="Role for Neha Kapoor"><option selected>Member</option><option>Admin</option></select></td>
+                      </tr>
+                      <tr class="roles-member-row" data-member-role-row="imran" data-member-role="member" data-member-search="imran sheikh visa international member">
+                        <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">IS</span><span class="member-name">Imran Sheikh</span></div></td>
+                        <td>Visa · Intl</td>
+                        <td><select class="team-select role-assign-select" data-member="imran" data-member-name="Imran Sheikh" aria-label="Role for Imran Sheikh"><option selected>Member</option><option>Admin</option></select></td>
+                      </tr>
+                      <tr class="roles-member-row" data-member-role-row="rohan" data-member-role="admin" data-member-search="rohan mehta domestic admin">
+                        <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">RM</span><span class="member-name">Rohan Mehta</span></div></td>
+                        <td>Domestic</td>
+                        <td><select class="team-select role-assign-select" data-member="rohan" data-member-name="Rohan Mehta" aria-label="Role for Rohan Mehta"><option selected>Admin</option><option>Member</option></select></td>
+                      </tr>
+                      <tr class="roles-member-row" data-member-role-row="sara" data-member-role="member" data-member-search="sara pinto domestic member">
+                        <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">SP</span><span class="member-name">Sara Pinto</span></div></td>
+                        <td>Domestic</td>
+                        <td><select class="team-select role-assign-select" data-member="sara" data-member-name="Sara Pinto" aria-label="Role for Sara Pinto"><option selected>Member</option><option>Admin</option></select></td>
+                      </tr>
+                      <tr class="roles-member-row" data-member-role-row="priya" data-member-role="member" data-member-search="priya nair domestic member">
+                        <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">PN</span><span class="member-name">Priya Nair</span></div></td>
+                        <td>Domestic</td>
+                        <td><select class="team-select role-assign-select" data-member="priya" data-member-name="Priya Nair" aria-label="Role for Priya Nair"><option selected>Member</option><option>Admin</option></select></td>
+                      </tr>
+                      <tr class="roles-member-row" data-member-role-row="karan" data-member-role="member" data-member-search="karan shah domestic member">
+                        <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">KS</span><span class="member-name">Karan Shah</span></div></td>
+                        <td>Domestic</td>
+                        <td><select class="team-select role-assign-select" data-member="karan" data-member-name="Karan Shah" aria-label="Role for Karan Shah"><option selected>Member</option><option>Admin</option></select></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section class="card roles-permissions-card owner-admin-only">
+                <header class="card-head roles-card-head">
+                  <h2>Permissions by role</h2>
+                </header>
+                <div class="table-scroll">
+                  <table class="team-table roles-matrix-table" id="roles-perm-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Module</th>
+                        <th scope="col">Admin</th>
+                        <th scope="col">Member</th>
+                      </tr>
+                    </thead>
+                    <tbody id="roles-perm-tbody">
+                      <tr data-module="queries">
+                        <td>Queries</td>
+                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="queries" aria-label="Queries access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
+                        <td><select class="team-select role-perm-select" data-role="Member" data-module="queries" aria-label="Queries access for Member"><option>Full</option><option selected>Own</option><option>View</option><option>None</option></select></td>
+                      </tr>
+                      <tr data-module="proposals">
+                        <td>Proposals</td>
+                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="proposals" aria-label="Proposals access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
+                        <td><select class="team-select role-perm-select" data-role="Member" data-module="proposals" aria-label="Proposals access for Member"><option>Full</option><option selected>Own</option><option>View</option><option>None</option></select></td>
+                      </tr>
+                      <tr data-module="bookings">
+                        <td>Bookings</td>
+                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="bookings" aria-label="Bookings access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
+                        <td><select class="team-select role-perm-select" data-role="Member" data-module="bookings" aria-label="Bookings access for Member"><option>Full</option><option selected>Own</option><option>View</option><option>None</option></select></td>
+                      </tr>
+                      <tr data-module="customers">
+                        <td>Customers</td>
+                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="customers" aria-label="Customers access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
+                        <td><select class="team-select role-perm-select" data-role="Member" data-module="customers" aria-label="Customers access for Member"><option>Full</option><option>Own</option><option selected>View</option><option>None</option></select></td>
+                      </tr>
+                      <tr data-module="vendors">
+                        <td>Vendors</td>
+                        <td><select class="team-select role-perm-select" data-role="Admin" data-module="vendors" aria-label="Vendors access for Admin"><option selected>Full</option><option>Own</option><option>View</option><option>None</option></select></td>
+                        <td><select class="team-select role-perm-select" data-role="Member" data-module="vendors" aria-label="Vendors access for Member"><option>Full</option><option>Own</option><option selected>View</option><option>None</option></select></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+
+            <div class="roles-save-bar owner-admin-only" id="roles-save-bar">
+              <p class="roles-save-status" id="roles-save-status">No unsaved changes</p>
+              <button type="button" class="btn btn-primary btn-sm" id="roles-save-btn" disabled>Save changes</button>
+            </div>
+          </section>
+
+          <!-- Invitations -->
+          <section class="team-panel" id="team-panel-invitations" data-team-panel="invitations" hidden>
+            <div class="invites-toolbar">
+              <div class="invites-subtabs" role="tablist" aria-label="Invitations sections">
+                <button type="button" class="period-pill is-active" role="tab" id="invites-tab-pending" data-invites-tab="pending" aria-selected="true" aria-controls="invites-panel-pending" tabindex="0">Pending invitations</button>
+                <button type="button" class="period-pill" role="tab" id="invites-tab-onboarding" data-invites-tab="onboarding" aria-selected="false" aria-controls="invites-panel-onboarding" tabindex="-1">Member onboarding</button>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" data-open-modal="invite-team">+ Invite</button>
+            </div>
+
+            <section class="card invites-panel is-active" id="invites-panel-pending" data-invites-panel="pending" role="tabpanel" aria-labelledby="invites-tab-pending">
+              <div class="table-scroll">
+                <table class="team-table invites-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Invitee</th>
+                      <th scope="col">Role</th>
+                      <th scope="col">Team</th>
+                      <th scope="col">Sent</th>
+                      <th scope="col">Status</th>
+                      <th scope="col" class="invites-actions-col">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="invites-tbody">
+                    <tr class="invite-row" data-invite-id="INV-09" data-invite-email="meera@paryatech.in">
+                      <td>meera@paryatech.in</td>
+                      <td>Member</td>
+                      <td>Domestic</td>
+                      <td>2 days ago</td>
+                      <td><span class="invite-status-pill is-sent">Sent</span></td>
+                      <td class="invites-actions-cell">
+                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+                      </td>
+                    </tr>
+                    <tr class="invite-row" data-invite-id="INV-08" data-invite-email="arjun@paryatech.in">
+                      <td>arjun@paryatech.in</td>
+                      <td>Admin</td>
+                      <td>Finance</td>
+                      <td>5 days ago</td>
+                      <td><span class="invite-status-pill is-sent">Sent</span></td>
+                      <td class="invites-actions-cell">
+                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+                      </td>
+                    </tr>
+                    <tr class="invite-row" data-invite-id="INV-07" data-invite-email="leela@paryatech.in">
+                      <td>leela@paryatech.in</td>
+                      <td>Member</td>
+                      <td>International</td>
+                      <td>3 days ago</td>
+                      <td><span class="invite-status-pill is-opened">Opened</span></td>
+                      <td class="invites-actions-cell">
+                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+                      </td>
+                    </tr>
+                    <tr class="invite-row" data-invite-id="INV-06" data-invite-email="rahul@paryatech.in">
+                      <td>rahul@paryatech.in</td>
+                      <td>Member</td>
+                      <td>Domestic</td>
+                      <td>14 days ago</td>
+                      <td><span class="invite-status-pill is-expired">Expired</span></td>
+                      <td class="invites-actions-cell">
+                        <button type="button" class="btn btn-primary btn-xs" data-invite-action="resend">Resend</button>
+                      </td>
+                    </tr>
+                    <tr class="invite-row" data-invite-id="INV-05" data-invite-email="nisha@paryatech.in">
+                      <td>nisha@paryatech.in</td>
+                      <td>Member</td>
+                      <td>International</td>
+                      <td>7 days ago</td>
+                      <td><span class="invite-status-pill is-revoked">Revoked</span></td>
+                      <td class="invites-actions-cell">
+                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="card invites-panel" id="invites-panel-onboarding" data-invites-panel="onboarding" role="tabpanel" aria-labelledby="invites-tab-onboarding" hidden>
+              <div class="table-scroll">
+                <table class="team-table onboarding-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Member</th>
+                      <th scope="col">Role / Team</th>
+                      <th scope="col">Joined</th>
+                      <th scope="col">Progress</th>
+                      <th scope="col">Current step</th>
+                      <th scope="col">Manager</th>
+                    </tr>
+                  </thead>
+                  <tbody id="onboarding-tbody">
+                    <tr class="onboarding-row" tabindex="0" role="button" data-onboarding-id="karan" aria-label="Open onboarding for Karan Shah">
+                      <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">KS</span><span class="member-name">Karan Shah</span></div></td>
+                      <td>Member · Domestic · Sales</td>
+                      <td>3 weeks ago</td>
+                      <td><div class="onboarding-progress-cell"><div class="onboarding-progress-track" aria-hidden="true"><span class="onboarding-progress-fill" style="width:60%"></span></div><span class="onboarding-pct" data-onboarding-pct="karan">60%</span></div></td>
+                      <td data-onboarding-step="karan">First proposal review</td>
+                      <td>Rohan Mehta</td>
+                    </tr>
+                    <tr class="onboarding-row" tabindex="0" role="button" data-onboarding-id="sara" aria-label="Open onboarding for Sara Pinto">
+                      <td><div class="member-cell"><span class="avatar avatar-pink" aria-hidden="true">SP</span><span class="member-name">Sara Pinto</span></div></td>
+                      <td>Member · Domestic · Operations</td>
+                      <td>2 weeks ago</td>
+                      <td><div class="onboarding-progress-cell"><div class="onboarding-progress-track" aria-hidden="true"><span class="onboarding-progress-fill" style="width:40%"></span></div><span class="onboarding-pct" data-onboarding-pct="sara">40%</span></div></td>
+                      <td data-onboarding-step="sara">Booking workflow training</td>
+                      <td>Rohan Mehta</td>
+                    </tr>
+                    <tr class="onboarding-row" tabindex="0" role="button" data-onboarding-id="anita" aria-label="Open onboarding for Anita Verma">
+                      <td><div class="member-cell"><span class="avatar avatar-mint" aria-hidden="true">AV</span><span class="member-name">Anita Verma</span></div></td>
+                      <td>Member · Finance · Finance</td>
+                      <td>10 days ago</td>
+                      <td><div class="onboarding-progress-cell"><div class="onboarding-progress-track" aria-hidden="true"><span class="onboarding-progress-fill" style="width:20%"></span></div><span class="onboarding-pct" data-onboarding-pct="anita">20%</span></div></td>
+                      <td data-onboarding-step="anita">Finance permissions reviewed</td>
+                      <td>Aditi Rao</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+
+          <!-- Workspace Audit Log -->
+          <section class="team-panel owner-admin-only" id="team-panel-audit" data-team-panel="audit" hidden>
+            <div class="audit-intro">
+              <p class="audit-intro-copy">Workspace-wide activity across queries, bookings, finance, permissions, and security. Audit records are non-editable and retained according to workspace policy.</p>
+            </div>
+            <div class="audit-toolbar">
+              <div class="audit-search">
+                <img src="assets/search.svg" alt="" width="14" height="14" />
+                <input type="search" id="audit-search" placeholder="Search member, action or record ID" aria-label="Search audit log" />
+              </div>
+              <select class="team-select audit-filter" id="audit-filter-member" aria-label="Member filter">
+                <option value="all">All members</option>
+                <option value="Neha Kapoor">Neha Kapoor</option>
+                <option value="Vikram Singh">Vikram Singh</option>
+                <option value="Aditi Rao">Aditi Rao</option>
+                <option value="Rohan Mehta">Rohan Mehta</option>
+                <option value="Priya Nair">Priya Nair</option>
+              </select>
+              <select class="team-select audit-filter" id="audit-filter-module" aria-label="Module filter">
+                <option value="all">All modules</option>
+                <option value="queries">Queries</option>
+                <option value="bookings">Bookings</option>
+                <option value="proposals">Proposals</option>
+                <option value="team">Team</option>
+                <option value="goals">Goals</option>
+                <option value="finance">Finance</option>
+                <option value="vendors">Vendors</option>
+                <option value="security">Security</option>
+              </select>
+              <select class="team-select audit-filter" id="audit-filter-date" aria-label="Date filter">
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="365">This year</option>
+              </select>
+              <details class="audit-more" id="audit-more-filters">
+                <summary class="btn btn-outline btn-sm">More filters</summary>
+                <div class="audit-more-panel">
+                  <label class="audit-filter-field">
+                    <span>Action type</span>
+                    <select class="team-select audit-filter" id="audit-filter-action" aria-label="Action type filter">
+                      <option value="all">All action types</option>
+                      <option value="status_change">Status change</option>
+                      <option value="assignment">Assignment</option>
+                      <option value="permission">Permission change</option>
+                      <option value="invite">Invite</option>
+                      <option value="delete">Delete / trash</option>
+                      <option value="restore">Restore</option>
+                      <option value="target">Target update</option>
+                      <option value="onboarding">Onboarding</option>
+                      <option value="login">Sign in</option>
+                    </select>
+                  </label>
+                  <label class="audit-filter-field">
+                    <span>Risk level</span>
+                    <select class="team-select audit-filter" id="audit-filter-risk" aria-label="Risk level filter">
+                      <option value="all">All sensitive risk levels</option>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </label>
+                  <label class="audit-toggle">
+                    <input type="checkbox" id="audit-filter-deleted" />
+                    <span>Include deleted records</span>
+                  </label>
+                  <button type="button" class="btn btn-outline btn-sm audit-security-preset" id="audit-security-preset">View security activity</button>
+                </div>
+              </details>
+              <button type="button" class="btn btn-outline btn-sm owner-admin-only" id="audit-export-btn" data-toast="Exporting CSV…">Export CSV</button>
+            </div>
+            <div class="card table-scroll">
+              <table class="team-table audit-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Time</th>
+                    <th scope="col">Member</th>
+                    <th scope="col">Event</th>
+                    <th scope="col">Module</th>
+                    <th scope="col">Risk</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- My view -->
+          <section class="team-panel" id="team-panel-myview" data-team-panel="myview" hidden>
+            <div class="myview-profile">
+              <div class="detail-head">
+                <span class="avatar avatar-lg avatar-pink">NK</span>
+                <div>
+                  <p class="detail-name">Neha Kapoor <span class="role-badge">Member</span> <span class="status-pill is-active"><span class="status-dot-inline"></span> Active</span> <span class="tag-chip">International</span></p>
+                  <p class="detail-role">neha@paryatech.in · Leisure · International · Joined 8 months ago</p>
+                </div>
+              </div>
+              <div class="rank-card">
+                <p class="kpi-label">Team rank · Revenue</p>
+                <p class="rank-value">#3 <span class="kpi-meta-up">↑ 1</span></p>
+              </div>
+            </div>
+            <div class="myview-subtabs" role="tablist" aria-label="My view sections">
+              <button type="button" class="period-pill is-active" role="tab" data-myview-sub="overview" aria-selected="true" tabindex="0">Overview</button>
+              <button type="button" class="period-pill" role="tab" data-myview-sub="growth" aria-selected="false" tabindex="-1">Growth</button>
+              <button type="button" class="period-pill" role="tab" data-myview-sub="goals" aria-selected="false" tabindex="-1">Goals</button>
+              <button type="button" class="period-pill" role="tab" data-myview-sub="activity" aria-selected="false" tabindex="-1">Activity</button>
+            </div>
+            <div class="period-pills myview-period" role="group" aria-label="Period">
+              <button type="button" class="period-pill is-active">This month</button>
+              <button type="button" class="period-pill">This quarter</button>
+              <button type="button" class="period-pill">Last 6 months</button>
+              <button type="button" class="period-pill">This year</button>
+            </div>
+            <section class="kpi-grid team-kpi-grid" aria-label="My metrics">
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Live queries</p><span class="kpi-icon" aria-hidden="true"><img src="assets/queries.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">14</p><p class="kpi-meta">active now</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Win rate</p><span class="kpi-icon" aria-hidden="true"><img src="assets/nav-reports.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">29%</p><p class="kpi-meta">This month</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Pipeline</p><span class="kpi-icon" aria-hidden="true"><img src="assets/nav-packages.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">₹16.9L</p><p class="kpi-meta">owned, active</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Revenue</p><span class="kpi-icon" aria-hidden="true"><img src="assets/currency-rupee.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">₹6L</p><p class="kpi-meta">This month</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">Bookings</p><span class="kpi-icon" aria-hidden="true"><img src="assets/bookings.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">8</p><p class="kpi-meta">This month</p>
+              </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head"><p class="kpi-label">CSAT</p><span class="kpi-icon" aria-hidden="true"><img src="assets/users.svg" alt="" width="14" height="14" /></span></div>
+                <p class="kpi-value">4.7</p><p class="kpi-meta">customer rating</p>
+              </article>
+            </section>
+            <div class="myview-split">
+              <section class="card">
+                <header class="card-head"><h2>Live queries</h2><span class="team-count-pill">14 active</span></header>
+                <ul class="live-query-list">
+                  <li><div><p class="member-name">Sharma Family · Bali</p><p class="member-role">12 days · 4 pax</p></div><span class="query-status is-nego">Negotiation</span><span class="query-amt">₹2.4L</span></li>
+                  <li><div><p class="member-name">Iyer Honeymoon · Maldives</p><p class="member-role">8 days · 2 pax</p></div><span class="query-status is-proposal">Proposal sent</span><span class="query-amt">₹3.1L</span></li>
+                  <li><div><p class="member-name">Desai Group · Europe</p><p class="member-role">18 days · 10 pax</p></div><span class="query-status is-new">New</span><span class="query-amt">₹8.6L</span></li>
+                  <li><div><p class="member-name">Khan Family · Dubai</p><p class="member-role">6 days · 5 pax</p></div><span class="query-status is-quoted">Quoted</span><span class="query-amt">₹1.9L</span></li>
+                </ul>
+              </section>
+              <section class="card">
+                <header class="card-head"><h2>This quarter vs target</h2></header>
+                <div class="target-bars">
+                  <div><div class="target-bar-label"><span>Revenue</span><span>₹6.4L / ₹7.2L</span></div><div class="attain-bar"><span style="width:89%"></span></div></div>
+                  <div><div class="target-bar-label"><span>Bookings</span><span>8 / 10</span></div><div class="attain-bar"><span style="width:80%"></span></div></div>
+                  <div><div class="target-bar-label"><span>Win rate</span><span>29% / 35%</span></div><div class="attain-bar"><span style="width:83%"></span></div></div>
+                </div>
+                <div class="live-now-card">
+                  <p class="kpi-label">Live queries now</p>
+                  <p class="kpi-value">14</p>
+                </div>
+              </section>
+            </div>
+            <p class="myview-placeholder" id="myview-placeholder" hidden>Growth, Goals and Activity charts will appear here in a later pass.</p>
+          </section>
+        </div>
       </main>
     </div>
   </div>
@@ -925,13 +1806,130 @@
         </label>
         <label class="field">
           <span class="field-label">Role</span>
-          <span class="input"><input name="role" placeholder="e.g. Sales executive" /></span>
+          <span class="input">
+            <select name="role" required aria-label="Invite role">
+              <option value="Member" selected>Member</option>
+              <option value="Admin">Admin</option>
+              <option value="Owner">Owner</option>
+            </select>
+          </span>
+        </label>
+        <label class="field">
+          <span class="field-label">Team</span>
+          <span class="input">
+            <select name="team" required aria-label="Invite team">
+              <option value="Domestic" selected>Domestic</option>
+              <option value="International">International</option>
+              <option value="Finance">Finance</option>
+              <option value="Visa · Intl">Visa · Intl</option>
+            </select>
+          </span>
         </label>
         <div class="modal-actions">
           <button class="btn btn-outline btn-sm" type="button" data-close-modal>Cancel</button>
           <button class="btn btn-primary btn-sm" type="submit">Send invite</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Set targets wizard -->
+  <div class="modal-backdrop" id="modal-set-targets" hidden>
+    <div class="modal modal-targets" role="dialog" aria-modal="true" aria-labelledby="set-targets-title">
+      <header class="modal-head">
+        <div>
+          <p class="customer-kicker">Goals &amp; targets</p>
+          <h2 id="set-targets-title">Set targets</h2>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="modal-body targets-wizard" id="targets-wizard">
+        <ol class="targets-steps" aria-label="Wizard steps">
+          <li class="targets-step is-active" data-step-indicator="1">Period</li>
+          <li class="targets-step" data-step-indicator="2">Team targets</li>
+          <li class="targets-step" data-step-indicator="3">Members</li>
+          <li class="targets-step" data-step-indicator="4">Distribute</li>
+          <li class="targets-step" data-step-indicator="5">Review</li>
+        </ol>
+
+        <div class="targets-panel is-active" data-targets-step="1">
+          <p class="modal-copy">Choose the period these targets apply to.</p>
+          <div class="select-card-grid" role="radiogroup" aria-label="Target period">
+            <button type="button" class="select-card is-selected" role="radio" aria-checked="true" data-target-period="quarter">
+              <span class="select-card-title">Quarter</span>
+              <span class="select-card-desc">Q3 2026 · Jul–Sep</span>
+            </button>
+            <button type="button" class="select-card" role="radio" aria-checked="false" data-target-period="month">
+              <span class="select-card-title">Month</span>
+              <span class="select-card-desc">August 2026</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="targets-panel" data-targets-step="2" hidden>
+          <p class="modal-copy">Set the team-level goals. Win rate is a benchmark — it is not split among members.</p>
+          <div class="targets-fields">
+            <label class="field">
+              <span class="field-label">Booking value (₹L) <span class="req">*</span></span>
+              <span class="input"><input id="target-revenue" type="number" min="1" step="0.1" value="46" /></span>
+            </label>
+            <label class="field">
+              <span class="field-label">Number of bookings <span class="req">*</span></span>
+              <span class="input"><input id="target-bookings" type="number" min="1" step="1" value="70" /></span>
+            </label>
+            <label class="field">
+              <span class="field-label">Win-rate benchmark (%)</span>
+              <span class="input"><input id="target-winrate" type="number" min="1" max="100" step="1" value="35" /></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="targets-panel" data-targets-step="3" hidden>
+          <p class="modal-copy">Revenue and booking targets apply only to sales members.</p>
+          <ul class="targets-member-checks" id="targets-member-checks">
+            <li><label><input type="checkbox" data-member-id="aditi" checked /> Aditi Rao · Owner</label></li>
+            <li><label><input type="checkbox" data-member-id="vikram" checked /> Vikram Singh · Admin</label></li>
+            <li><label><input type="checkbox" data-member-id="neha" checked /> Neha Kapoor · Member</label></li>
+            <li><label><input type="checkbox" data-member-id="rohan" checked /> Rohan Mehta · Admin</label></li>
+            <li><label><input type="checkbox" data-member-id="imran" checked /> Imran Sheikh · Member</label></li>
+          </ul>
+        </div>
+
+        <div class="targets-panel" data-targets-step="4" hidden>
+          <p class="modal-copy">Distribute the team booking-value target among selected members.</p>
+          <div class="select-card-grid" role="radiogroup" aria-label="Distribution method">
+            <button type="button" class="select-card is-selected" role="radio" aria-checked="true" data-distribute="equal">
+              <span class="select-card-title">Equal split</span>
+              <span class="select-card-desc">Divide evenly across selected sales members</span>
+            </button>
+            <button type="button" class="select-card" role="radio" aria-checked="false" data-distribute="manual">
+              <span class="select-card-title">Manual allocation</span>
+              <span class="select-card-desc">Edit each member’s target below</span>
+            </button>
+            <button type="button" class="select-card" role="radio" aria-checked="false" data-distribute="history">
+              <span class="select-card-title">Workload / history</span>
+              <span class="select-card-desc">Weight by live queries and recent revenue</span>
+            </button>
+          </div>
+          <div class="targets-alloc-list" id="targets-alloc-list"></div>
+          <p class="targets-alloc-status" id="targets-alloc-status"></p>
+        </div>
+
+        <div class="targets-panel" data-targets-step="5" hidden>
+          <p class="modal-copy">Review before saving. Individual revenue targets must add up to the team target.</p>
+          <dl class="targets-review" id="targets-review"></dl>
+          <p class="targets-alloc-status" id="targets-review-status"></p>
+        </div>
+
+        <div class="modal-actions targets-wizard-actions">
+          <button class="btn btn-outline btn-sm" type="button" data-close-modal>Cancel</button>
+          <button class="btn btn-outline btn-sm" type="button" id="targets-back" hidden>Back</button>
+          <button class="btn btn-primary btn-sm" type="button" id="targets-next">Continue</button>
+          <button class="btn btn-primary btn-sm" type="button" id="targets-save" hidden disabled>Save targets</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -949,6 +1947,136 @@
         <div class="modal-actions">
           <button class="btn btn-outline btn-sm" type="button" data-close-modal>Stay signed in</button>
           <button class="btn btn-destructive btn-sm" type="button" id="confirm-sign-out">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign enquiries drawer -->
+  <div class="assign-backdrop" id="assign-backdrop" hidden></div>
+  <aside class="assign-drawer" id="assign-drawer" role="dialog" aria-modal="true" aria-labelledby="assign-drawer-title" hidden>
+    <header class="assign-drawer-head">
+      <div>
+        <p class="customer-kicker">Overview</p>
+        <h2 id="assign-drawer-title">Assign enquiries</h2>
+      </div>
+      <button class="icon-btn" type="button" id="assign-drawer-close" aria-label="Close assign drawer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+    <ol class="assign-steps" aria-label="Assignment steps">
+      <li class="assign-step is-active" data-assign-step-indicator="1">Enquiries</li>
+      <li class="assign-step" data-assign-step-indicator="2">Members</li>
+      <li class="assign-step" data-assign-step-indicator="3">Workload</li>
+      <li class="assign-step" data-assign-step-indicator="4">Confirm</li>
+    </ol>
+    <div class="assign-drawer-body">
+      <div class="assign-panel is-active" data-assign-step="1">
+        <p class="modal-copy">Select enquiries waiting to be assigned.</p>
+        <ul class="assign-check-list" id="assign-enquiry-list">
+          <li><label><input type="checkbox" data-enquiry="bali" checked /> Bali honeymoon</label></li>
+          <li><label><input type="checkbox" data-enquiry="coorg" checked /> Coorg weekend</label></li>
+          <li><label><input type="checkbox" data-enquiry="europe" checked /> Europe group (25 pax)</label></li>
+          <li><label><input type="checkbox" data-enquiry="andaman" checked /> Andaman family</label></li>
+        </ul>
+      </div>
+      <div class="assign-panel" data-assign-step="2" hidden>
+        <p class="modal-copy">Select team members who can take these enquiries.</p>
+        <ul class="assign-check-list" id="assign-member-list">
+          <li><label><input type="checkbox" data-assign-member="neha" data-live="14" data-overdue="1" /> Neha Kapoor · 14 live · 1 overdue</label></li>
+          <li><label><input type="checkbox" data-assign-member="vikram" data-live="11" data-overdue="1" /> Vikram Singh · 11 live · 1 overdue</label></li>
+          <li><label><input type="checkbox" data-assign-member="rohan" data-live="12" data-overdue="2" /> Rohan Mehta · 12 live · 2 overdue</label></li>
+          <li><label><input type="checkbox" data-assign-member="aditi" data-live="6" data-overdue="0" /> Aditi Rao · 6 live · 0 overdue</label></li>
+          <li><label><input type="checkbox" data-assign-member="imran" data-live="9" data-overdue="0" /> Imran Sheikh · 9 live · 0 overdue</label></li>
+        </ul>
+      </div>
+      <div class="assign-panel" data-assign-step="3" hidden>
+        <p class="modal-copy">Review current workload for selected members.</p>
+        <ul class="assign-workload-list" id="assign-workload-list"></ul>
+      </div>
+      <div class="assign-panel" data-assign-step="4" hidden>
+        <p class="modal-copy">Confirm assignment before applying.</p>
+        <dl class="assign-review" id="assign-review"></dl>
+      </div>
+    </div>
+    <footer class="assign-drawer-foot">
+      <button type="button" class="btn btn-outline btn-sm" id="assign-back" hidden>Back</button>
+      <button type="button" class="btn btn-primary btn-sm" id="assign-next">Continue</button>
+      <button type="button" class="btn btn-primary btn-sm" id="assign-confirm" hidden>Confirm assignment</button>
+    </footer>
+  </aside>
+
+  <!-- Onboarding details drawer -->
+  <div class="onboarding-backdrop" id="onboarding-backdrop" hidden></div>
+  <aside class="onboarding-drawer" id="onboarding-drawer" role="dialog" aria-modal="true" aria-labelledby="onboarding-drawer-title" hidden>
+    <header class="onboarding-drawer-head">
+      <div class="onboarding-drawer-intro">
+        <div class="detail-head">
+          <span class="avatar avatar-lg" id="onboarding-drawer-avatar" aria-hidden="true">KS</span>
+          <div>
+            <h2 id="onboarding-drawer-title">Karan Shah</h2>
+            <p class="detail-role" id="onboarding-drawer-role">Member · Domestic · Sales</p>
+            <p class="detail-role" id="onboarding-drawer-meta">Joined 3 weeks ago · Manager: Rohan Mehta</p>
+          </div>
+        </div>
+      </div>
+      <button class="icon-btn" type="button" id="onboarding-drawer-close" aria-label="Close onboarding drawer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+    <div class="onboarding-drawer-body">
+      <div class="onboarding-drawer-summary">
+        <div>
+          <p class="team-kpi-label">Progress</p>
+          <p class="onboarding-drawer-pct" id="onboarding-drawer-pct">60%</p>
+        </div>
+        <div>
+          <p class="team-kpi-label">Current step</p>
+          <p class="onboarding-drawer-step" id="onboarding-drawer-step">First proposal review</p>
+        </div>
+      </div>
+      <p class="team-kpi-label">Onboarding checklist</p>
+      <ul class="onboarding-checklist" id="onboarding-checklist"></ul>
+      <p class="onboarding-flow-note">Invite accepted → permissions applied → role-based onboarding → manager approval → active team member</p>
+    </div>
+  </aside>
+
+  <!-- Workspace audit detail drawer -->
+  <div class="audit-backdrop" id="audit-backdrop" hidden></div>
+  <aside class="audit-drawer" id="audit-drawer" role="dialog" aria-modal="true" aria-labelledby="audit-drawer-title" hidden>
+    <header class="audit-drawer-head">
+      <div>
+        <p class="customer-kicker" id="audit-drawer-kicker">Audit record</p>
+        <h2 id="audit-drawer-title">AE-001</h2>
+      </div>
+      <button class="icon-btn" type="button" id="audit-drawer-close" aria-label="Close audit details">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+    <div class="audit-drawer-body">
+      <dl class="audit-detail-grid" id="audit-detail-grid"></dl>
+      <div class="audit-restore-block" id="audit-restore-block" hidden>
+        <p class="audit-restore-copy" id="audit-restore-copy">This proposal is in Trash and can be restored for 30 days.</p>
+        <button type="button" class="btn btn-primary btn-sm" id="audit-restore-btn">Restore proposal</button>
+      </div>
+      <p class="audit-immutable-note">Audit records are non-editable and retained according to workspace policy. Restoring a deleted record appends a new audit event.</p>
+    </div>
+  </aside>
+
+  <!-- Role change confirm -->
+  <div class="modal-backdrop" id="modal-role-change" hidden>
+    <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="role-change-title">
+      <header class="modal-head">
+        <h2 id="role-change-title">Change role?</h2>
+        <button class="icon-btn" type="button" data-close-modal aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="modal-body">
+        <p class="modal-copy" id="role-change-copy">This will update access across the workspace.</p>
+        <div class="modal-actions">
+          <button class="btn btn-outline btn-sm" type="button" id="role-change-cancel">Cancel</button>
+          <button class="btn btn-primary btn-sm" type="button" id="role-change-confirm">Change role</button>
         </div>
       </div>
     </div>
@@ -1013,6 +2141,6 @@
 
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=teamrefine10"></script>
 </body>
 </html>

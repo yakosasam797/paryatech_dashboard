@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=teamrefine10" />
+  <link rel="stylesheet" href="styles.css?v=mywork18" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -639,10 +639,10 @@
           <nav class="team-tabs" role="tablist" aria-label="Team sections">
             <button type="button" class="team-tab is-active" role="tab" id="team-tab-overview" data-team-tab="overview" aria-selected="true" aria-controls="team-panel-overview" tabindex="0">Overview</button>
             <button type="button" class="team-tab" role="tab" id="team-tab-goals" data-team-tab="goals" aria-selected="false" aria-controls="team-panel-goals" tabindex="-1">Goals &amp; targets</button>
-            <button type="button" class="team-tab" role="tab" id="team-tab-org" data-team-tab="org" aria-selected="false" aria-controls="team-panel-org" tabindex="-1">Team structure</button>
+            <button type="button" class="team-tab" role="tab" id="team-tab-org" data-team-tab="org" aria-selected="false" aria-controls="team-panel-org" tabindex="-1">Org chart</button>
             <button type="button" class="team-tab" role="tab" id="team-tab-roles" data-team-tab="roles" aria-selected="false" aria-controls="team-panel-roles" tabindex="-1">Roles &amp; access</button>
             <button type="button" class="team-tab" role="tab" id="team-tab-invitations" data-team-tab="invitations" aria-selected="false" aria-controls="team-panel-invitations" tabindex="-1">Invitations</button>
-            <button type="button" class="team-tab owner-admin-only" role="tab" id="team-tab-audit" data-team-tab="audit" aria-selected="false" aria-controls="team-panel-audit" tabindex="-1">Workspace Audit Log</button>
+            <button type="button" class="team-tab owner-admin-only" role="tab" id="team-tab-audit" data-team-tab="audit" aria-selected="false" aria-controls="team-panel-audit" tabindex="-1">Audit log</button>
             <button type="button" class="team-tab" role="tab" id="team-tab-myview" data-team-tab="myview" aria-selected="false" aria-controls="team-panel-myview" tabindex="-1">My view</button>
           </nav>
 
@@ -692,7 +692,7 @@
             </div>
             <section class="card team-roster-card">
               <header class="card-head roster-card-head">
-                <div class="card-title-row"><h2>Team performance</h2><span class="team-count-pill">8 people</span></div>
+                <div class="card-title-row"><h2>Team performance</h2></div>
                 <div class="roster-toolbar">
                   <label class="roster-period-field">
                     <span class="sr-only">Period</span>
@@ -918,6 +918,14 @@
                   </tbody>
                 </table>
               </div>
+              <footer class="table-pagination" id="roster-pagination" aria-label="Team performance pagination">
+                <p class="table-pagination-meta" id="roster-pagination-meta">Showing 1–5 of 8</p>
+                <div class="table-pagination-controls">
+                  <button type="button" class="btn btn-outline btn-xs" id="roster-page-prev" aria-label="Previous page">Previous</button>
+                  <div class="table-pagination-pages" id="roster-pagination-pages" role="group" aria-label="Pages"></div>
+                  <button type="button" class="btn btn-outline btn-xs" id="roster-page-next" aria-label="Next page">Next</button>
+                </div>
+              </footer>
             </section>
           </section>
 
@@ -1028,35 +1036,37 @@
               <p>Visible to everyone · reporting lines &amp; desks</p>
               <p class="team-info-muted">Admins manage structure</p>
             </div>
-            <div class="org-chart">
-              <div class="org-level">
+            <div class="org-chart" aria-label="Team reporting structure">
+              <div class="org-node org-node-root">
                 <article class="org-card">
                   <span class="avatar avatar-pink">AR</span>
                   <div><p class="member-name">Aditi Rao</p><p class="member-role">Owner · International</p></div>
                   <span class="role-badge is-owner">Owner</span>
                 </article>
               </div>
-              <div class="org-level org-level-2">
-                <article class="org-card">
-                  <span class="avatar avatar-mint">VS</span>
-                  <div><p class="member-name">Vikram Singh</p><p class="member-role">International pod</p></div>
-                  <span class="role-badge">Admin</span>
-                </article>
-                <article class="org-card">
-                  <span class="avatar avatar-pink">RM</span>
-                  <div><p class="member-name">Rohan Mehta</p><p class="member-role">Domestic pod</p></div>
-                  <span class="role-badge">Admin</span>
-                </article>
-              </div>
-              <div class="org-pods">
-                <div class="org-pod">
-                  <article class="org-card org-card-sm"><span class="avatar avatar-pink">NK</span><div><p class="member-name">Neha Kapoor</p><p class="member-role">International</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
-                  <article class="org-card org-card-sm"><span class="avatar avatar-mint">IS</span><div><p class="member-name">Imran Sheikh</p><p class="member-role">Visa · Intl</p></div><span class="status-dot-inline" aria-label="Away"></span></article>
+              <div class="org-branch">
+                <div class="org-node org-node-branch">
+                  <article class="org-card">
+                    <span class="avatar avatar-mint">VS</span>
+                    <div><p class="member-name">Vikram Singh</p><p class="member-role">International pod</p></div>
+                    <span class="role-badge">Admin</span>
+                  </article>
+                  <div class="org-children">
+                    <article class="org-card org-card-sm"><span class="avatar avatar-pink">NK</span><div><p class="member-name">Neha Kapoor</p><p class="member-role">International</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
+                    <article class="org-card org-card-sm"><span class="avatar avatar-mint">IS</span><div><p class="member-name">Imran Sheikh</p><p class="member-role">Visa · Intl</p></div><span class="status-dot-inline" aria-label="Away"></span></article>
+                  </div>
                 </div>
-                <div class="org-pod">
-                  <article class="org-card org-card-sm"><span class="avatar avatar-pink">SP</span><div><p class="member-name">Sara Pinto</p><p class="member-role">Domestic</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
-                  <article class="org-card org-card-sm"><span class="avatar avatar-mint">PN</span><div><p class="member-name">Priya Nair</p><p class="member-role">Domestic</p></div><span class="status-dot-inline" aria-label="Away"></span></article>
-                  <article class="org-card org-card-sm"><span class="avatar avatar-pink">KS</span><div><p class="member-name">Karan Shah</p><p class="member-role">Domestic</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
+                <div class="org-node org-node-branch">
+                  <article class="org-card">
+                    <span class="avatar avatar-pink">RM</span>
+                    <div><p class="member-name">Rohan Mehta</p><p class="member-role">Domestic pod</p></div>
+                    <span class="role-badge">Admin</span>
+                  </article>
+                  <div class="org-children">
+                    <article class="org-card org-card-sm"><span class="avatar avatar-pink">SP</span><div><p class="member-name">Sara Pinto</p><p class="member-role">Domestic</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
+                    <article class="org-card org-card-sm"><span class="avatar avatar-mint">PN</span><div><p class="member-name">Priya Nair</p><p class="member-role">Domestic</p></div><span class="status-dot-inline" aria-label="Away"></span></article>
+                    <article class="org-card org-card-sm"><span class="avatar avatar-pink">KS</span><div><p class="member-name">Karan Shah</p><p class="member-role">Domestic</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1064,9 +1074,6 @@
 
           <!-- Roles -->
           <section class="team-panel" id="team-panel-roles" data-team-panel="roles" hidden>
-            <div class="team-owner-banner owner-only">
-              <p>Owner-only area. Changes to roles and permissions apply across the whole workspace.</p>
-            </div>
 
             <div class="roles-toolbar">
               <label class="roles-member-search">
@@ -1324,9 +1331,6 @@
 
           <!-- Workspace Audit Log -->
           <section class="team-panel owner-admin-only" id="team-panel-audit" data-team-panel="audit" hidden>
-            <div class="audit-intro">
-              <p class="audit-intro-copy">Workspace-wide activity across queries, bookings, finance, permissions, and security. Audit records are non-editable and retained according to workspace policy.</p>
-            </div>
             <div class="audit-toolbar">
               <div class="audit-search">
                 <img src="assets/search.svg" alt="" width="14" height="14" />
@@ -1411,80 +1415,128 @@
           <!-- My view -->
           <section class="team-panel" id="team-panel-myview" data-team-panel="myview" hidden>
             <div class="myview-profile">
-              <div class="detail-head">
-                <span class="avatar avatar-lg avatar-pink">NK</span>
-                <div>
-                  <p class="detail-name">Neha Kapoor <span class="role-badge">Member</span> <span class="status-pill is-active"><span class="status-dot-inline"></span> Active</span> <span class="tag-chip">International</span></p>
-                  <p class="detail-role">neha@paryatech.in · Leisure · International · Joined 8 months ago</p>
+              <div class="myview-profile-main">
+                <span class="avatar avatar-lg avatar-pink" id="mywork-avatar" aria-hidden="true">NK</span>
+                <div class="myview-profile-copy">
+                  <div class="myview-profile-title">
+                    <h2 class="myview-name" id="mywork-member-name">Neha Kapoor</h2>
+                    <span class="role-badge">Member</span>
+                    <span class="status-pill is-active myview-status"><span class="status-dot-inline"></span> Active</span>
+                    <span class="tag-chip" id="mywork-team-tag">International</span>
+                  </div>
+                  <ul class="myview-meta">
+                    <li>
+                      <img src="assets/mail.svg" alt="" width="14" height="14" />
+                      <span id="mywork-email">neha@paryatech.in</span>
+                    </li>
+                    <li>
+                      <img src="assets/map-pin.svg" alt="" width="14" height="14" />
+                      <span id="mywork-desk">Leisure · International</span>
+                    </li>
+                    <li>
+                      <img src="assets/calendar.svg" alt="" width="14" height="14" />
+                      <span id="mywork-joined">Joined 8 months ago</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
-              <div class="rank-card">
-                <p class="kpi-label">Team rank · Revenue</p>
-                <p class="rank-value">#3 <span class="kpi-meta-up">↑ 1</span></p>
-              </div>
+              <aside class="myview-rank-card" aria-label="Team rank">
+                <p class="myview-rank-label">Team rank · Revenue</p>
+                <p class="myview-rank-value">
+                  <span id="mywork-rank">#3</span>
+                  <span class="myview-rank-delta is-up" id="mywork-rank-delta" aria-label="Up 1">▲ 1</span>
+                </p>
+              </aside>
             </div>
-            <div class="myview-subtabs" role="tablist" aria-label="My view sections">
-              <button type="button" class="period-pill is-active" role="tab" data-myview-sub="overview" aria-selected="true" tabindex="0">Overview</button>
-              <button type="button" class="period-pill" role="tab" data-myview-sub="growth" aria-selected="false" tabindex="-1">Growth</button>
-              <button type="button" class="period-pill" role="tab" data-myview-sub="goals" aria-selected="false" tabindex="-1">Goals</button>
-              <button type="button" class="period-pill" role="tab" data-myview-sub="activity" aria-selected="false" tabindex="-1">Activity</button>
-            </div>
-            <div class="period-pills myview-period" role="group" aria-label="Period">
-              <button type="button" class="period-pill is-active">This month</button>
-              <button type="button" class="period-pill">This quarter</button>
-              <button type="button" class="period-pill">Last 6 months</button>
-              <button type="button" class="period-pill">This year</button>
-            </div>
-            <section class="kpi-grid team-kpi-grid" aria-label="My metrics">
-              <article class="kpi-card kpi-card-static">
-                <div class="kpi-card-head"><p class="kpi-label">Live queries</p><span class="kpi-icon" aria-hidden="true"><img src="assets/queries.svg" alt="" width="14" height="14" /></span></div>
-                <p class="kpi-value">14</p><p class="kpi-meta">active now</p>
-              </article>
-              <article class="kpi-card kpi-card-static">
-                <div class="kpi-card-head"><p class="kpi-label">Win rate</p><span class="kpi-icon" aria-hidden="true"><img src="assets/nav-reports.svg" alt="" width="14" height="14" /></span></div>
-                <p class="kpi-value">29%</p><p class="kpi-meta">This month</p>
-              </article>
-              <article class="kpi-card kpi-card-static">
-                <div class="kpi-card-head"><p class="kpi-label">Pipeline</p><span class="kpi-icon" aria-hidden="true"><img src="assets/nav-packages.svg" alt="" width="14" height="14" /></span></div>
-                <p class="kpi-value">₹16.9L</p><p class="kpi-meta">owned, active</p>
-              </article>
-              <article class="kpi-card kpi-card-static">
-                <div class="kpi-card-head"><p class="kpi-label">Revenue</p><span class="kpi-icon" aria-hidden="true"><img src="assets/currency-rupee.svg" alt="" width="14" height="14" /></span></div>
-                <p class="kpi-value">₹6L</p><p class="kpi-meta">This month</p>
-              </article>
-              <article class="kpi-card kpi-card-static">
-                <div class="kpi-card-head"><p class="kpi-label">Bookings</p><span class="kpi-icon" aria-hidden="true"><img src="assets/bookings.svg" alt="" width="14" height="14" /></span></div>
-                <p class="kpi-value">8</p><p class="kpi-meta">This month</p>
-              </article>
-              <article class="kpi-card kpi-card-static">
-                <div class="kpi-card-head"><p class="kpi-label">CSAT</p><span class="kpi-icon" aria-hidden="true"><img src="assets/users.svg" alt="" width="14" height="14" /></span></div>
-                <p class="kpi-value">4.7</p><p class="kpi-meta">customer rating</p>
-              </article>
+            <nav class="team-tabs myview-subtabs" role="tablist" aria-label="My view sections">
+              <button type="button" class="team-tab is-active" role="tab" id="mywork-tab-work" data-mywork-tab="work" aria-selected="true" aria-controls="mywork-panel-work" tabindex="0">Overview</button>
+              <button type="button" class="team-tab" role="tab" id="mywork-tab-performance" data-mywork-tab="performance" aria-selected="false" aria-controls="mywork-panel-performance" tabindex="-1">Growth</button>
+              <button type="button" class="team-tab" role="tab" id="mywork-tab-goals" data-mywork-tab="goals" aria-selected="false" aria-controls="mywork-panel-goals" tabindex="-1">Goals</button>
+              <button type="button" class="team-tab" role="tab" id="mywork-tab-activity" data-mywork-tab="activity" aria-selected="false" aria-controls="mywork-panel-activity" tabindex="-1">Activity</button>
+            </nav>
+
+            <section class="mywork-panel is-active" id="mywork-panel-work" data-mywork-panel="work" role="tabpanel" aria-labelledby="mywork-tab-work">
+              <section class="kpi-grid mywork-summary-grid" id="mywork-summary" aria-label="Current workload summary"></section>
+              <div class="mywork-queue-grid" id="mywork-queues"></div>
             </section>
-            <div class="myview-split">
-              <section class="card">
-                <header class="card-head"><h2>Live queries</h2><span class="team-count-pill">14 active</span></header>
-                <ul class="live-query-list">
-                  <li><div><p class="member-name">Sharma Family · Bali</p><p class="member-role">12 days · 4 pax</p></div><span class="query-status is-nego">Negotiation</span><span class="query-amt">₹2.4L</span></li>
-                  <li><div><p class="member-name">Iyer Honeymoon · Maldives</p><p class="member-role">8 days · 2 pax</p></div><span class="query-status is-proposal">Proposal sent</span><span class="query-amt">₹3.1L</span></li>
-                  <li><div><p class="member-name">Desai Group · Europe</p><p class="member-role">18 days · 10 pax</p></div><span class="query-status is-new">New</span><span class="query-amt">₹8.6L</span></li>
-                  <li><div><p class="member-name">Khan Family · Dubai</p><p class="member-role">6 days · 5 pax</p></div><span class="query-status is-quoted">Quoted</span><span class="query-amt">₹1.9L</span></li>
-                </ul>
-              </section>
-              <section class="card">
-                <header class="card-head"><h2>This quarter vs target</h2></header>
-                <div class="target-bars">
-                  <div><div class="target-bar-label"><span>Revenue</span><span>₹6.4L / ₹7.2L</span></div><div class="attain-bar"><span style="width:89%"></span></div></div>
-                  <div><div class="target-bar-label"><span>Bookings</span><span>8 / 10</span></div><div class="attain-bar"><span style="width:80%"></span></div></div>
-                  <div><div class="target-bar-label"><span>Win rate</span><span>29% / 35%</span></div><div class="attain-bar"><span style="width:83%"></span></div></div>
+
+            <section class="mywork-panel" id="mywork-panel-performance" data-mywork-panel="performance" role="tabpanel" aria-labelledby="mywork-tab-performance" hidden>
+              <div class="period-pills mywork-performance-period" role="group" aria-label="Performance period">
+                <button type="button" class="period-pill is-active" data-mywork-period="month">This month</button>
+                <button type="button" class="period-pill" data-mywork-period="quarter">This quarter</button>
+                <button type="button" class="period-pill" data-mywork-period="half">Last 6 months</button>
+                <button type="button" class="period-pill" data-mywork-period="year">This year</button>
+              </div>
+              <section class="kpi-grid mywork-performance-grid" id="mywork-performance-metrics" aria-label="Performance metrics"></section>
+              <div class="mywork-history-grid" id="mywork-performance-history"></div>
+            </section>
+
+            <section class="mywork-panel" id="mywork-panel-goals" data-mywork-panel="goals" role="tabpanel" aria-labelledby="mywork-tab-goals" hidden>
+              <div class="mywork-goals-grid" id="mywork-goals"></div>
+              <section class="card mywork-target-history-card" id="mywork-target-history"></section>
+            </section>
+
+            <section class="mywork-panel" id="mywork-panel-activity" data-mywork-panel="activity" role="tabpanel" aria-labelledby="mywork-tab-activity" hidden>
+              <div class="audit-toolbar mywork-activity-toolbar">
+                <div class="audit-search">
+                  <img src="assets/search.svg" alt="" width="14" height="14" />
+                  <input type="search" id="mywork-activity-search" placeholder="Search action or record ID" aria-label="Search my activity" />
                 </div>
-                <div class="live-now-card">
-                  <p class="kpi-label">Live queries now</p>
-                  <p class="kpi-value">14</p>
-                </div>
-              </section>
-            </div>
-            <p class="myview-placeholder" id="myview-placeholder" hidden>Growth, Goals and Activity charts will appear here in a later pass.</p>
+                <select class="team-select audit-filter" id="mywork-activity-module" aria-label="Module filter">
+                  <option value="all">All modules</option>
+                  <option value="Queries">Queries</option>
+                  <option value="Bookings">Bookings</option>
+                  <option value="Proposals">Proposals</option>
+                  <option value="Tasks">Tasks</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Vendors">Vendors</option>
+                  <option value="Inbox">Inbox</option>
+                  <option value="Support">Support</option>
+                </select>
+                <select class="team-select audit-filter" id="mywork-activity-date" aria-label="Date filter">
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="365">This year</option>
+                </select>
+                <details class="audit-more" id="mywork-activity-more">
+                  <summary class="btn btn-outline btn-sm">More filters</summary>
+                  <div class="audit-more-panel">
+                    <label class="audit-filter-field">
+                      <span>Action type</span>
+                      <select class="team-select audit-filter" id="mywork-activity-action" aria-label="Action type filter">
+                        <option value="all">All action types</option>
+                        <option value="status_change">Status change</option>
+                        <option value="assignment">Assignment</option>
+                        <option value="complete">Completed</option>
+                        <option value="message">Reply / message</option>
+                      </select>
+                    </label>
+                    <label class="audit-filter-field">
+                      <span>Risk level</span>
+                      <select class="team-select audit-filter" id="mywork-activity-risk" aria-label="Risk level filter">
+                        <option value="all">All sensitive risk levels</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                      </select>
+                    </label>
+                  </div>
+                </details>
+              </div>
+              <div class="card table-scroll">
+                <table class="team-table roster-table audit-table mywork-activity-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Time</th>
+                      <th scope="col">Member</th>
+                      <th scope="col">Event</th>
+                      <th scope="col">Module</th>
+                      <th scope="col">Risk</th>
+                    </tr>
+                  </thead>
+                  <tbody id="mywork-activity"></tbody>
+                </table>
+              </div>
+            </section>
           </section>
         </div>
       </main>
@@ -2141,6 +2193,6 @@
 
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="script.js?v=teamrefine10"></script>
+  <script src="script.js?v=mywork18"></script>
 </body>
 </html>

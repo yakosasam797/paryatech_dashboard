@@ -71,7 +71,7 @@
       sub: "Quarter attainment for the agency and each member.",
     },
     org: {
-      title: "Team structure",
+      title: "Org chart",
       sub: "Who reports to whom across International and Domestic.",
     },
     roles: {
@@ -83,12 +83,469 @@
       sub: "Pending invites and member onboarding until ready for work.",
     },
     audit: {
-      title: "Workspace Audit Log",
+      title: "Audit log",
       sub: "Workspace activity across operations, finance, access, and security.",
     },
     myview: {
       title: "My view",
-      sub: "Your live queries, rank, and targets.",
+      sub: "Your current workload, role-relevant performance, goals, and activity.",
+    },
+  };
+
+  const MY_WORK_PERIOD_LABELS = {
+    month: "This month",
+    quarter: "This quarter",
+    half: "Last 6 months",
+    year: "This year",
+  };
+
+  const MY_WORK_ROLES = {
+    sales: {
+      identity: {
+        name: "Neha Kapoor",
+        initials: "NK",
+        avatarClass: "avatar-pink",
+        teamTag: "International",
+        email: "neha@paryatech.in",
+        desk: "Leisure · International",
+        joined: "Joined 8 months ago",
+        rank: "#3",
+        rankDelta: "1",
+        rankDeltaDir: "up",
+      },
+      summary: [
+        { label: "Live Queries", value: "14", meta: "Current", icon: "assets/queries.svg" },
+        { label: "Revenue", value: "₹6L", meta: "This month", icon: "assets/currency-rupee.svg" },
+        { label: "CSAT", value: "4.7", meta: "Customer rating", icon: "assets/users.svg" },
+        { label: "Bookings", value: "8", meta: "This month", icon: "assets/bookings.svg" },
+      ],
+      context: "6 owned Queries · Contributing to 4 other records · 7 open tasks",
+      queues: [
+        {
+          type: "live-queries",
+          title: "Live Queries",
+          count: "14 active",
+          items: [
+            { id: "Q-1042", title: "Sharma Family · Bali", meta: "12 days · 4 pax", status: "Negotiation", statusClass: "is-nego", amount: "₹2.4L", action: "Opening Query Q-1042" },
+            { id: "Q-1098", title: "Iyer Honeymoon · Maldives", meta: "8 days · 2 pax", status: "Proposal sent", statusClass: "is-proposal", amount: "₹3.1L", action: "Opening Query Q-1098" },
+            { id: "Q-1077", title: "Desai Group · Europe", meta: "18 days · 10 pax", status: "New", statusClass: "is-new", amount: "₹8.6L", action: "Opening Query Q-1077" },
+            { id: "Q-1102", title: "Khan Family · Dubai", meta: "6 days · 5 pax", status: "Quoted", statusClass: "is-quoted", amount: "₹1.9L", action: "Opening Query Q-1102" },
+          ],
+        },
+        {
+          type: "targets",
+          title: "This quarter vs target",
+          count: "This quarter",
+          bars: [
+            { label: "Revenue", value: "₹6.4L / ₹7.2L", pct: 89 },
+            { label: "Bookings", value: "8 / 10", pct: 80 },
+            { label: "Win rate", value: "29% / 35%", pct: 83 },
+          ],
+        },
+      ],
+      performance: [
+        {
+          label: "Confirmed Booking Value",
+          icon: "assets/currency-rupee.svg",
+          values: {
+            month: ["₹6L", "8 confirmed bookings"],
+            quarter: ["₹17.8L", "23 confirmed bookings"],
+            half: ["₹34.2L", "47 confirmed bookings"],
+            year: ["₹61.4L", "82 confirmed bookings"],
+          },
+        },
+        {
+          label: "Query Conversion",
+          icon: "assets/nav-reports.svg",
+          values: {
+            month: ["29%", "8 won from 28 decided Queries"],
+            quarter: ["31%", "23 won from 74 decided Queries"],
+            half: ["30%", "47 won from 158 decided Queries"],
+            year: ["32%", "82 won from 258 decided Queries"],
+          },
+        },
+        {
+          label: "First Response Time",
+          icon: "assets/zap.svg",
+          values: {
+            month: ["12m", "Median for owned Queries"],
+            quarter: ["13m", "Median for owned Queries"],
+            half: ["14m", "Median for owned Queries"],
+            year: ["15m", "Median for owned Queries"],
+          },
+        },
+        {
+          label: "Bookings Converted",
+          icon: "assets/bookings.svg",
+          values: {
+            month: ["8", "From owned Queries"],
+            quarter: ["23", "From owned Queries"],
+            half: ["47", "From owned Queries"],
+            year: ["82", "From owned Queries"],
+          },
+        },
+      ],
+      history: {
+        totals: [
+          { value: "₹51L", label: "Confirmed value" },
+          { value: "40", label: "Bookings" },
+          { value: "64", label: "Customers" },
+        ],
+        bests: [
+          { label: "Best booking value month", value: "₹7.6L", period: "May", icon: "assets/currency-rupee.svg" },
+          { label: "Highest Query conversion", value: "36%", period: "May", icon: "assets/nav-reports.svg" },
+          { label: "Fastest first response", value: "21m", period: "Jun", icon: "assets/zap.svg" },
+        ],
+        attainment: [
+          { period: "Q3 ’25", value: 100 },
+          { period: "Q4 ’25", value: 103 },
+          { period: "Q1 ’26", value: 102 },
+          { period: "Q2 ’26", value: 102 },
+        ],
+      },
+      goals: [
+        { label: "Confirmed Booking Value", current: "₹17.8L", target: "₹21.6L", pct: 82, icon: "assets/currency-rupee.svg" },
+        { label: "Bookings Converted", current: "23", target: "30", pct: 77, icon: "assets/bookings.svg" },
+        { label: "Query Conversion", current: "31%", target: "35%", pct: 89, icon: "assets/nav-reports.svg" },
+      ],
+      targetHistory: {
+        secondaryLabel: "Bookings",
+        rows: [
+          { period: "Q2 ’26", note: "Current quarter", current: "₹17.8L", target: "₹21.6L", pct: 82, secondary: "23 / 30", status: "In progress" },
+          { period: "Q1 ’26", note: "Jan–Mar 2026", current: "₹22L", target: "₹21.6L", pct: 102, secondary: "31 / 30", status: "Exceeded" },
+          { period: "Q4 ’25", note: "Oct–Dec 2025", current: "₹22.3L", target: "₹21.6L", pct: 103, secondary: "32 / 30", status: "Exceeded" },
+          { period: "Q3 ’25", note: "Jul–Sep 2025", current: "₹21.6L", target: "₹21.6L", pct: 100, secondary: "30 / 30", status: "Met" },
+        ],
+      },
+      activity: [
+        { day: "Today · 6 Aug 2026", time: "11:42", entity: "Query", recordId: "Q-1042", summary: "Stage changed: Quoting → Negotiation", module: "Queries", action: "status_change", risk: "", daysAgo: 0 },
+        { day: "Today · 6 Aug 2026", time: "10:18", entity: "Proposal", recordId: "PR-331", summary: "Revision sent", module: "Proposals", action: "message", risk: "", daysAgo: 0 },
+        { day: "Today · 6 Aug 2026", time: "09:34", entity: "Task", recordId: "T-198", summary: "Completed", module: "Tasks", action: "complete", risk: "", daysAgo: 0 },
+        { day: "Yesterday · 5 Aug 2026", time: "16:20", entity: "Booking", recordId: "BK-2207", summary: "Sales handover added", module: "Bookings", action: "status_change", risk: "", daysAgo: 1 },
+      ],
+    },
+    operations: {
+      identity: {
+        name: "Sara Pinto",
+        initials: "SP",
+        avatarClass: "avatar-pink",
+        teamTag: "Domestic",
+        email: "sara@paryatech.in",
+        desk: "Operations · Domestic",
+        joined: "Joined 1 year ago",
+        rank: "#5",
+        rankDelta: "1",
+        rankDeltaDir: "up",
+      },
+      summary: [
+        { label: "Active Bookings", value: "8", meta: "Current", icon: "assets/bookings.svg" },
+        { label: "Bookings at Risk", value: "2", meta: "Current", icon: "assets/warning.svg" },
+        { label: "Tasks Due Today", value: "5", meta: "Current", icon: "assets/calendar.svg" },
+        { label: "Supplier Confirmations Pending", value: "3", meta: "Current", icon: "assets/nav-vendors.svg" },
+      ],
+      context: "8 active Bookings · Contributing to 3 other records · 9 open tasks",
+      queues: [
+        {
+          title: "Bookings at risk",
+          count: "2 bookings",
+          items: [
+            { id: "BK-2214", title: "Mishra Family · Kerala", meta: "Hotel confirmation pending · Check-in in 3 days", due: "Escalate today", tone: "danger", action: "Opening Booking BK-2214" },
+            { id: "BK-2198", title: "Jain Group · Goa", meta: "Airport transfer not confirmed", due: "Vendor reply overdue", tone: "danger", action: "Opening Booking BK-2198" },
+          ],
+        },
+        {
+          title: "Due today",
+          count: "5 tasks",
+          items: [
+            { id: "T-311", title: "Issue final vouchers", meta: "Booking BK-2209 · 6 travellers", due: "Due by 14:00", tone: "warning", action: "Opening Task T-311" },
+            { id: "T-314", title: "Confirm supplier balance", meta: "Booking BK-2212 · Kumar Family", due: "Due today", tone: "warning", action: "Opening Task T-314" },
+            { id: "T-316", title: "Review travel documents", meta: "Booking BK-2205 · Assigned to you", due: "Due today", tone: "neutral", action: "Opening Task T-316" },
+          ],
+        },
+        {
+          title: "Supplier confirmations",
+          count: "3 pending",
+          items: [
+            { id: "VND-08", title: "Coastal Cabs", meta: "Transfer confirmation · Booking BK-2198", due: "Waiting 5h", tone: "warning", action: "Opening Vendor VND-08" },
+            { id: "VND-14", title: "Wayanad Retreat", meta: "Rooming list accepted · Final rates pending", due: "Follow up tomorrow", tone: "neutral", action: "Opening Vendor VND-14" },
+          ],
+        },
+      ],
+      performance: [
+        {
+          label: "Bookings Completed",
+          icon: "assets/bookings.svg",
+          values: { month: ["18", "17 completed on time"], quarter: ["51", "48 completed on time"], half: ["106", "99 completed on time"], year: ["198", "185 completed on time"] },
+        },
+        {
+          label: "On-time Handovers",
+          icon: "assets/zap.svg",
+          values: { month: ["94%", "17 of 18 handovers"], quarter: ["92%", "47 of 51 handovers"], half: ["93%", "99 of 106 handovers"], year: ["93%", "185 of 198 handovers"] },
+        },
+        {
+          label: "Supplier Confirmations",
+          icon: "assets/nav-vendors.svg",
+          values: { month: ["42", "Median 3h 18m"], quarter: ["119", "Median 3h 32m"], half: ["246", "Median 3h 45m"], year: ["464", "Median 3h 51m"] },
+        },
+        {
+          label: "Task Resolution Time",
+          icon: "assets/nav-tasks.svg",
+          values: { month: ["6.2h", "Median assigned task"], quarter: ["6.6h", "Median assigned task"], half: ["6.8h", "Median assigned task"], year: ["7.1h", "Median assigned task"] },
+        },
+      ],
+      history: {
+        totals: [
+          { value: "198", label: "Bookings completed" },
+          { value: "185", label: "On-time handovers" },
+          { value: "464", label: "Confirmations" },
+        ],
+        bests: [
+          { label: "Most bookings completed", value: "24", period: "Jul", icon: "assets/bookings.svg" },
+          { label: "Best on-time handover rate", value: "98%", period: "May", icon: "assets/nav-reports.svg" },
+          { label: "Fastest supplier confirmation", value: "2.8h", period: "Jun", icon: "assets/zap.svg" },
+        ],
+        attainment: [
+          { period: "Q3 ’25", value: 96 },
+          { period: "Q4 ’25", value: 101 },
+          { period: "Q1 ’26", value: 99 },
+          { period: "Q2 ’26", value: 103 },
+        ],
+      },
+      goals: [
+        { label: "On-time Handovers", current: "92%", target: "95%", pct: 97, icon: "assets/nav-reports.svg" },
+        { label: "Supplier Confirmation SLA", current: "89%", target: "93%", pct: 96, icon: "assets/nav-vendors.svg" },
+        { label: "Bookings Completed", current: "51", target: "56", pct: 91, icon: "assets/bookings.svg" },
+      ],
+      targetHistory: {
+        secondaryLabel: "On-time handovers",
+        rows: [
+          { period: "Q2 ’26", note: "Current quarter", current: "51", target: "56", pct: 91, secondary: "92% / 95%", status: "In progress" },
+          { period: "Q1 ’26", note: "Jan–Mar 2026", current: "58", target: "56", pct: 104, secondary: "96% / 95%", status: "Exceeded" },
+          { period: "Q4 ’25", note: "Oct–Dec 2025", current: "55", target: "56", pct: 98, secondary: "94% / 95%", status: "Below target" },
+          { period: "Q3 ’25", note: "Jul–Sep 2025", current: "57", target: "56", pct: 102, secondary: "95% / 95%", status: "Met" },
+        ],
+      },
+      activity: [
+        { day: "Today · 6 Aug 2026", time: "12:08", entity: "Booking", recordId: "BK-2209", summary: "Vouchers issued", module: "Bookings", action: "complete", risk: "", daysAgo: 0 },
+        { day: "Today · 6 Aug 2026", time: "11:26", entity: "Task", recordId: "T-309", summary: "Completed", module: "Tasks", action: "complete", risk: "", daysAgo: 0 },
+        { day: "Today · 6 Aug 2026", time: "10:12", entity: "Vendor", recordId: "VND-14", summary: "Confirmation received", module: "Vendors", action: "status_change", risk: "", daysAgo: 0 },
+        { day: "Yesterday · 5 Aug 2026", time: "17:05", entity: "Booking", recordId: "BK-2214", summary: "Risk flag added", module: "Bookings", action: "status_change", risk: "medium", daysAgo: 1 },
+      ],
+    },
+    finance: {
+      identity: {
+        name: "Anita Verma",
+        initials: "AV",
+        avatarClass: "avatar-mint",
+        teamTag: "Finance",
+        email: "anita@paryatech.in",
+        desk: "Finance · Agency-wide",
+        joined: "Joined 10 months ago",
+        rank: "#2",
+        rankDelta: "1",
+        rankDeltaDir: "up",
+      },
+      summary: [
+        { label: "Collections Due", value: "₹4.8L", meta: "Current", icon: "assets/currency-rupee.svg" },
+        { label: "Overdue Payments", value: "4", meta: "Current", icon: "assets/warning.svg" },
+        { label: "Payables Awaiting Review", value: "7", meta: "Current", icon: "assets/nav-finance.svg" },
+        { label: "Approvals Pending", value: "3", meta: "Current", icon: "assets/shield.svg" },
+      ],
+      context: "11 open finance tasks · 4 overdue collections · 3 approvals waiting",
+      queues: [
+        {
+          title: "Overdue collections",
+          count: "4 payments",
+          items: [
+            { id: "PAY-44", title: "Kapoor Family · Europe", meta: "Balance collection · ₹1.45L", due: "Overdue by 3 days", tone: "danger", action: "Opening Payment PAY-44" },
+            { id: "PAY-51", title: "Shah Group · Dubai", meta: "Second instalment · ₹82,000", due: "Overdue by 1 day", tone: "danger", action: "Opening Payment PAY-51" },
+          ],
+        },
+        {
+          title: "Approvals pending",
+          count: "3 approvals",
+          items: [
+            { id: "APR-18", title: "Supplier advance · Coastal Cabs", meta: "₹48,000 · Booking BK-2198", due: "Review today", tone: "warning", action: "Opening Approval APR-18" },
+            { id: "APR-21", title: "Refund request · Query Q-1088", meta: "₹12,500 · Customer cancellation", due: "Due today", tone: "warning", action: "Opening Approval APR-21" },
+          ],
+        },
+        {
+          title: "Payables to review",
+          count: "7 payables",
+          items: [
+            { id: "BILL-72", title: "Wayanad Retreat", meta: "Supplier invoice · ₹1.08L", due: "Match against booking", tone: "neutral", action: "Opening Payable BILL-72" },
+            { id: "BILL-76", title: "Skyline Transfers", meta: "Supplier invoice · ₹36,400", due: "Tax details missing", tone: "warning", action: "Opening Payable BILL-76" },
+          ],
+        },
+      ],
+      performance: [
+        {
+          label: "Collections Recorded",
+          icon: "assets/currency-rupee.svg",
+          values: { month: ["₹28.4L", "64 customer payments"], quarter: ["₹79.2L", "181 customer payments"], half: ["₹1.54Cr", "356 customer payments"], year: ["₹2.98Cr", "691 customer payments"] },
+        },
+        {
+          label: "Overdue Recovery",
+          icon: "assets/nav-reports.svg",
+          values: { month: ["91%", "Within 7 days"], quarter: ["89%", "Within 7 days"], half: ["90%", "Within 7 days"], year: ["88%", "Within 7 days"] },
+        },
+        {
+          label: "Approval Time",
+          icon: "assets/shield.svg",
+          values: { month: ["3.1h", "Median review time"], quarter: ["3.4h", "Median review time"], half: ["3.6h", "Median review time"], year: ["3.8h", "Median review time"] },
+        },
+        {
+          label: "Payables Cleared",
+          icon: "assets/nav-finance.svg",
+          values: { month: ["47", "96% before due date"], quarter: ["136", "95% before due date"], half: ["268", "94% before due date"], year: ["512", "94% before due date"] },
+        },
+      ],
+      history: {
+        totals: [
+          { value: "₹2.98Cr", label: "Collections" },
+          { value: "512", label: "Payables cleared" },
+          { value: "691", label: "Payments recorded" },
+        ],
+        bests: [
+          { label: "Best collections month", value: "₹38.4L", period: "Mar", icon: "assets/currency-rupee.svg" },
+          { label: "Best on-time payable rate", value: "98%", period: "May", icon: "assets/nav-reports.svg" },
+          { label: "Fastest approval time", value: "2.4h", period: "Jun", icon: "assets/zap.svg" },
+        ],
+        attainment: [
+          { period: "Q3 ’25", value: 99 },
+          { period: "Q4 ’25", value: 101 },
+          { period: "Q1 ’26", value: 97 },
+          { period: "Q2 ’26", value: 102 },
+        ],
+      },
+      goals: [
+        { label: "Overdue Recovery", current: "89%", target: "92%", pct: 97, icon: "assets/nav-reports.svg" },
+        { label: "Approvals within 4h", current: "86%", target: "90%", pct: 96, icon: "assets/shield.svg" },
+        { label: "Payables before Due Date", current: "95%", target: "96%", pct: 99, icon: "assets/nav-finance.svg" },
+      ],
+      targetHistory: {
+        secondaryLabel: "Payables on time",
+        rows: [
+          { period: "Q2 ’26", note: "Current quarter", current: "89%", target: "92%", pct: 97, secondary: "95% / 96%", status: "In progress" },
+          { period: "Q1 ’26", note: "Jan–Mar 2026", current: "94%", target: "92%", pct: 102, secondary: "97% / 96%", status: "Exceeded" },
+          { period: "Q4 ’25", note: "Oct–Dec 2025", current: "90%", target: "92%", pct: 98, secondary: "94% / 96%", status: "Below target" },
+          { period: "Q3 ’25", note: "Jul–Sep 2025", current: "93%", target: "92%", pct: 101, secondary: "96% / 96%", status: "Met" },
+        ],
+      },
+      activity: [
+        { day: "Today · 6 Aug 2026", time: "12:16", entity: "Payment", recordId: "PAY-44", summary: "Amount changed: ₹50,000 → ₹45,000", module: "Finance", action: "status_change", risk: "high", daysAgo: 0 },
+        { day: "Today · 6 Aug 2026", time: "11:31", entity: "Approval", recordId: "APR-17", summary: "Approved", module: "Finance", action: "complete", risk: "", daysAgo: 0 },
+        { day: "Today · 6 Aug 2026", time: "10:04", entity: "Payable", recordId: "BILL-69", summary: "Marked paid", module: "Finance", action: "complete", risk: "", daysAgo: 0 },
+        { day: "Yesterday · 5 Aug 2026", time: "15:40", entity: "Payment", recordId: "PAY-48", summary: "Reminder sent", module: "Finance", action: "message", risk: "", daysAgo: 1 },
+      ],
+    },
+    support: {
+      identity: {
+        name: "Priya Nair",
+        initials: "PN",
+        avatarClass: "avatar-mint",
+        teamTag: "Support",
+        email: "priya@paryatech.in",
+        desk: "Support · Customer care",
+        joined: "Joined 11 months ago",
+        rank: "#4",
+        rankDelta: "2",
+        rankDeltaDir: "down",
+      },
+      summary: [
+        { label: "Assigned Conversations", value: "12", meta: "Current", icon: "assets/nav-inbox.svg" },
+        { label: "Overdue Cases", value: "3", meta: "Current", icon: "assets/warning.svg" },
+        { label: "First Response Time", value: "6m", meta: "Current median", icon: "assets/zap.svg" },
+        { label: "Unresolved Cases", value: "7", meta: "Current", icon: "assets/nav-support.svg" },
+      ],
+      context: "12 assigned conversations · 3 overdue cases · 4 follow-ups due today",
+      queues: [
+        {
+          title: "Overdue cases",
+          count: "3 cases",
+          items: [
+            { id: "CASE-88", title: "Traveller unable to download voucher", meta: "Booking BK-2201 · WhatsApp", due: "SLA overdue by 42 min", tone: "danger", action: "Opening Case CASE-88" },
+            { id: "CASE-91", title: "Refund status requested", meta: "Query Q-1088 · Email", due: "Waiting 3h", tone: "danger", action: "Opening Case CASE-91" },
+          ],
+        },
+        {
+          title: "Assigned conversations",
+          count: "12 open",
+          items: [
+            { id: "IN-502", title: "Mehta Family", meta: "WhatsApp · Hotel check-in question", due: "Unread · 4 min", tone: "info", action: "Opening conversation IN-502" },
+            { id: "IN-498", title: "Rao Group", meta: "Email · Invoice copy requested", due: "Follow-up due today", tone: "warning", action: "Opening conversation IN-498" },
+            { id: "IN-491", title: "Patel Group", meta: "WhatsApp · Driver contact requested", due: "Assigned to you", tone: "neutral", action: "Opening conversation IN-491" },
+          ],
+        },
+        {
+          title: "Contributing records",
+          count: "5 records",
+          items: [
+            { id: "BK-2201", title: "Verma Family · Kerala", meta: "Support task · Voucher access", due: "Customer waiting", tone: "warning", action: "Opening Booking BK-2201" },
+            { id: "Q-1088", title: "Nair Honeymoon · Bali", meta: "Support task · Refund status", due: "Finance response pending", tone: "neutral", action: "Opening Query Q-1088" },
+          ],
+        },
+      ],
+      performance: [
+        {
+          label: "Conversations Resolved",
+          icon: "assets/nav-inbox.svg",
+          values: { month: ["146", "91% without reassignment"], quarter: ["421", "90% without reassignment"], half: ["846", "90% without reassignment"], year: ["1,604", "89% without reassignment"] },
+        },
+        {
+          label: "First Response Time",
+          icon: "assets/zap.svg",
+          values: { month: ["6m", "Median assigned conversation"], quarter: ["7m", "Median assigned conversation"], half: ["7m", "Median assigned conversation"], year: ["8m", "Median assigned conversation"] },
+        },
+        {
+          label: "Resolution Time",
+          icon: "assets/nav-support.svg",
+          values: { month: ["2.8h", "Median resolved case"], quarter: ["3.0h", "Median resolved case"], half: ["3.1h", "Median resolved case"], year: ["3.2h", "Median resolved case"] },
+        },
+        {
+          label: "Reopened Cases",
+          icon: "assets/nav-reports.svg",
+          values: { month: ["4.1%", "6 of 146 cases"], quarter: ["4.5%", "19 of 421 cases"], half: ["4.6%", "39 of 846 cases"], year: ["4.8%", "77 of 1,604 cases"] },
+        },
+      ],
+      history: {
+        totals: [
+          { value: "1,604", label: "Conversations" },
+          { value: "1,499", label: "Cases resolved" },
+          { value: "77", label: "Reopened cases" },
+        ],
+        bests: [
+          { label: "Fastest first response", value: "5m", period: "May", icon: "assets/zap.svg" },
+          { label: "Fastest resolution time", value: "2.2h", period: "Jun", icon: "assets/nav-support.svg" },
+          { label: "Lowest reopen rate", value: "3.2%", period: "Apr", icon: "assets/nav-reports.svg" },
+        ],
+        attainment: [
+          { period: "Q3 ’25", value: 98 },
+          { period: "Q4 ’25", value: 100 },
+          { period: "Q1 ’26", value: 102 },
+          { period: "Q2 ’26", value: 101 },
+        ],
+      },
+      goals: [
+        { label: "First Response under 10m", current: "93%", target: "95%", pct: 98, icon: "assets/zap.svg" },
+        { label: "Resolution within SLA", current: "89%", target: "92%", pct: 97, icon: "assets/nav-support.svg" },
+        { label: "Cases Resolved", current: "421", target: "450", pct: 94, icon: "assets/nav-inbox.svg" },
+      ],
+      targetHistory: {
+        secondaryLabel: "Response within 10m",
+        rows: [
+          { period: "Q2 ’26", note: "Current quarter", current: "421", target: "450", pct: 94, secondary: "93% / 95%", status: "In progress" },
+          { period: "Q1 ’26", note: "Jan–Mar 2026", current: "459", target: "450", pct: 102, secondary: "96% / 95%", status: "Exceeded" },
+          { period: "Q4 ’25", note: "Oct–Dec 2025", current: "450", target: "450", pct: 100, secondary: "95% / 95%", status: "Met" },
+          { period: "Q3 ’25", note: "Jul–Sep 2025", current: "441", target: "450", pct: 98, secondary: "94% / 95%", status: "Below target" },
+        ],
+      },
+      activity: [
+        { day: "Today · 6 Aug 2026", time: "12:03", entity: "Case", recordId: "CASE-84", summary: "Resolved", module: "Support", action: "complete", risk: "", daysAgo: 0 },
+        { day: "Today · 6 Aug 2026", time: "11:18", entity: "Conversation", recordId: "IN-498", summary: "Replied", module: "Inbox", action: "message", risk: "", daysAgo: 0 },
+        { day: "Today · 6 Aug 2026", time: "10:42", entity: "Case", recordId: "CASE-91", summary: "Reassigned: Support → Finance", module: "Support", action: "assignment", risk: "medium", daysAgo: 0 },
+        { day: "Yesterday · 5 Aug 2026", time: "18:12", entity: "Task", recordId: "T-402", summary: "Completed", module: "Tasks", action: "complete", risk: "", daysAgo: 1 },
+      ],
     },
   };
 
@@ -701,7 +1158,7 @@
       key = "overview";
     }
     const meta = TEAM_TABS[key];
-    document.querySelectorAll(".team-tab").forEach((btn) => {
+    document.querySelectorAll("[data-team-tab]").forEach((btn) => {
       const active = btn.dataset.teamTab === key;
       btn.classList.toggle("is-active", active);
       btn.setAttribute("aria-selected", String(active));
@@ -730,7 +1187,7 @@
       btn.classList.toggle("is-active", btn.dataset.viewingAs === next);
     });
     if (next === "Member") {
-      const activeTab = document.querySelector(".team-tab.is-active")?.dataset.teamTab;
+      const activeTab = document.querySelector("[data-team-tab].is-active")?.dataset.teamTab;
       if (activeTab === "audit") setTeamTab("overview");
     }
   }
@@ -1045,7 +1502,7 @@
 
   /* ---------- Team module ---------- */
 
-  document.querySelectorAll(".team-tab").forEach((btn) => {
+  document.querySelectorAll("[data-team-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       setTeamTab(btn.dataset.teamTab);
     });
@@ -1066,23 +1523,96 @@
     });
   });
 
+  const ROSTER_PAGE_SIZE = 5;
+  let rosterPage = 1;
+  let rosterFilter = "all";
+
+  function rosterRows() {
+    return [...document.querySelectorAll("#roster-tbody .roster-row")];
+  }
+
+  function matchingRosterRows() {
+    return rosterRows().filter((row) => {
+      const owned = Number(row.dataset.ownedQueries) || 0;
+      const openTasks = Number(row.dataset.openTasks) || 0;
+      const winRate = Number(row.dataset.winRate) || 0;
+      if (rosterFilter === "high-workload") return owned >= 10;
+      if (rosterFilter === "open-tasks") return openTasks >= 3;
+      if (rosterFilter === "top-win-rate") return winRate >= 34;
+      return true;
+    });
+  }
+
+  function renderRosterPagination() {
+    const rows = matchingRosterRows();
+    const total = rows.length;
+    const totalPages = Math.max(1, Math.ceil(total / ROSTER_PAGE_SIZE));
+    if (rosterPage > totalPages) rosterPage = totalPages;
+
+    const start = total === 0 ? 0 : (rosterPage - 1) * ROSTER_PAGE_SIZE + 1;
+    const end = Math.min(rosterPage * ROSTER_PAGE_SIZE, total);
+
+    rosterRows().forEach((row) => {
+      row.hidden = true;
+    });
+    rows.forEach((row, index) => {
+      const pageIndex = Math.floor(index / ROSTER_PAGE_SIZE) + 1;
+      row.hidden = pageIndex !== rosterPage;
+    });
+
+    const meta = document.getElementById("roster-pagination-meta");
+    if (meta) {
+      meta.textContent = total === 0 ? "No members" : `Showing ${start}–${end} of ${total}`;
+    }
+
+    const prev = document.getElementById("roster-page-prev");
+    const next = document.getElementById("roster-page-next");
+    if (prev) prev.disabled = rosterPage <= 1 || total === 0;
+    if (next) next.disabled = rosterPage >= totalPages || total === 0;
+
+    const pages = document.getElementById("roster-pagination-pages");
+    if (pages) {
+      pages.innerHTML = "";
+      for (let page = 1; page <= totalPages; page += 1) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `table-page-btn${page === rosterPage ? " is-active" : ""}`;
+        btn.textContent = String(page);
+        btn.setAttribute("aria-label", `Page ${page}`);
+        btn.setAttribute("aria-current", page === rosterPage ? "page" : "false");
+        btn.addEventListener("click", () => {
+          rosterPage = page;
+          renderRosterPagination();
+        });
+        pages.appendChild(btn);
+      }
+    }
+  }
+
   document.querySelectorAll(".roster-filter").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const filter = btn.dataset.rosterFilter || "all";
+      rosterFilter = btn.dataset.rosterFilter || "all";
       document.querySelectorAll(".roster-filter").forEach((f) => f.classList.remove("is-active"));
       btn.classList.add("is-active");
-      document.querySelectorAll(".roster-row").forEach((row) => {
-        const owned = Number(row.dataset.ownedQueries) || 0;
-        const openTasks = Number(row.dataset.openTasks) || 0;
-        const winRate = Number(row.dataset.winRate) || 0;
-        let match = true;
-        if (filter === "high-workload") match = owned >= 10;
-        else if (filter === "open-tasks") match = openTasks >= 3;
-        else if (filter === "top-win-rate") match = winRate >= 34;
-        row.hidden = !match;
-      });
+      rosterPage = 1;
+      renderRosterPagination();
     });
   });
+
+  document.getElementById("roster-page-prev")?.addEventListener("click", () => {
+    if (rosterPage <= 1) return;
+    rosterPage -= 1;
+    renderRosterPagination();
+  });
+
+  document.getElementById("roster-page-next")?.addEventListener("click", () => {
+    const totalPages = Math.max(1, Math.ceil(matchingRosterRows().length / ROSTER_PAGE_SIZE));
+    if (rosterPage >= totalPages) return;
+    rosterPage += 1;
+    renderRosterPagination();
+  });
+
+  renderRosterPagination();
 
   document.getElementById("roster-period")?.addEventListener("change", () => {
     showToast("Performance period updated");
@@ -2253,31 +2783,394 @@
     });
   });
 
-  document.querySelectorAll("[data-myview-sub]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const sub = btn.dataset.myviewSub;
-      document.querySelectorAll("[data-myview-sub]").forEach((b) => {
-        const active = b === btn;
-        b.classList.toggle("is-active", active);
-        b.setAttribute("aria-selected", String(active));
-        b.setAttribute("tabindex", active ? "0" : "-1");
-      });
-      const isOverview = sub === "overview";
-      const split = document.querySelector(".myview-split");
-      const kpis = document.querySelector("#team-panel-myview .team-kpi-grid");
-      const period = document.querySelector(".myview-period");
-      const placeholder = document.getElementById("myview-placeholder");
-      if (split) split.hidden = !isOverview;
-      if (kpis) kpis.hidden = !isOverview;
-      if (period) period.hidden = !isOverview;
-      if (placeholder) {
-        placeholder.hidden = isOverview;
-        if (!isOverview) {
-          placeholder.textContent = `${btn.textContent.trim()} charts will appear here in a later pass.`;
+  /* ---------- My Work ---------- */
+
+  const myWorkSummary = document.getElementById("mywork-summary");
+  const myWorkQueues = document.getElementById("mywork-queues");
+  const myWorkPerformanceMetrics = document.getElementById("mywork-performance-metrics");
+  const myWorkPerformanceHistory = document.getElementById("mywork-performance-history");
+  const myWorkGoals = document.getElementById("mywork-goals");
+  const myWorkTargetHistory = document.getElementById("mywork-target-history");
+  const myWorkActivity = document.getElementById("mywork-activity");
+  const myWorkActivitySearch = document.getElementById("mywork-activity-search");
+  const myWorkActivityModule = document.getElementById("mywork-activity-module");
+  const myWorkActivityDate = document.getElementById("mywork-activity-date");
+  const myWorkActivityAction = document.getElementById("mywork-activity-action");
+  const myWorkActivityRisk = document.getElementById("mywork-activity-risk");
+  const activeMyWorkRole = "sales";
+  let activeMyWorkTab = "work";
+  let activeMyWorkPeriod = "month";
+
+  function renderMyWorkIdentity(roleData) {
+    const identity = roleData.identity;
+    const avatar = document.getElementById("mywork-avatar");
+    const name = document.getElementById("mywork-member-name");
+    const teamTag = document.getElementById("mywork-team-tag");
+    const email = document.getElementById("mywork-email");
+    const desk = document.getElementById("mywork-desk");
+    const joined = document.getElementById("mywork-joined");
+    const rank = document.getElementById("mywork-rank");
+    const rankDelta = document.getElementById("mywork-rank-delta");
+    if (avatar) {
+      avatar.textContent = identity.initials;
+      avatar.className = `avatar avatar-lg ${identity.avatarClass}`;
+    }
+    if (name) name.textContent = identity.name;
+    if (teamTag) teamTag.textContent = identity.teamTag;
+    if (email) email.textContent = identity.email;
+    if (desk) desk.textContent = identity.desk;
+    if (joined) joined.textContent = identity.joined;
+    if (rank) rank.textContent = identity.rank;
+    if (rankDelta) {
+      const up = identity.rankDeltaDir !== "down";
+      rankDelta.className = `myview-rank-delta ${up ? "is-up" : "is-down"}`;
+      rankDelta.textContent = `${up ? "▲" : "▼"} ${identity.rankDelta}`;
+      rankDelta.setAttribute("aria-label", `${up ? "Up" : "Down"} ${identity.rankDelta}`);
+    }
+  }
+
+  function renderMyWorkSummary(roleData) {
+    if (!myWorkSummary) return;
+    myWorkSummary.innerHTML = roleData.summary
+      .map(
+        (metric) => `<article class="kpi-card kpi-card-static mywork-kpi-card">
+          <div class="kpi-card-head">
+            <p class="kpi-label">${metric.label}</p>
+            <span class="kpi-icon" aria-hidden="true"><img src="${metric.icon}" alt="" width="14" height="14" /></span>
+          </div>
+          <p class="kpi-value">${metric.value}</p>
+          <p class="kpi-meta">${metric.meta}</p>
+        </article>`
+      )
+      .join("");
+  }
+
+  function renderMyWorkQueues(roleData) {
+    if (!myWorkQueues) return;
+    myWorkQueues.innerHTML = roleData.queues
+      .map((queue) => {
+        if (queue.type === "targets") {
+          return `<section class="card mywork-queue-card mywork-targets-card">
+            <header class="card-head">
+              <div class="card-title-row"><h2>${queue.title}</h2></div>
+              <span class="team-count-pill">${queue.count}</span>
+            </header>
+            <div class="mywork-target-bars">
+              ${queue.bars
+                .map(
+                  (bar) => `<div>
+                    <div class="mywork-target-bar-label"><span>${bar.label}</span><span class="roster-metric">${bar.value}</span></div>
+                    <div class="goal-progress-track" aria-label="${bar.pct}% attained"><span style="width:${bar.pct}%"></span></div>
+                  </div>`
+                )
+                .join("")}
+            </div>
+          </section>`;
         }
-      }
+
+        if (queue.type === "live-queries") {
+          return `<section class="card mywork-queue-card">
+            <header class="card-head">
+              <div class="card-title-row"><h2>${queue.title}</h2></div>
+              <span class="team-count-pill">${queue.count}</span>
+            </header>
+            <ul class="mywork-live-query-list">
+              ${queue.items
+                .map(
+                  (item) => `<li>
+                    <button type="button" class="mywork-live-query" data-mywork-open="${item.action}">
+                      <span class="mywork-item-copy">
+                        <strong class="member-name">${item.title}</strong>
+                        <span class="member-role">${item.meta}</span>
+                      </span>
+                      <span class="mywork-query-status ${item.statusClass}">${item.status}</span>
+                      <span class="roster-revenue">${item.amount}</span>
+                    </button>
+                  </li>`
+                )
+                .join("")}
+            </ul>
+          </section>`;
+        }
+
+        return `<section class="card mywork-queue-card">
+          <header class="card-head">
+            <div class="card-title-row"><h2>${queue.title}</h2></div>
+            <span class="team-count-pill">${queue.count}</span>
+          </header>
+          <ul class="mywork-item-list">
+            ${queue.items
+              .map(
+                (item) => `<li>
+                  <button type="button" class="mywork-item" data-mywork-open="${item.action}">
+                    <span class="mywork-record-id">${item.id}</span>
+                    <span class="mywork-item-copy">
+                      <strong class="member-name">${item.title}</strong>
+                      <span class="member-role">${item.meta}</span>
+                    </span>
+                    <span class="mywork-due is-${item.tone}">${item.due}</span>
+                  </button>
+                </li>`
+              )
+              .join("")}
+          </ul>
+        </section>`;
+      })
+      .join("");
+  }
+
+  function renderMyWorkPerformance(roleData) {
+    if (!myWorkPerformanceMetrics || !myWorkPerformanceHistory) return;
+    myWorkPerformanceMetrics.innerHTML = roleData.performance
+      .map((metric) => {
+        const [value, meta] = metric.values[activeMyWorkPeriod];
+        return `<article class="kpi-card kpi-card-static mywork-kpi-card">
+          <div class="kpi-card-head">
+            <p class="kpi-label">${metric.label}</p>
+            <span class="kpi-icon" aria-hidden="true"><img src="${metric.icon}" alt="" width="14" height="14" /></span>
+          </div>
+          <p class="kpi-value">${value}</p>
+          <p class="kpi-meta">${meta}</p>
+        </article>`;
+      })
+      .join("");
+    myWorkPerformanceHistory.innerHTML = `
+      <section class="card mywork-lifetime-card">
+        <p class="mywork-history-title">Lifetime totals</p>
+        <div class="mywork-lifetime-totals">
+          ${roleData.history.totals
+            .map(
+              (total) => `<div class="mywork-lifetime-total">
+                <strong>${total.value}</strong>
+                <span>${total.label}</span>
+              </div>`
+            )
+            .join("")}
+        </div>
+        <p class="mywork-history-title mywork-bests-title">Personal bests</p>
+        <ul class="mywork-bests-list">
+          ${roleData.history.bests
+            .map(
+              (best) => `<li>
+                <img src="${best.icon}" alt="" width="14" height="14" aria-hidden="true" />
+                <span>${best.label}</span>
+                <strong>${best.value}</strong>
+                <small>${best.period}</small>
+              </li>`
+            )
+            .join("")}
+        </ul>
+      </section>
+      <section class="card mywork-attainment-card">
+        <p class="mywork-history-title">Goal attainment history</p>
+        <div class="mywork-attainment-chart" aria-label="Quarterly goal attainment">
+          ${roleData.history.attainment
+            .map((item) => {
+              const barHeight = Math.max(20, Math.min(item.value, 105) / 105 * 100);
+              const status = item.value >= 100 ? "is-target" : "is-below";
+              return `<div class="mywork-attainment-column">
+                <strong>${item.value}%</strong>
+                <div class="mywork-attainment-track"><span class="${status}" style="height:${barHeight}%"></span></div>
+                <small>${item.period}</small>
+              </div>`;
+            })
+            .join("")}
+        </div>
+        <div class="mywork-attainment-legend" aria-hidden="true">
+          <span><i class="is-target"></i>Target met</span>
+          <span><i class="is-below"></i>Below target</span>
+        </div>
+      </section>`;
+  }
+
+  function renderMyWorkGoals(roleData) {
+    if (!myWorkGoals || !myWorkTargetHistory) return;
+    myWorkGoals.innerHTML = roleData.goals
+      .map(
+        (goal) => `<article class="card mywork-goal-card">
+          <div class="kpi-card-head">
+            <p class="team-kpi-label">${goal.label}</p>
+            <span class="kpi-icon" aria-hidden="true"><img src="${goal.icon}" alt="" width="14" height="14" /></span>
+          </div>
+          <p class="mywork-goal-value">${goal.current}</p>
+          <p class="mywork-goal-caption">of ${goal.target} target · ${goal.pct}% attained</p>
+          <div class="goal-progress-track" aria-label="${goal.pct}% attained"><span style="width:${Math.min(goal.pct, 100)}%"></span></div>
+        </article>`
+      )
+      .join("");
+    myWorkTargetHistory.innerHTML = `
+      <header class="card-head mywork-target-history-head">
+        <div class="card-title-row">
+          <div>
+            <h2>Target history · quarterly</h2>
+            <p class="mywork-card-sub">Role-specific targets and outcomes</p>
+          </div>
+        </div>
+        <span class="team-count-pill">Last 4 quarters</span>
+      </header>
+      <div class="table-scroll">
+        <table class="team-table roster-table mywork-target-table">
+          <thead>
+            <tr>
+              <th scope="col">Period</th>
+              <th scope="col">Current</th>
+              <th scope="col">Target</th>
+              <th scope="col">Progress</th>
+              <th scope="col">${roleData.targetHistory.secondaryLabel}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${roleData.targetHistory.rows
+              .map((row) => {
+                const statusClass = row.status.toLowerCase().replace(/\s+/g, "-");
+                const currentClass = String(row.current).includes("₹") ? "roster-revenue" : "roster-metric";
+                const [secondaryMain, secondaryUnit] = String(row.secondary).split(" / ");
+                return `<tr class="roster-row">
+                  <td>
+                    <div class="mywork-target-period">
+                      <p class="member-name">${row.period}</p>
+                      <p class="member-role">${row.note}</p>
+                      <span class="mywork-status-chip is-${statusClass}">${row.status}</span>
+                    </div>
+                  </td>
+                  <td><span class="${currentClass}">${row.current}</span></td>
+                  <td><span class="roster-metric">${row.target}</span></td>
+                  <td>
+                    <div class="mywork-target-progress">
+                      <div class="goal-progress-track" aria-label="${row.pct}% attained"><span style="width:${Math.min(row.pct, 100)}%"></span></div>
+                      <span class="roster-metric">${row.pct}%</span>
+                    </div>
+                  </td>
+                  <td><span class="roster-metric">${secondaryMain}</span>${secondaryUnit ? ` <span class="roster-metric-unit">/ ${secondaryUnit}</span>` : ""}</td>
+                </tr>`;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function myWorkActivityMatches(item) {
+    const search = (myWorkActivitySearch?.value || "").trim().toLowerCase();
+    const module = myWorkActivityModule?.value || "all";
+    const dateWindow = Number(myWorkActivityDate?.value || 7);
+    const action = myWorkActivityAction?.value || "all";
+    const risk = myWorkActivityRisk?.value || "all";
+    if (item.daysAgo > dateWindow) return false;
+    if (module !== "all" && item.module !== module) return false;
+    if (action !== "all" && item.action !== action) return false;
+    if (risk !== "all" && item.risk !== risk) return false;
+    if (!search) return true;
+    const haystack = `${item.entity} ${item.recordId} ${item.summary} ${item.module}`.toLowerCase();
+    return haystack.includes(search);
+  }
+
+  function renderMyWorkActivity(roleData) {
+    if (!myWorkActivity) return;
+    const rows = roleData.activity.filter(myWorkActivityMatches);
+    if (!rows.length) {
+      myWorkActivity.innerHTML = `<tr class="audit-group"><td colspan="5">No activity matches these filters</td></tr>`;
+      return;
+    }
+
+    let lastDay = null;
+    myWorkActivity.innerHTML = rows
+      .map((item) => {
+        const group =
+          item.day !== lastDay
+            ? `<tr class="audit-group"><td colspan="5">${item.day}</td></tr>`
+            : "";
+        lastDay = item.day;
+        const riskBadge = item.risk
+          ? `<span class="audit-risk-badge is-${item.risk}">${item.risk === "high" ? "High" : "Medium"}</span>`
+          : "";
+        return `${group}<tr class="audit-row roster-row" tabindex="0">
+          <td><span class="roster-metric">${item.time}</span></td>
+          <td>
+            <div class="member-cell">
+              <span class="avatar ${roleData.identity.avatarClass}" aria-hidden="true">${roleData.identity.initials}</span>
+              <div>
+                <p class="member-name">${roleData.identity.name}</p>
+                <p class="member-role">Member · ${roleData.identity.teamTag}</p>
+              </div>
+            </div>
+          </td>
+          <td class="audit-event-cell"><span class="audit-event-text">${item.entity} <button type="button" class="audit-record-link" data-mywork-open="Opening ${item.entity} ${item.recordId}">${item.recordId}</button> · ${item.summary}</span></td>
+          <td><span class="audit-module-badge">${item.module}</span></td>
+          <td>${riskBadge}</td>
+        </tr>`;
+      })
+      .join("");
+  }
+
+  function renderMyWork() {
+    const roleData = MY_WORK_ROLES[activeMyWorkRole] || MY_WORK_ROLES.sales;
+    renderMyWorkIdentity(roleData);
+    renderMyWorkSummary(roleData);
+    renderMyWorkQueues(roleData);
+    renderMyWorkPerformance(roleData);
+    renderMyWorkGoals(roleData);
+    renderMyWorkActivity(roleData);
+  }
+
+  function setMyWorkTab(tab, { focus = false } = {}) {
+    const key = ["work", "performance", "goals", "activity"].includes(tab) ? tab : "work";
+    activeMyWorkTab = key;
+    document.querySelectorAll("[data-mywork-tab]").forEach((btn) => {
+      const active = btn.dataset.myworkTab === key;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", String(active));
+      btn.setAttribute("tabindex", active ? "0" : "-1");
+      if (active && focus) btn.focus();
+    });
+    document.querySelectorAll("[data-mywork-panel]").forEach((panel) => {
+      const active = panel.dataset.myworkPanel === key;
+      panel.hidden = !active;
+      panel.classList.toggle("is-active", active);
+    });
+  }
+
+  document.querySelectorAll("[data-mywork-tab]").forEach((btn) => {
+    btn.addEventListener("click", () => setMyWorkTab(btn.dataset.myworkTab));
+    btn.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      const tabs = [...document.querySelectorAll("[data-mywork-tab]")];
+      const index = tabs.indexOf(btn);
+      const offset = e.key === "ArrowRight" ? 1 : -1;
+      const next = tabs[(index + offset + tabs.length) % tabs.length];
+      setMyWorkTab(next.dataset.myworkTab, { focus: true });
     });
   });
+
+  document.querySelectorAll("[data-mywork-period]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeMyWorkPeriod = MY_WORK_PERIOD_LABELS[btn.dataset.myworkPeriod] ? btn.dataset.myworkPeriod : "month";
+      document.querySelectorAll("[data-mywork-period]").forEach((periodBtn) => {
+        periodBtn.classList.toggle("is-active", periodBtn === btn);
+      });
+      renderMyWorkPerformance(MY_WORK_ROLES[activeMyWorkRole]);
+    });
+  });
+
+  [
+    myWorkActivitySearch,
+    myWorkActivityModule,
+    myWorkActivityDate,
+    myWorkActivityAction,
+    myWorkActivityRisk,
+  ].forEach((el) => {
+    el?.addEventListener("input", () => renderMyWorkActivity(MY_WORK_ROLES[activeMyWorkRole]));
+    el?.addEventListener("change", () => renderMyWorkActivity(MY_WORK_ROLES[activeMyWorkRole]));
+  });
+
+  document.getElementById("team-panel-myview")?.addEventListener("click", (e) => {
+    const row = e.target.closest("[data-mywork-open]");
+    if (row) showToast(row.dataset.myworkOpen);
+  });
+
+  renderMyWork();
+  setMyWorkTab("work");
 
   menuToggle.addEventListener("click", () => {
     setSidebarOpen(!app.classList.contains("is-sidebar-open"));

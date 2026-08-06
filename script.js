@@ -28,6 +28,8 @@
   const viewingAs = document.getElementById("viewing-as");
   const teamPageTitle = document.getElementById("team-page-title");
   const teamPageSub = document.getElementById("team-page-sub");
+  const teamPageExport = document.getElementById("team-page-export");
+  const teamPagePrimaryCta = document.getElementById("team-page-primary-cta");
   const checklistList = document.getElementById("checklist-list");
   const setupProgressMeta = document.getElementById("setup-progress-meta");
   const setupProgressPct = document.getElementById("setup-progress-pct");
@@ -65,31 +67,52 @@
     overview: {
       title: "Team",
       sub: "8 people · Paryatech — performance, live queries and access in one place.",
+      export: true,
+      primary: { action: "assign", label: "Assign enquiries", ownerAdmin: true },
     },
     goals: {
       title: "Goals & targets",
       sub: "Quarter attainment for the agency and each member.",
+      export: true,
+      primary: { action: "set-targets", label: "Set targets", ownerAdmin: true },
     },
     org: {
       title: "Org chart",
       sub: "Who reports to whom across International and Domestic.",
+      export: true,
+      primary: null,
     },
     roles: {
       title: "Roles & access",
       sub: "Permissions by role and who holds each role.",
+      export: true,
+      primary: null,
     },
     invitations: {
       title: "Invitations",
       sub: "Pending invites and member onboarding until ready for work.",
+      export: false,
+      primary: { action: "invite", label: "+ Invite" },
     },
     audit: {
       title: "Audit log",
       sub: "Workspace activity across operations, finance, access, and security.",
+      export: false,
+      primary: { action: "export-csv", label: "Export CSV", ownerAdmin: true },
     },
     myview: {
       title: "My view",
       sub: "Your current workload, role-relevant performance, goals, and activity.",
+      export: true,
+      primary: null,
     },
+  };
+
+  const TEAM_CTA_ICONS = {
+    assign: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/><path d="M3 3v3h3"/></svg>`,
+    "set-targets": `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>`,
+    invite: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>`,
+    "export-csv": `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
   };
 
   const MY_WORK_PERIOD_LABELS = {
@@ -614,7 +637,6 @@
   const auditFilterMember = document.getElementById("audit-filter-member");
   const auditFilterModule = document.getElementById("audit-filter-module");
   const auditFilterAction = document.getElementById("audit-filter-action");
-  const auditFilterRisk = document.getElementById("audit-filter-risk");
   const auditFilterDate = document.getElementById("audit-filter-date");
   const auditFilterDeleted = document.getElementById("audit-filter-deleted");
   const auditSecurityPreset = document.getElementById("audit-security-preset");
@@ -759,18 +781,6 @@
     return `${prefix}-${String(auditRecordSequences[prefix]).padStart(2, "0")}`;
   }
 
-  function auditRiskLabel(risk) {
-    if (risk === "high") return "High";
-    if (risk === "medium") return "Medium";
-    return "Low";
-  }
-
-  function auditRiskClass(risk) {
-    if (risk === "high") return "is-high";
-    if (risk === "medium") return "is-medium";
-    return "is-low";
-  }
-
   function auditModuleClass(module) {
     return `audit-module-${module}`;
   }
@@ -838,7 +848,6 @@
     const member = auditFilterMember?.value || "all";
     const module = auditFilterModule?.value || "all";
     const action = auditFilterAction?.value || "all";
-    const risk = auditFilterRisk?.value || "all";
     const days = Number(auditFilterDate?.value || 7);
     const showDeleted = auditFilterDeleted?.checked;
 
@@ -847,7 +856,6 @@
     if (member !== "all" && event.actor.name !== member) return false;
     if (module !== "all" && event.module !== module) return false;
     if (action !== "all" && event.actionType !== action) return false;
-    if (risk !== "all" && (!event.sensitive || event.risk !== risk)) return false;
     if (event.dayOffset > days) return false;
 
     if (!q) return true;
@@ -876,7 +884,7 @@
         const groupRow = document.createElement("tr");
         groupRow.className = "audit-group";
         groupRow.dataset.auditGroup = event.groupKey;
-        groupRow.innerHTML = `<td colspan="5">${event.groupLabel}</td>`;
+        groupRow.innerHTML = `<td colspan="4">${event.groupLabel}</td>`;
         auditTbody.appendChild(groupRow);
         lastGroup = event.groupKey;
       }
@@ -888,7 +896,6 @@
       row.dataset.auditModule = event.module;
       row.dataset.auditAction = event.actionType;
       row.dataset.auditRecordId = event.recordId;
-      row.dataset.auditRisk = event.sensitive ? event.risk : "";
       row.dataset.auditSensitive = String(event.sensitive);
       row.dataset.auditSecurity = String(event.security);
       row.dataset.auditDeleted = String(event.deleted);
@@ -902,14 +909,18 @@
       ]
         .join(" ")
         .toLowerCase();
-      const riskBadge = event.sensitive
-        ? `<span class="audit-risk-badge ${auditRiskClass(event.risk)}">${auditRiskLabel(event.risk)}</span>`
-        : "";
-      row.innerHTML = `<td>${event.time}</td>
-        <td><div class="member-cell"><span class="avatar avatar-sm ${event.actor.avatarClass || ""}">${event.actor.initials}</span>${event.actor.name}</div></td>
+      row.innerHTML = `<td><span class="roster-metric">${event.time}</span></td>
+        <td>
+          <div class="member-cell">
+            <span class="avatar ${event.actor.avatarClass || ""}" aria-hidden="true">${event.actor.initials}</span>
+            <div>
+              <p class="member-name">${event.actor.name}</p>
+              <p class="member-role">${event.actor.type || "Member"}</p>
+            </div>
+          </div>
+        </td>
         <td class="audit-event-cell">${formatAuditEventCell(event)}</td>
-        <td><span class="audit-module-badge ${auditModuleClass(event.module)}">${AUDIT_MODULE_LABELS[event.module]}</span></td>
-        <td>${riskBadge}</td>`;
+        <td><span class="audit-module-badge ${auditModuleClass(event.module)}">${AUDIT_MODULE_LABELS[event.module]}</span></td>`;
       auditTbody.appendChild(row);
     });
   }
@@ -938,16 +949,12 @@
     const restoreNote = event.restoredFrom
       ? `<div class="audit-detail-row"><dt>Restore context</dt><dd>Compensating event for ${event.restoredFrom}</dd></div>`
       : "";
-    const riskRow = event.sensitive
-      ? `<div class="audit-detail-row"><dt>Risk</dt><dd><span class="audit-risk-badge ${auditRiskClass(event.risk)}">${auditRiskLabel(event.risk)}</span></dd></div>`
-      : "";
 
     auditDetailGrid.innerHTML = `
       <div class="audit-detail-row"><dt>Actor</dt><dd>${event.actor.name}</dd></div>
       <div class="audit-detail-row"><dt>Actor type</dt><dd>${event.actor.type}</dd></div>
       <div class="audit-detail-row"><dt>Timestamp</dt><dd>${event.groupLabel} · ${event.time} · ${event.timezone}</dd></div>
       <div class="audit-detail-row"><dt>Module</dt><dd><span class="audit-module-badge ${auditModuleClass(event.module)}">${AUDIT_MODULE_LABELS[event.module]}</span></dd></div>
-      ${riskRow}
       <div class="audit-detail-row"><dt>Related record</dt><dd>${event.relatedRecord}</dd></div>
       <div class="audit-detail-row"><dt>Previous value</dt><dd>${event.previousValue}</dd></div>
       <div class="audit-detail-row"><dt>New value</dt><dd>${event.newValue}</dd></div>
@@ -1054,7 +1061,6 @@
     auditFilterMember,
     auditFilterModule,
     auditFilterAction,
-    auditFilterRisk,
     auditFilterDate,
   ].forEach((el) => {
     el?.addEventListener("input", renderAuditTable);
@@ -1065,10 +1071,6 @@
     if (auditFilterModule) auditFilterModule.value = "security";
     renderAuditTable();
     document.getElementById("audit-more-filters")?.removeAttribute("open");
-  });
-
-  document.getElementById("audit-export-btn")?.addEventListener("click", () => {
-    showToast("Exporting CSV…");
   });
 
   function getChecklistDone() {
@@ -1152,6 +1154,68 @@
     return TEAM_TABS[tab] ? tab : "overview";
   }
 
+  function updateTeamPageActions(tabKey) {
+    const meta = TEAM_TABS[tabKey] || TEAM_TABS.overview;
+    const role = viewTeam?.dataset.viewingAs || "Owner";
+    const isMember = role === "Member";
+
+    if (teamPageExport) {
+      teamPageExport.hidden = !meta.export;
+    }
+
+    if (!teamPagePrimaryCta) return;
+
+    const primary = meta.primary;
+    const hidePrimary = !primary || (primary.ownerAdmin && isMember);
+    teamPagePrimaryCta.hidden = hidePrimary;
+
+    if (hidePrimary || !primary) {
+      teamPagePrimaryCta.removeAttribute("data-team-cta");
+      return;
+    }
+
+    teamPagePrimaryCta.dataset.teamCta = primary.action;
+    const labelEl = teamPagePrimaryCta.querySelector("[data-cta-label]");
+    if (labelEl) labelEl.textContent = primary.label;
+
+    // Text labels that already include "+" skip the leading icon
+    const skipIcon = primary.label.trim().startsWith("+");
+    const existingIcon = teamPagePrimaryCta.querySelector("svg");
+    if (skipIcon) {
+      existingIcon?.remove();
+    } else {
+      const iconHtml = TEAM_CTA_ICONS[primary.action] || TEAM_CTA_ICONS.assign;
+      if (existingIcon) {
+        existingIcon.outerHTML = iconHtml;
+      } else {
+        teamPagePrimaryCta.insertAdjacentHTML("afterbegin", iconHtml);
+      }
+    }
+  }
+
+  function runTeamPrimaryCta(action) {
+    if (action === "assign") {
+      openAssignDrawer();
+      return;
+    }
+    if (action === "set-targets") {
+      if (typeof goalsState !== "undefined" && goalsState.locked) {
+        showToast("Completed periods are locked", "error");
+        return;
+      }
+      resetWizard();
+      openModal("modal-set-targets");
+      return;
+    }
+    if (action === "invite") {
+      openModal("modal-invite-team");
+      return;
+    }
+    if (action === "export-csv") {
+      showToast("Exporting CSV…");
+    }
+  }
+
   function setTeamTab(tab, { updateHash = true } = {}) {
     let key = TEAM_TABS[tab] ? tab : "overview";
     if (viewTeam?.dataset.viewingAs === "Member" && key === "audit") {
@@ -1171,6 +1235,7 @@
     });
     if (teamPageTitle) teamPageTitle.textContent = meta.title;
     if (teamPageSub) teamPageSub.textContent = meta.sub;
+    updateTeamPageActions(key);
     if (updateHash) {
       const next = `#team/${key}`;
       if (window.location.hash !== next) {
@@ -1189,6 +1254,10 @@
     if (next === "Member") {
       const activeTab = document.querySelector("[data-team-tab].is-active")?.dataset.teamTab;
       if (activeTab === "audit") setTeamTab("overview");
+      else updateTeamPageActions(activeTab || "overview");
+    } else {
+      const activeTab = document.querySelector("[data-team-tab].is-active")?.dataset.teamTab;
+      updateTeamPageActions(activeTab || "overview");
     }
   }
 
@@ -1506,6 +1575,10 @@
     btn.addEventListener("click", () => {
       setTeamTab(btn.dataset.teamTab);
     });
+  });
+
+  teamPagePrimaryCta?.addEventListener("click", () => {
+    runTeamPrimaryCta(teamPagePrimaryCta.dataset.teamCta || "assign");
   });
 
   document.querySelectorAll(".viewing-as-btn").forEach((btn) => {
@@ -1993,14 +2066,6 @@
 
   document.getElementById("targets-back")?.addEventListener("click", () => {
     if (wizard.step > 1) showWizardStep(wizard.step - 1);
-  });
-
-  document.getElementById("btn-set-targets")?.addEventListener("click", () => {
-    if (goalsState.locked) {
-      showToast("Completed periods are locked", "error");
-      return;
-    }
-    resetWizard();
   });
 
   document.getElementById("modal-set-targets")?.addEventListener("click", (e) => {
@@ -2796,7 +2861,6 @@
   const myWorkActivityModule = document.getElementById("mywork-activity-module");
   const myWorkActivityDate = document.getElementById("mywork-activity-date");
   const myWorkActivityAction = document.getElementById("mywork-activity-action");
-  const myWorkActivityRisk = document.getElementById("mywork-activity-risk");
   const activeMyWorkRole = "sales";
   let activeMyWorkTab = "work";
   let activeMyWorkPeriod = "month";
@@ -2999,17 +3063,14 @@
       )
       .join("");
     myWorkTargetHistory.innerHTML = `
-      <header class="card-head mywork-target-history-head">
+      <header class="card-head">
         <div class="card-title-row">
-          <div>
-            <h2>Target history · quarterly</h2>
-            <p class="mywork-card-sub">Role-specific targets and outcomes</p>
-          </div>
+          <h2>Target history · quarterly</h2>
+          <span class="team-count-pill">Last 4 quarters</span>
         </div>
-        <span class="team-count-pill">Last 4 quarters</span>
       </header>
       <div class="table-scroll">
-        <table class="team-table roster-table mywork-target-table">
+        <table class="team-table goals-member-table mywork-target-table">
           <thead>
             <tr>
               <th scope="col">Period</th>
@@ -3023,25 +3084,21 @@
             ${roleData.targetHistory.rows
               .map((row) => {
                 const statusClass = row.status.toLowerCase().replace(/\s+/g, "-");
-                const currentClass = String(row.current).includes("₹") ? "roster-revenue" : "roster-metric";
-                const [secondaryMain, secondaryUnit] = String(row.secondary).split(" / ");
+                const currentClass = String(row.current).includes("₹") ? "goals-current" : "roster-metric";
                 return `<tr class="roster-row">
                   <td>
-                    <div class="mywork-target-period">
-                      <p class="member-name">${row.period}</p>
-                      <p class="member-role">${row.note}</p>
-                      <span class="mywork-status-chip is-${statusClass}">${row.status}</span>
+                    <div class="member-cell">
+                      <div>
+                        <p class="member-name">${row.period}</p>
+                        <p class="member-role">${row.note}</p>
+                        <span class="invite-status-pill is-${statusClass}">${row.status}</span>
+                      </div>
                     </div>
                   </td>
-                  <td><span class="${currentClass}">${row.current}</span></td>
-                  <td><span class="roster-metric">${row.target}</span></td>
-                  <td>
-                    <div class="mywork-target-progress">
-                      <div class="goal-progress-track" aria-label="${row.pct}% attained"><span style="width:${Math.min(row.pct, 100)}%"></span></div>
-                      <span class="roster-metric">${row.pct}%</span>
-                    </div>
-                  </td>
-                  <td><span class="roster-metric">${secondaryMain}</span>${secondaryUnit ? ` <span class="roster-metric-unit">/ ${secondaryUnit}</span>` : ""}</td>
+                  <td class="${currentClass}">${row.current}</td>
+                  <td class="goals-target">${row.target}</td>
+                  <td><div class="attain-bar"><span style="width:${Math.min(row.pct, 100)}%"></span></div> <span class="goals-pct">${row.pct}%</span></td>
+                  <td class="goals-bookings">${row.secondary}</td>
                 </tr>`;
               })
               .join("")}
@@ -3055,11 +3112,9 @@
     const module = myWorkActivityModule?.value || "all";
     const dateWindow = Number(myWorkActivityDate?.value || 7);
     const action = myWorkActivityAction?.value || "all";
-    const risk = myWorkActivityRisk?.value || "all";
     if (item.daysAgo > dateWindow) return false;
     if (module !== "all" && item.module !== module) return false;
     if (action !== "all" && item.action !== action) return false;
-    if (risk !== "all" && item.risk !== risk) return false;
     if (!search) return true;
     const haystack = `${item.entity} ${item.recordId} ${item.summary} ${item.module}`.toLowerCase();
     return haystack.includes(search);
@@ -3069,7 +3124,7 @@
     if (!myWorkActivity) return;
     const rows = roleData.activity.filter(myWorkActivityMatches);
     if (!rows.length) {
-      myWorkActivity.innerHTML = `<tr class="audit-group"><td colspan="5">No activity matches these filters</td></tr>`;
+      myWorkActivity.innerHTML = `<tr class="audit-group"><td colspan="4">No activity matches these filters</td></tr>`;
       return;
     }
 
@@ -3078,12 +3133,9 @@
       .map((item) => {
         const group =
           item.day !== lastDay
-            ? `<tr class="audit-group"><td colspan="5">${item.day}</td></tr>`
+            ? `<tr class="audit-group"><td colspan="4">${item.day}</td></tr>`
             : "";
         lastDay = item.day;
-        const riskBadge = item.risk
-          ? `<span class="audit-risk-badge is-${item.risk}">${item.risk === "high" ? "High" : "Medium"}</span>`
-          : "";
         return `${group}<tr class="audit-row roster-row" tabindex="0">
           <td><span class="roster-metric">${item.time}</span></td>
           <td>
@@ -3096,8 +3148,7 @@
             </div>
           </td>
           <td class="audit-event-cell"><span class="audit-event-text">${item.entity} <button type="button" class="audit-record-link" data-mywork-open="Opening ${item.entity} ${item.recordId}">${item.recordId}</button> · ${item.summary}</span></td>
-          <td><span class="audit-module-badge">${item.module}</span></td>
-          <td>${riskBadge}</td>
+          <td><span class="audit-module-badge audit-module-${String(item.module || "").toLowerCase()}">${item.module}</span></td>
         </tr>`;
       })
       .join("");
@@ -3158,7 +3209,6 @@
     myWorkActivityModule,
     myWorkActivityDate,
     myWorkActivityAction,
-    myWorkActivityRisk,
   ].forEach((el) => {
     el?.addEventListener("input", () => renderMyWorkActivity(MY_WORK_ROLES[activeMyWorkRole]));
     el?.addEventListener("change", () => renderMyWorkActivity(MY_WORK_ROLES[activeMyWorkRole]));

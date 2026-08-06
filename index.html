@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=mywork18" />
+  <link rel="stylesheet" href="styles.css?v=targettbl1" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -634,6 +634,16 @@
               <h1 class="team-page-title" id="team-page-title">Team</h1>
               <p class="team-page-sub" id="team-page-sub">8 people · Paryatech — performance, live queries and access in one place.</p>
             </div>
+            <div class="team-page-actions" id="team-page-actions">
+              <button type="button" class="btn btn-outline btn-sm" id="team-page-export" data-toast="Export started">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" id="team-page-primary-cta" data-team-cta="assign">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" data-cta-icon="assign"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/><path d="M3 3v3h3"/></svg>
+                <span data-cta-label>Assign enquiries</span>
+              </button>
+            </div>
           </header>
 
           <nav class="team-tabs" role="tablist" aria-label="Team sections">
@@ -937,7 +947,6 @@
                 <button type="button" class="period-pill" data-goals-period="month">This month</button>
                 <button type="button" class="period-pill" data-goals-period="last-quarter">Last quarter <span class="lock-chip">Locked</span></button>
               </div>
-              <button type="button" class="btn btn-primary btn-sm owner-admin-only" id="btn-set-targets" data-open-modal="set-targets">Set targets</button>
             </div>
 
             <div class="goals-summary" id="goals-summary">
@@ -1049,7 +1058,7 @@
                   <article class="org-card">
                     <span class="avatar avatar-mint">VS</span>
                     <div><p class="member-name">Vikram Singh</p><p class="member-role">International pod</p></div>
-                    <span class="role-badge">Admin</span>
+                    <span class="role-badge is-admin">Admin</span>
                   </article>
                   <div class="org-children">
                     <article class="org-card org-card-sm"><span class="avatar avatar-pink">NK</span><div><p class="member-name">Neha Kapoor</p><p class="member-role">International</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
@@ -1060,7 +1069,7 @@
                   <article class="org-card">
                     <span class="avatar avatar-pink">RM</span>
                     <div><p class="member-name">Rohan Mehta</p><p class="member-role">Domestic pod</p></div>
-                    <span class="role-badge">Admin</span>
+                    <span class="role-badge is-admin">Admin</span>
                   </article>
                   <div class="org-children">
                     <article class="org-card org-card-sm"><span class="avatar avatar-pink">SP</span><div><p class="member-name">Sara Pinto</p><p class="member-role">Domestic</p></div><span class="status-dot-inline is-on" aria-label="Active"></span></article>
@@ -1210,7 +1219,6 @@
                 <button type="button" class="period-pill is-active" role="tab" id="invites-tab-pending" data-invites-tab="pending" aria-selected="true" aria-controls="invites-panel-pending" tabindex="0">Pending invitations</button>
                 <button type="button" class="period-pill" role="tab" id="invites-tab-onboarding" data-invites-tab="onboarding" aria-selected="false" aria-controls="invites-panel-onboarding" tabindex="-1">Member onboarding</button>
               </div>
-              <button type="button" class="btn btn-primary btn-sm" data-open-modal="invite-team">+ Invite</button>
             </div>
 
             <section class="card invites-panel is-active" id="invites-panel-pending" data-invites-panel="pending" role="tabpanel" aria-labelledby="invites-tab-pending">
@@ -1267,7 +1275,7 @@
                       <td>14 days ago</td>
                       <td><span class="invite-status-pill is-expired">Expired</span></td>
                       <td class="invites-actions-cell">
-                        <button type="button" class="btn btn-primary btn-xs" data-invite-action="resend">Resend</button>
+                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
                       </td>
                     </tr>
                     <tr class="invite-row" data-invite-id="INV-05" data-invite-email="nisha@paryatech.in">
@@ -1378,15 +1386,6 @@
                       <option value="login">Sign in</option>
                     </select>
                   </label>
-                  <label class="audit-filter-field">
-                    <span>Risk level</span>
-                    <select class="team-select audit-filter" id="audit-filter-risk" aria-label="Risk level filter">
-                      <option value="all">All sensitive risk levels</option>
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                    </select>
-                  </label>
                   <label class="audit-toggle">
                     <input type="checkbox" id="audit-filter-deleted" />
                     <span>Include deleted records</span>
@@ -1394,7 +1393,6 @@
                   <button type="button" class="btn btn-outline btn-sm audit-security-preset" id="audit-security-preset">View security activity</button>
                 </div>
               </details>
-              <button type="button" class="btn btn-outline btn-sm owner-admin-only" id="audit-export-btn" data-toast="Exporting CSV…">Export CSV</button>
             </div>
             <div class="card table-scroll">
               <table class="team-table audit-table">
@@ -1404,7 +1402,6 @@
                     <th scope="col">Member</th>
                     <th scope="col">Event</th>
                     <th scope="col">Module</th>
-                    <th scope="col">Risk</th>
                   </tr>
                 </thead>
                 <tbody id="audit-tbody"></tbody>
@@ -1511,14 +1508,6 @@
                         <option value="message">Reply / message</option>
                       </select>
                     </label>
-                    <label class="audit-filter-field">
-                      <span>Risk level</span>
-                      <select class="team-select audit-filter" id="mywork-activity-risk" aria-label="Risk level filter">
-                        <option value="all">All sensitive risk levels</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                      </select>
-                    </label>
                   </div>
                 </details>
               </div>
@@ -1530,7 +1519,6 @@
                       <th scope="col">Member</th>
                       <th scope="col">Event</th>
                       <th scope="col">Module</th>
-                      <th scope="col">Risk</th>
                     </tr>
                   </thead>
                   <tbody id="mywork-activity"></tbody>
@@ -2193,6 +2181,6 @@
 
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="script.js?v=mywork18"></script>
+  <script src="script.js?v=targettbl1"></script>
 </body>
 </html>

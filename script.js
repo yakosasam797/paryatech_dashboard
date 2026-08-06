@@ -3496,8 +3496,10 @@
         <td>Just now</td>
         <td><span class="invite-status-pill is-sent">Sent</span></td>
         <td class="invites-actions-cell">
-          <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
-          <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+          <div class="invites-actions-group">
+            <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+            <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+          </div>
         </td>`;
       tbody.prepend(row);
       setInvitesTab("pending");

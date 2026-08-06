@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=targettbl1" />
+  <link rel="stylesheet" href="styles.css?v=invitesfix2" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -1222,6 +1222,12 @@
             </div>
 
             <section class="card invites-panel is-active" id="invites-panel-pending" data-invites-panel="pending" role="tabpanel" aria-labelledby="invites-tab-pending">
+              <header class="card-head">
+                <div class="card-title-row">
+                  <h2>Pending invitations</h2>
+                  <span class="team-count-pill">5 open</span>
+                </div>
+              </header>
               <div class="table-scroll">
                 <table class="team-table invites-table">
                   <thead>
@@ -1242,8 +1248,10 @@
                       <td>2 days ago</td>
                       <td><span class="invite-status-pill is-sent">Sent</span></td>
                       <td class="invites-actions-cell">
-                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
-                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+                        <div class="invites-actions-group">
+                          <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+                        </div>
                       </td>
                     </tr>
                     <tr class="invite-row" data-invite-id="INV-08" data-invite-email="arjun@paryatech.in">
@@ -1253,8 +1261,10 @@
                       <td>5 days ago</td>
                       <td><span class="invite-status-pill is-sent">Sent</span></td>
                       <td class="invites-actions-cell">
-                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
-                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+                        <div class="invites-actions-group">
+                          <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+                        </div>
                       </td>
                     </tr>
                     <tr class="invite-row" data-invite-id="INV-07" data-invite-email="leela@paryatech.in">
@@ -1264,8 +1274,10 @@
                       <td>3 days ago</td>
                       <td><span class="invite-status-pill is-opened">Opened</span></td>
                       <td class="invites-actions-cell">
-                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
-                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+                        <div class="invites-actions-group">
+                          <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                          <button type="button" class="btn btn-outline btn-xs" data-invite-action="revoke">Revoke</button>
+                        </div>
                       </td>
                     </tr>
                     <tr class="invite-row" data-invite-id="INV-06" data-invite-email="rahul@paryatech.in">
@@ -1275,7 +1287,9 @@
                       <td>14 days ago</td>
                       <td><span class="invite-status-pill is-expired">Expired</span></td>
                       <td class="invites-actions-cell">
-                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                        <div class="invites-actions-group">
+                          <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                        </div>
                       </td>
                     </tr>
                     <tr class="invite-row" data-invite-id="INV-05" data-invite-email="nisha@paryatech.in">
@@ -1285,7 +1299,9 @@
                       <td>7 days ago</td>
                       <td><span class="invite-status-pill is-revoked">Revoked</span></td>
                       <td class="invites-actions-cell">
-                        <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                        <div class="invites-actions-group">
+                          <button type="button" class="btn btn-outline btn-xs" data-invite-action="resend">Resend</button>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
@@ -1294,6 +1310,12 @@
             </section>
 
             <section class="card invites-panel" id="invites-panel-onboarding" data-invites-panel="onboarding" role="tabpanel" aria-labelledby="invites-tab-onboarding" hidden>
+              <header class="card-head">
+                <div class="card-title-row">
+                  <h2>Member onboarding</h2>
+                  <span class="team-count-pill">3 in progress</span>
+                </div>
+              </header>
               <div class="table-scroll">
                 <table class="team-table onboarding-table">
                   <thead>
@@ -2181,6 +2203,6 @@
 
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="script.js?v=targettbl1"></script>
+  <script src="script.js?v=invitesfix2"></script>
 </body>
 </html>

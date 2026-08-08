@@ -7,6 +7,8 @@
   const menuToggle = document.getElementById("menu-toggle");
   const breadcrumbRoot = document.getElementById("breadcrumb-root");
   const breadcrumbCurrent = document.getElementById("breadcrumb-current");
+  const breadcrumbMid = document.getElementById("breadcrumb-mid");
+  const breadcrumbSepMid = document.getElementById("breadcrumb-sep-mid");
   const searchTrigger = document.getElementById("search-trigger");
   const searchModal = document.getElementById("search-modal");
   const searchInput = document.getElementById("search-input");
@@ -22,10 +24,16 @@
   const toastRegion = document.getElementById("toast-region");
   const heroDate = document.getElementById("hero-date");
   const greeting = document.getElementById("greeting");
+  const newGreeting = document.getElementById("new-greeting");
+  const newHeroDate = document.getElementById("new-hero-date");
   const dashboardReturning = document.getElementById("dashboard-returning");
   const dashboardNew = document.getElementById("dashboard-new");
   const viewTeam = document.getElementById("view-team");
+  const viewBookings = document.getElementById("view-bookings");
+  const bookingsListEl = document.getElementById("bookings-list");
+  const bookingsDetailEl = document.getElementById("bookings-detail");
   const viewingAs = document.getElementById("viewing-as");
+  const homeAs = document.getElementById("home-as");
   const teamPageTitle = document.getElementById("team-page-title");
   const teamPageSub = document.getElementById("team-page-sub");
   const teamPageExport = document.getElementById("team-page-export");
@@ -44,6 +52,7 @@
     queries: "paryatech_demo_queries",
     bookings: "paryatech_demo_bookings",
     checklist: "paryatech_setup_checklist",
+    homeDensity: "paryatech_home_density",
   };
 
   const CHECKLIST_ITEMS = [
@@ -114,6 +123,1229 @@
     invite: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>`,
     "export-csv": `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
   };
+
+  const BOOKING_DETAIL_TABS = {
+    overview: true,
+    services: true,
+    fulfilment: true,
+    travellers: true,
+    documents: true,
+    finance: true,
+    vouchers: true,
+    communication: true,
+    activity: true,
+  };
+
+  const DEMO_OWNER = { initials: "VJ", name: "Vrushabh Jain", id: "vrushabh" };
+
+  const BOOKING_ISSUE_LABELS = {
+    payment_overdue: "Payment overdue",
+    supplier_pending: "Supplier pending",
+    documents_missing: "Documents missing",
+  };
+
+  const BOOKING_PHASE_RANK = {
+    needs_action: 0,
+    travelling: 1,
+    upcoming: 2,
+    completed: 3,
+  };
+
+  const BOOKINGS = [
+    {
+      id: "BK-2026-000003",
+      slug: "xyz-dubai",
+      title: "XYZ Family · Dubai",
+      customer: "XYZ Family",
+      destination: "Dubai",
+      queryId: "Q-1042",
+      phase: "needs_action",
+      issues: ["supplier_pending", "documents_missing"],
+      paymentsOpen: true,
+      priority: 1,
+      travelStart: "2026-08-06",
+      travelEnd: "2026-08-06",
+      pax: 3,
+      owner: DEMO_OWNER,
+      toCollect: 0,
+      toPaySuppliers: 20500,
+      actionHint: "Complete post-trip closure",
+      linkedProposal: "XYZ Family Dubai Proposal",
+      tripLabel: "Dubai",
+      notes:
+        "Converted from Q-1042 · XYZ Family · Dubai\nRoute: Mumbai → Dubai\n3 adults\nSupplier confirms and documents still open after travel.",
+      itinerarySub: "Itinerary locked from confirmed query.",
+      itineraryNote: "Service lines on the Services & vendors tab remain the operational source of truth.",
+      ledger: {
+        receivable: 20500,
+        totalCost: 20500,
+        margin: 0,
+        customerPaid: 20500,
+        customerBalance: 0,
+        vendorPayable: 20500,
+        vendorSettled: 0,
+        cashIn: 20500,
+        cashOut: 0,
+        entryCount: 2,
+      },
+      nextAction: {
+        kind: "task",
+        title: "Complete post-trip closure",
+        body: "Trip dates have ended — close supplier confirms and missing documents.",
+        cta: "Complete post-trip closure",
+      },
+      lifecycle: { mode: "confirm-cancel" },
+    },
+    {
+      id: "BK-2026-000002",
+      slug: "ladakh",
+      title: "Jain Family · Ladakh",
+      customer: "Jain Family",
+      destination: "Ladakh",
+      queryId: "Q-1038",
+      phase: "needs_action",
+      issues: ["payment_overdue"],
+      paymentsOpen: true,
+      priority: 2,
+      travelStart: "2026-07-15",
+      travelEnd: "2026-07-21",
+      pax: 1,
+      owner: DEMO_OWNER,
+      toCollect: 223456,
+      toPaySuppliers: 0,
+      actionHint: "Collect overdue balance",
+      linkedProposal: "Ladakh Trip Proposal",
+      tripLabel: "Ladakh",
+      notes: "Converted from Q-1038 · balance still open after travel.",
+      itinerarySub: "Itinerary fulfilled.",
+      itineraryNote: "Service lines on the Services & vendors tab remain the operational source of truth.",
+      ledger: {
+        receivable: 1123456,
+        totalCost: 0,
+        margin: 1123456,
+        customerPaid: 900000,
+        customerBalance: 223456,
+        vendorPayable: 0,
+        vendorSettled: 0,
+        cashIn: 900000,
+        cashOut: 0,
+        entryCount: 3,
+      },
+      nextAction: {
+        kind: "task",
+        title: "Collect overdue balance",
+        body: "₹2,23,456 still to collect from the customer.",
+        cta: "Send payment reminder",
+      },
+      lifecycle: { mode: "reopen", readiness: 80 },
+    },
+    {
+      id: "BK-2026-000005",
+      slug: "mehta-kerala",
+      title: "Mehta Family · Kerala",
+      customer: "Mehta Family",
+      destination: "Kerala",
+      queryId: "Q-1040",
+      phase: "travelling",
+      issues: [],
+      paymentsOpen: false,
+      priority: 3,
+      travelStart: "2026-08-05",
+      travelEnd: "2026-08-12",
+      pax: 4,
+      owner: DEMO_OWNER,
+      toCollect: 0,
+      toPaySuppliers: 0,
+      moneySettled: true,
+      actionHint: "",
+      linkedProposal: "Kerala Family Escape",
+      tripLabel: "Kerala",
+      notes: "Converted from Q-1040 · travellers currently on ground.",
+      itinerarySub: "Live trip · Munnar → Alleppey.",
+      itineraryNote: "Ops on-call for day-of changes.",
+      ledger: {
+        receivable: 180000,
+        totalCost: 120000,
+        margin: 60000,
+        customerPaid: 180000,
+        customerBalance: 0,
+        vendorPayable: 120000,
+        vendorSettled: 120000,
+        cashIn: 180000,
+        cashOut: 120000,
+        entryCount: 5,
+      },
+      nextAction: {
+        kind: "clear",
+        title: "Trip in progress",
+        body: "No open blockers while travellers are on ground.",
+      },
+      lifecycle: { mode: "reopen", readiness: 90 },
+    },
+    {
+      id: "BK-2026-000004",
+      slug: "sharma-goa",
+      title: "Sharma Family · Goa",
+      customer: "Sharma Family",
+      destination: "Goa",
+      queryId: "Q-1045",
+      phase: "upcoming",
+      issues: [],
+      paymentsOpen: false,
+      priority: 4,
+      travelStart: "2026-08-18",
+      travelEnd: "2026-08-22",
+      pax: 2,
+      owner: DEMO_OWNER,
+      toCollect: 0,
+      toPaySuppliers: 0,
+      moneySettled: true,
+      actionHint: "",
+      linkedProposal: "Goa Weekend",
+      tripLabel: "Goa",
+      notes: "Converted from Q-1045 · departure in 10 days.",
+      itinerarySub: "Confirmed hotel + airport transfers.",
+      itineraryNote: "Vouchers ready to issue closer to travel.",
+      ledger: {
+        receivable: 72000,
+        totalCost: 48000,
+        margin: 24000,
+        customerPaid: 72000,
+        customerBalance: 0,
+        vendorPayable: 48000,
+        vendorSettled: 48000,
+        cashIn: 72000,
+        cashOut: 48000,
+        entryCount: 3,
+      },
+      nextAction: {
+        kind: "clear",
+        title: "Ready for travel",
+        body: "No open blockers before departure.",
+      },
+      lifecycle: { mode: "reopen", readiness: 85 },
+    },
+    {
+      id: "BK-2026-000001",
+      slug: "tripura",
+      title: "Jain Family · Tripura",
+      customer: "Jain Family",
+      destination: "Tripura",
+      queryId: "Q-1021",
+      phase: "completed",
+      issues: [],
+      paymentsOpen: false,
+      priority: 5,
+      travelStart: "2026-08-01",
+      travelEnd: "2026-08-04",
+      pax: 2,
+      owner: DEMO_OWNER,
+      toCollect: 0,
+      toPaySuppliers: 0,
+      moneySettled: true,
+      actionHint: "",
+      linkedProposal: "Tripura Trip Proposal",
+      tripLabel: "Tripura",
+      notes: "Converted from Q-1021 · Domestic short-haul · Guwahati transit.",
+      itinerarySub: "Trip completed.",
+      itineraryNote: "Service lines on the Services & vendors tab remain the operational source of truth.",
+      ledger: {
+        receivable: 45000,
+        totalCost: 28000,
+        margin: 17000,
+        customerPaid: 45000,
+        customerBalance: 0,
+        vendorPayable: 28000,
+        vendorSettled: 28000,
+        cashIn: 45000,
+        cashOut: 28000,
+        entryCount: 4,
+      },
+      nextAction: {
+        kind: "clear",
+        title: "Nothing is blocking this booking",
+        body: "Trip closed — no open blockers.",
+      },
+      lifecycle: { mode: "reopen", readiness: 100 },
+    },
+  ];
+
+  const bookingsState = {
+    tab: "needs_action",
+    search: "",
+    sort: "priority",
+    page: 0,
+    pageSize: 50,
+    detailSlug: null,
+    detailTab: "overview",
+    filtersActive: false,
+  };
+
+  const paymentsState = {
+    search: "",
+    stage: "all",
+    type: "all",
+    date: "30",
+    method: "all",
+  };
+
+  const BOOKING_PAYMENTS = [
+    {
+      id: "PAY-2026-0018",
+      bookingSlug: "xyz-dubai",
+      bookingId: "BK-2026-000003",
+      bookingTitle: "XYZ Family · Dubai",
+      customer: "XYZ Family",
+      customerInitials: "XF",
+      avatarClass: "avatar-pink",
+      amount: 20500,
+      type: "customer",
+      stage: "completed",
+      previousStage: "Pending",
+      method: "UPI",
+      time: "11:42",
+      dayOffset: 0,
+      groupKey: "today",
+      groupLabel: "Today · 7 Aug 2026",
+      eventLabel: "Customer receipt recorded",
+    },
+    {
+      id: "PAY-2026-0017",
+      bookingSlug: "ladakh",
+      bookingId: "BK-2026-000002",
+      bookingTitle: "Jain Family · Ladakh",
+      customer: "Jain Family",
+      customerInitials: "JF",
+      avatarClass: "avatar-mint",
+      amount: 223456,
+      type: "customer",
+      stage: "overdue",
+      previousStage: "Partial",
+      method: "Bank transfer",
+      time: "10:15",
+      dayOffset: 0,
+      groupKey: "today",
+      groupLabel: "Today · 7 Aug 2026",
+      eventLabel: "Balance due reminder raised",
+    },
+    {
+      id: "PAY-2026-0016",
+      bookingSlug: "ladakh",
+      bookingId: "BK-2026-000002",
+      bookingTitle: "Jain Family · Ladakh",
+      customer: "Jain Family",
+      customerInitials: "JF",
+      avatarClass: "avatar-mint",
+      amount: 900000,
+      type: "customer",
+      stage: "partial",
+      previousStage: "Pending",
+      method: "Bank transfer",
+      time: "16:08",
+      dayOffset: 1,
+      groupKey: "yesterday",
+      groupLabel: "Yesterday · 6 Aug 2026",
+      eventLabel: "Advance received against booking",
+    },
+    {
+      id: "PAY-2026-0015",
+      bookingSlug: "tripura",
+      bookingId: "BK-2026-000001",
+      bookingTitle: "Jain Family · Tripura",
+      customer: "Jain Family",
+      customerInitials: "JF",
+      avatarClass: "avatar-mint",
+      amount: 28000,
+      type: "vendor",
+      stage: "completed",
+      previousStage: "Pending",
+      method: "UPI",
+      time: "14:22",
+      dayOffset: 1,
+      groupKey: "yesterday",
+      groupLabel: "Yesterday · 6 Aug 2026",
+      eventLabel: "Vendor payout settled",
+    },
+    {
+      id: "PAY-2026-0014",
+      bookingSlug: "xyz-dubai",
+      bookingId: "BK-2026-000003",
+      bookingTitle: "XYZ Family · Dubai",
+      customer: "XYZ Family",
+      customerInitials: "XF",
+      avatarClass: "avatar-pink",
+      amount: 12000,
+      type: "customer",
+      stage: "pending",
+      previousStage: "—",
+      method: "Card",
+      time: "09:40",
+      dayOffset: 3,
+      groupKey: "earlier",
+      groupLabel: "Earlier · Aug 2026",
+      eventLabel: "Token payment requested",
+    },
+    {
+      id: "PAY-2026-0013",
+      bookingSlug: "tripura",
+      bookingId: "BK-2026-000001",
+      bookingTitle: "Jain Family · Tripura",
+      customer: "Jain Family",
+      customerInitials: "JF",
+      avatarClass: "avatar-mint",
+      amount: 45000,
+      type: "customer",
+      stage: "completed",
+      previousStage: "Pending",
+      method: "UPI",
+      time: "18:05",
+      dayOffset: 5,
+      groupKey: "earlier",
+      groupLabel: "Earlier · Aug 2026",
+      eventLabel: "Full customer payment collected",
+    },
+    {
+      id: "PAY-2026-0012",
+      bookingSlug: "ladakh",
+      bookingId: "BK-2026-000002",
+      bookingTitle: "Jain Family · Ladakh",
+      customer: "Jain Family",
+      customerInitials: "JF",
+      avatarClass: "avatar-mint",
+      amount: 15000,
+      type: "refund",
+      stage: "refunded",
+      previousStage: "Completed",
+      method: "Bank transfer",
+      time: "12:30",
+      dayOffset: 8,
+      groupKey: "earlier",
+      groupLabel: "Earlier · Aug 2026",
+      eventLabel: "Partial refund issued to customer",
+    },
+    {
+      id: "PAY-2026-0011",
+      bookingSlug: "xyz-dubai",
+      bookingId: "BK-2026-000003",
+      bookingTitle: "XYZ Family · Dubai",
+      customer: "XYZ Family",
+      customerInitials: "XF",
+      avatarClass: "avatar-pink",
+      amount: 8500,
+      type: "vendor",
+      stage: "failed",
+      previousStage: "Pending",
+      method: "Card",
+      time: "11:05",
+      dayOffset: 10,
+      groupKey: "earlier",
+      groupLabel: "Earlier · Jul 2026",
+      eventLabel: "Supplier transfer failed — retry needed",
+    },
+  ];
+
+  let bookingNotesTimer = null;
+
+  function formatINR(amount, { signed = true } = {}) {
+    const abs = Math.abs(Math.round(amount));
+    const formatted = abs.toLocaleString("en-IN");
+    if (!signed) return `₹${formatted}`;
+    if (amount < 0) return `-₹${formatted}`;
+    if (amount > 0) return `₹${formatted}`;
+    return `₹${formatted}`;
+  }
+
+  /** Compact lakhs for summary lines — e.g. 243956 → ₹2.44L */
+  function formatINRCompact(amount) {
+    const abs = Math.abs(Math.round(amount));
+    if (abs >= 100000) {
+      const lakhs = abs / 100000;
+      const text = lakhs >= 10 ? lakhs.toFixed(1) : lakhs.toFixed(2);
+      return `₹${text.replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")}L`;
+    }
+    if (abs >= 1000) {
+      const thousands = abs / 1000;
+      const text = Number.isInteger(thousands) ? String(thousands) : thousands.toFixed(1).replace(/\.0$/, "");
+      return `₹${text}K`;
+    }
+    return formatINR(abs, { signed: false });
+  }
+
+  function bookingMoneyDue(b) {
+    return (Number(b.toCollect) || 0) + (Number(b.toPaySuppliers) || 0);
+  }
+
+  /** Explicit money copy — never mixes signed amounts with “settled”. */
+  function getBookingMoneyCopy(b) {
+    const toCollect = Math.max(0, Number(b.toCollect) || 0);
+    const toPay = Math.max(0, Number(b.toPaySuppliers) || 0);
+    const lines = [];
+
+    if (toCollect > 0) {
+      lines.push({
+        amount: formatINR(toCollect, { signed: false }),
+        label: "to collect",
+        tone: "is-collect",
+      });
+    }
+    if (toPay > 0) {
+      lines.push({
+        amount: formatINR(toPay, { signed: false }),
+        label: "to pay suppliers",
+        tone: "is-pay",
+      });
+    }
+    if (lines.length) {
+      return {
+        lines,
+        title: lines.map((l) => `${l.amount} ${l.label}`).join(" · "),
+      };
+    }
+    if (b.moneySettled) {
+      return {
+        lines: [{ amount: "Settled", label: "", tone: "is-settled" }],
+        title: "Settled — no open money",
+      };
+    }
+    return {
+      lines: [{ amount: "No balance", label: "", tone: "is-clear" }],
+      title: "No balance",
+    };
+  }
+
+  function formatCustomerBalanceCopy(amount) {
+    const n = Math.round(Number(amount) || 0);
+    if (n > 0) return `${formatINR(n, { signed: false })} to collect`;
+    if (n < 0) return `${formatINR(Math.abs(n), { signed: false })} credit`;
+    return "No balance";
+  }
+
+  function formatVendorPayCopy(payable, settled) {
+    const open = Math.max(0, Math.round(Number(payable) || 0) - Math.round(Number(settled) || 0));
+    if (open > 0) return `${formatINR(open, { signed: false })} to pay suppliers`;
+    if ((Number(payable) || 0) > 0) return "Settled";
+    return "No balance";
+  }
+
+  function formatBookingDates(start, end, { short = false } = {}) {
+    const s = new Date(`${start}T12:00:00`);
+    const e = new Date(`${end}T12:00:00`);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (short) {
+      if (start === end) return `${s.getDate()} ${months[s.getMonth()]} – ${e.getDate()} ${months[e.getMonth()]} ${e.getFullYear()}`;
+      return `${s.getDate()} ${months[s.getMonth()]} – ${e.getDate()} ${months[e.getMonth()]} ${e.getFullYear()}`;
+    }
+    if (start === end) {
+      return `${months[s.getMonth()]} ${s.getDate()}, ${s.getFullYear()}`;
+    }
+    return `${months[s.getMonth()]} ${s.getDate()}, ${s.getFullYear()} – ${months[e.getMonth()]} ${e.getDate()}, ${e.getFullYear()}`;
+  }
+
+  function formatListDates(start, end) {
+    const s = new Date(`${start}T12:00:00`);
+    const e = new Date(`${end}T12:00:00`);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${s.getDate()} ${months[s.getMonth()]} – ${e.getDate()} ${months[e.getMonth()]} ${e.getFullYear()}`;
+  }
+
+  function bookingInitial(title) {
+    return (title || "B").trim().charAt(0).toUpperCase();
+  }
+
+  function phaseLabel(phase) {
+    if (phase === "needs_action") return "Needs action";
+    if (phase === "upcoming") return "Upcoming";
+    if (phase === "travelling") return "Travelling";
+    if (phase === "completed") return "Completed";
+    return phase;
+  }
+
+  function bookingIssueLabel(issue) {
+    return BOOKING_ISSUE_LABELS[issue] || issue;
+  }
+
+  function bookingIssueChipsHtml(issues) {
+    if (!issues || !issues.length) return "";
+    return `<span class="bookings-issue-row">${issues
+      .map((issue) => `<span class="booking-issue-pill is-${escapeHtml(issue)}">${escapeHtml(bookingIssueLabel(issue))}</span>`)
+      .join("")}</span>`;
+  }
+
+  function bookingRefLine(b) {
+    const query = b.queryId ? ` · from ${b.queryId}` : "";
+    return `${b.id}${query}`;
+  }
+
+  function getBookingBySlug(slug) {
+    return BOOKINGS.find((b) => b.slug === slug) || null;
+  }
+
+  function paymentStageLabel(stage) {
+    if (stage === "pending") return "Pending";
+    if (stage === "partial") return "Partial";
+    if (stage === "completed") return "Completed";
+    if (stage === "overdue") return "Overdue";
+    if (stage === "refunded") return "Refunded";
+    if (stage === "failed") return "Failed";
+    return stage;
+  }
+
+  function paymentIsOpen(p) {
+    return p.stage === "pending" || p.stage === "partial" || p.stage === "overdue" || p.stage === "failed";
+  }
+
+  function bookingTabCounts() {
+    return {
+      needs_action: BOOKINGS.filter((b) => b.phase === "needs_action").length,
+      upcoming: BOOKINGS.filter((b) => b.phase === "upcoming").length,
+      travelling: BOOKINGS.filter((b) => b.phase === "travelling").length,
+      completed: BOOKINGS.filter((b) => b.phase === "completed").length,
+      payments: BOOKING_PAYMENTS.filter(paymentIsOpen).length,
+    };
+  }
+
+  function bookingMatchesTab(b, tab) {
+    if (tab === "payments") return !!b.paymentsOpen;
+    if (tab === "needs_action" || tab === "upcoming" || tab === "travelling" || tab === "completed") {
+      return b.phase === tab;
+    }
+    return true;
+  }
+
+  function getFilteredBookings() {
+    const q = bookingsState.search.trim().toLowerCase();
+    let list = BOOKINGS.filter((b) => bookingMatchesTab(b, bookingsState.tab));
+    if (q) {
+      list = list.filter((b) => {
+        const hay = `${b.title} ${b.id} ${b.queryId || ""} ${b.customer} ${b.destination || ""} ${b.tripLabel}`.toLowerCase();
+        return hay.includes(q);
+      });
+    }
+    const sort = bookingsState.sort;
+    list = [...list].sort((a, b) => {
+      if (sort === "travel") return a.travelStart.localeCompare(b.travelStart) || a.priority - b.priority;
+      if (sort === "balance") return bookingMoneyDue(b) - bookingMoneyDue(a) || a.priority - b.priority;
+      const phaseDelta = (BOOKING_PHASE_RANK[a.phase] ?? 9) - (BOOKING_PHASE_RANK[b.phase] ?? 9);
+      return phaseDelta || a.priority - b.priority;
+    });
+    return list;
+  }
+
+  function bookingsSummaryLine() {
+    const needs = BOOKINGS.filter((b) => b.phase === "needs_action").length;
+    const travelling = BOOKINGS.filter((b) => b.phase === "travelling").length;
+    const toCollect = BOOKINGS.reduce((sum, b) => sum + (Number(b.toCollect) || 0), 0);
+    const toPay = BOOKINGS.reduce((sum, b) => sum + (Number(b.toPaySuppliers) || 0), 0);
+    const needsLabel = needs === 1 ? "1 booking needs action" : `${needs} bookings need action`;
+    const travelLabel = travelling === 1 ? "1 travelling now" : `${travelling} travelling now`;
+    const moneyParts = [];
+    if (toCollect > 0) moneyParts.push(`${formatINRCompact(toCollect)} to collect`);
+    if (toPay > 0) moneyParts.push(`${formatINR(toPay, { signed: false })} to pay suppliers`);
+    if (!moneyParts.length) moneyParts.push("No balance");
+    return `${needsLabel} · ${travelLabel} · ${moneyParts.join(" · ")}`;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function getFilteredPayments() {
+    const q = paymentsState.search.trim().toLowerCase();
+    const maxDays = Number(paymentsState.date) || 30;
+    return BOOKING_PAYMENTS.filter((p) => {
+      if (p.dayOffset > maxDays) return false;
+      if (paymentsState.stage !== "all" && p.stage !== paymentsState.stage) return false;
+      if (paymentsState.type !== "all" && p.type !== paymentsState.type) return false;
+      if (paymentsState.method !== "all" && p.method !== paymentsState.method) return false;
+      if (!q) return true;
+      const hay = `${p.id} ${p.bookingId} ${p.bookingTitle} ${p.customer} ${p.eventLabel} ${p.method}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }
+
+  function renderBookingsPaymentsTable() {
+    const tbody = document.getElementById("payments-tbody");
+    const openPill = document.getElementById("payments-open-pill");
+    if (!tbody) return;
+
+    const openCount = BOOKING_PAYMENTS.filter(paymentIsOpen).length;
+    if (openPill) openPill.textContent = openCount === 1 ? "1 open" : `${openCount} open`;
+
+    const rows = getFilteredPayments();
+    if (!rows.length) {
+      tbody.innerHTML = `<tr class="bookings-payments-empty-row"><td colspan="5">
+        <div class="bookings-empty" role="status">
+          <p class="empty-state-title">No payments match</p>
+          <p class="empty-state-desc">Try a different stage, type, or search.</p>
+        </div>
+      </td></tr>`;
+      return;
+    }
+
+    let lastGroup = null;
+    const html = [];
+    rows.forEach((p) => {
+      if (p.groupKey !== lastGroup) {
+        html.push(`<tr class="audit-group"><td colspan="5">${escapeHtml(p.groupLabel)}</td></tr>`);
+        lastGroup = p.groupKey;
+      }
+      const amountPrefix = p.type === "vendor" || p.type === "refund" ? "−" : "";
+      const amountClass = p.type === "customer" && p.stage === "completed" ? "is-in" : p.type === "vendor" || p.type === "refund" ? "is-out" : "";
+      const stageChange =
+        p.previousStage && p.previousStage !== "—"
+          ? `Status changed: ${escapeHtml(p.previousStage)} → ${escapeHtml(paymentStageLabel(p.stage))}`
+          : escapeHtml(p.eventLabel);
+      html.push(`
+        <tr class="audit-row bookings-payment-row" tabindex="0" data-booking-slug="${escapeHtml(p.bookingSlug)}" data-payment-id="${escapeHtml(p.id)}">
+          <td><span class="roster-metric">${escapeHtml(p.time)}</span></td>
+          <td>
+            <div class="member-cell">
+              <span class="avatar ${escapeHtml(p.avatarClass)}" aria-hidden="true">${escapeHtml(p.customerInitials)}</span>
+              <div>
+                <p class="member-name">${escapeHtml(p.customer)}</p>
+                <p class="member-role">${escapeHtml(p.bookingId)}</p>
+              </div>
+            </div>
+          </td>
+          <td class="audit-event-cell">
+            <button type="button" class="audit-record-link" data-payment-open="${escapeHtml(p.bookingSlug)}">${escapeHtml(p.id)}</button>
+            <span class="audit-event-text">${stageChange}</span>
+            <span class="audit-event-reference">${escapeHtml(p.bookingTitle)} · ${escapeHtml(p.method)} · ${escapeHtml(p.type === "customer" ? "Customer in" : p.type === "vendor" ? "Vendor out" : "Refund")}</span>
+          </td>
+          <td><span class="bookings-payment-amount ${amountClass}">${amountPrefix}${escapeHtml(formatINR(p.amount, { signed: false }))}</span></td>
+          <td><span class="payment-stage-pill is-${escapeHtml(p.stage)}">${escapeHtml(paymentStageLabel(p.stage))}</span></td>
+        </tr>`);
+    });
+    tbody.innerHTML = html.join("");
+
+    tbody.querySelectorAll("[data-booking-slug]").forEach((row) => {
+      const open = () => openBookingDetail(row.dataset.bookingSlug, { push: true, tab: "finance" });
+      row.addEventListener("click", (e) => {
+        if (e.target.closest(".audit-record-link")) return;
+        open();
+      });
+      row.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+      });
+    });
+    tbody.querySelectorAll("[data-payment-open]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openBookingDetail(btn.dataset.paymentOpen, { push: true, tab: "finance" });
+      });
+    });
+  }
+
+  function setBookingsPaymentsMode(active) {
+    const listCard = document.getElementById("bookings-list-card");
+    const paymentsView = document.getElementById("bookings-payments-view");
+    if (listCard) listCard.hidden = active;
+    if (paymentsView) paymentsView.hidden = !active;
+    if (active) renderBookingsPaymentsTable();
+  }
+
+  function renderBookingsList() {
+    const body = document.getElementById("bookings-list-body");
+    const sub = document.getElementById("bookings-page-sub");
+    const clearBtn = document.getElementById("bookings-clear");
+    const meta = document.getElementById("bookings-pagination-meta");
+    const prevBtn = document.getElementById("bookings-prev");
+    const nextBtn = document.getElementById("bookings-next");
+    if (!body) return;
+
+    if (sub) sub.textContent = bookingsSummaryLine();
+
+    const counts = bookingTabCounts();
+    document.querySelectorAll("[data-count]").forEach((el) => {
+      const key = el.dataset.count;
+      if (counts[key] != null) el.textContent = String(counts[key]);
+    });
+
+    document.querySelectorAll("[data-bookings-tab]").forEach((btn) => {
+      const active = btn.dataset.bookingsTab === bookingsState.tab;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", String(active));
+    });
+
+    if (bookingsState.tab === "payments") {
+      setBookingsPaymentsMode(true);
+      return;
+    }
+
+    setBookingsPaymentsMode(false);
+
+    const filtered = getFilteredBookings();
+    const total = filtered.length;
+    const start = bookingsState.page * bookingsState.pageSize;
+    const pageItems = filtered.slice(start, start + bookingsState.pageSize);
+    const end = start + pageItems.length;
+      const hasFilters =
+      bookingsState.tab !== "needs_action" ||
+      !!bookingsState.search.trim() ||
+      bookingsState.sort !== "priority" ||
+      bookingsState.filtersActive;
+    if (clearBtn) clearBtn.hidden = !hasFilters;
+
+    if (!pageItems.length) {
+      const emptyCopy =
+        bookingsState.tab === "needs_action"
+          ? {
+              title: "Nothing needs action",
+              desc: "Upcoming trips and completed history live in their own views.",
+            }
+          : {
+              title: "No bookings match",
+              desc: "Try a different view, search or filter.",
+            };
+      body.innerHTML = `
+        <div class="bookings-empty" role="status">
+          <div class="bookings-empty-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h5"/></svg>
+          </div>
+          <p class="empty-state-title">${emptyCopy.title}</p>
+          <p class="empty-state-desc">${emptyCopy.desc}</p>
+          <button type="button" class="btn btn-outline btn-sm" id="bookings-empty-clear">Clear filters</button>
+        </div>`;
+      body.querySelector("#bookings-empty-clear")?.addEventListener("click", clearBookingsFilters);
+    } else {
+      body.innerHTML = `<ul class="bookings-rows" aria-label="Bookings">${pageItems
+        .map((b) => {
+          const hint = b.actionHint
+            ? `<p class="bookings-row-hint"><svg class="bookings-row-hint-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>${escapeHtml(b.actionHint)}</p>`
+            : "";
+          return `
+          <li>
+            <button type="button" class="bookings-row is-phase-${escapeHtml(b.phase)}" data-booking-slug="${escapeHtml(b.slug)}">
+              <span class="bookings-initial" aria-hidden="true">${escapeHtml(bookingInitial(b.destination || b.title))}</span>
+              <span class="bookings-row-main">
+                <span class="bookings-row-title-line">
+                  <span class="bookings-row-title">${escapeHtml(b.title)}</span>
+                  <span class="booking-status-pill is-${escapeHtml(b.phase)}">${escapeHtml(phaseLabel(b.phase))}</span>
+                </span>
+                <span class="bookings-row-meta">${escapeHtml(bookingRefLine(b))} · ${escapeHtml(formatListDates(b.travelStart, b.travelEnd))} · ${b.pax} pax</span>
+                ${bookingIssueChipsHtml(b.issues)}
+                ${hint}
+              </span>
+              <span class="bookings-row-side">
+                <span class="bookings-row-finance" title="${escapeHtml(getBookingMoneyCopy(b).title)}">
+                  ${getBookingMoneyCopy(b)
+                    .lines.map(
+                      (line) => `
+                    <span class="bookings-row-money ${escapeHtml(line.tone)}">
+                      <span class="bookings-row-amount">${escapeHtml(line.amount)}</span>
+                      ${line.label ? `<span class="bookings-row-settle">${escapeHtml(line.label)}</span>` : ""}
+                    </span>`
+                    )
+                    .join("")}
+                </span>
+                <span class="bookings-row-owner member-cell">
+                  <span class="avatar avatar-pink" aria-hidden="true">${escapeHtml(b.owner.initials)}</span>
+                  <span class="member-name">${escapeHtml(b.owner.name)}</span>
+                </span>
+                <svg class="bookings-row-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+              </span>
+            </button>
+          </li>`;
+        })
+        .join("")}</ul>`;
+      body.querySelectorAll("[data-booking-slug]").forEach((btn) => {
+        btn.addEventListener("click", () => openBookingDetail(btn.dataset.bookingSlug, { push: true }));
+      });
+    }
+
+    if (meta) {
+      if (!total) meta.textContent = `Showing 0 of 0 · ${bookingsState.pageSize} per page`;
+      else meta.textContent = `Showing ${start + 1}–${end} of ${total} · ${bookingsState.pageSize} per page`;
+    }
+    const maxPage = Math.max(0, Math.ceil(total / bookingsState.pageSize) - 1);
+    if (prevBtn) prevBtn.disabled = bookingsState.page <= 0;
+    if (nextBtn) nextBtn.disabled = bookingsState.page >= maxPage || total === 0;
+  }
+
+  function clearBookingsFilters() {
+    bookingsState.tab = "needs_action";
+    bookingsState.search = "";
+    bookingsState.sort = "priority";
+    bookingsState.page = 0;
+    bookingsState.filtersActive = false;
+    const search = document.getElementById("bookings-search");
+    const sort = document.getElementById("bookings-sort");
+    if (search) search.value = "";
+    if (sort) sort.value = "priority";
+    renderBookingsList();
+  }
+
+  function setBreadcrumb({ root, mid = null, current }) {
+    if (breadcrumbRoot) breadcrumbRoot.textContent = root;
+    if (breadcrumbCurrent) breadcrumbCurrent.textContent = current;
+    const showMid = !!mid;
+    if (breadcrumbMid) {
+      breadcrumbMid.hidden = !showMid;
+      if (showMid) breadcrumbMid.textContent = mid;
+    }
+    if (breadcrumbSepMid) breadcrumbSepMid.hidden = !showMid;
+  }
+
+  function setBookingsListMode({ updateHash = true, push = false } = {}) {
+    bookingsState.detailSlug = null;
+    bookingsState.detailTab = "overview";
+    if (bookingsListEl) bookingsListEl.hidden = false;
+    if (bookingsDetailEl) bookingsDetailEl.hidden = true;
+    setActiveNav("Bookings");
+    setBreadcrumb({ root: "Operations", current: "Bookings" });
+    document.title = "Paryatech — Bookings";
+    renderBookingsList();
+    if (updateHash) {
+      const next = "#bookings";
+      if (window.location.hash !== next) {
+        if (push) history.pushState(null, "", next);
+        else history.replaceState(null, "", next);
+      }
+    }
+  }
+
+  function setBookingDetailTab(tab, { updateHash = true } = {}) {
+    const key = BOOKING_DETAIL_TABS[tab] ? tab : "overview";
+    bookingsState.detailTab = key;
+    document.querySelectorAll("[data-booking-tab]").forEach((btn) => {
+      const active = btn.dataset.bookingTab === key;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", String(active));
+    });
+    document.querySelectorAll("[data-booking-panel]").forEach((panel) => {
+      const active = panel.dataset.bookingPanel === key;
+      panel.hidden = !active;
+      panel.classList.toggle("is-active", active);
+    });
+    if (updateHash && bookingsState.detailSlug) {
+      const next = key === "overview" ? `#bookings/${bookingsState.detailSlug}` : `#bookings/${bookingsState.detailSlug}/${key}`;
+      if (window.location.hash !== next) history.replaceState(null, "", next);
+    }
+  }
+
+  function renderBookingDetail(booking) {
+    const initial = document.getElementById("booking-detail-initial");
+    const title = document.getElementById("booking-detail-title");
+    const meta = document.getElementById("booking-detail-meta");
+    const status = document.getElementById("booking-detail-status");
+    const summary = document.getElementById("booking-summary-grid");
+    const actionBar = document.getElementById("booking-action-bar");
+    const notes = document.getElementById("booking-notes");
+    const notesStatus = document.getElementById("booking-notes-status");
+    const itinerarySub = document.getElementById("booking-itinerary-sub");
+    const itineraryNote = document.getElementById("booking-itinerary-note");
+    const ledgerGrid = document.getElementById("booking-ledger-grid");
+
+    if (initial) initial.textContent = bookingInitial(booking.destination || booking.title);
+    if (title) title.textContent = booking.title;
+    if (meta) {
+      const queryBit = booking.queryId
+        ? `<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>from ${escapeHtml(booking.queryId)}</span>`
+        : "";
+      meta.innerHTML = `
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>${escapeHtml(booking.id)}</span>
+        ${queryBit}
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${escapeHtml(formatBookingDates(booking.travelStart, booking.travelEnd))}</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${escapeHtml(booking.customer)}</span>`;
+    }
+    if (status) {
+      status.textContent = phaseLabel(booking.phase);
+      status.className = `booking-status-pill is-${booking.phase}`;
+    }
+
+    if (summary) {
+      const paxLabel = booking.pax === 1 ? "1" : String(booking.pax);
+      const paxSub = booking.pax === 1 ? "traveller" : "travellers";
+      const issuesCopy = booking.issues?.length
+        ? booking.issues.map(bookingIssueLabel).join(" · ")
+        : "None";
+      summary.innerHTML = `
+        <article class="bookings-summary-card"><p class="bookings-summary-label">Customer</p><p class="bookings-summary-value">${escapeHtml(booking.customer)}</p></article>
+        <article class="bookings-summary-card"><p class="bookings-summary-label">Travel dates</p><p class="bookings-summary-value">${escapeHtml(formatBookingDates(booking.travelStart, booking.travelEnd))}</p></article>
+        <article class="bookings-summary-card"><p class="bookings-summary-label">Pax</p><p class="bookings-summary-value">${escapeHtml(paxLabel)}</p><p class="bookings-summary-sub">${escapeHtml(paxSub)}</p></article>
+        <article class="bookings-summary-card"><p class="bookings-summary-label">Owner</p><p class="bookings-summary-value">${escapeHtml(booking.owner.name)}</p></article>
+        <article class="bookings-summary-card"><p class="bookings-summary-label">Open issues</p><p class="bookings-summary-value">${escapeHtml(issuesCopy)}</p>${booking.queryId ? `<p class="bookings-summary-sub">from ${escapeHtml(booking.queryId)}</p>` : ""}</article>`;
+    }
+
+    if (actionBar) {
+      const na = booking.nextAction;
+      const lc = booking.lifecycle;
+      const icon =
+        na.kind === "task"
+          ? `<span class="bookings-next-icon is-alert" aria-hidden="true">!</span>`
+          : `<span class="bookings-next-icon is-ready" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></span>`;
+      const cta =
+        na.kind === "task" && na.cta
+          ? `<button type="button" class="btn btn-outline btn-sm" data-toast="Opening task…">${escapeHtml(na.cta)}</button>`
+          : "";
+      const lifecycleBtns =
+        lc.mode === "confirm-cancel"
+          ? `<button type="button" class="btn btn-primary btn-sm" data-lifecycle="confirm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Confirm booking</button>
+             <button type="button" class="btn btn-destructive-soft btn-sm" data-lifecycle="cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>Cancel booking</button>`
+          : `<button type="button" class="btn btn-outline btn-sm" data-lifecycle="reopen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><polyline points="21 3 21 9 15 9"/></svg>Reopen</button>`;
+      actionBar.innerHTML = `
+        <div class="bookings-next-action">
+          ${icon}
+          <div class="bookings-next-copy">
+            <p class="bookings-next-kicker">${na.kind === "task" ? "NEXT ACTION · OPENS TASK" : "NEXT ACTION"}</p>
+            <p class="bookings-next-title">${escapeHtml(na.title)}</p>
+            <p class="bookings-next-body">${escapeHtml(na.body)}</p>
+            ${cta}
+          </div>
+        </div>
+        <div class="bookings-lifecycle">
+          <p class="bookings-lifecycle-label">Guarded lifecycle</p>
+          <div class="bookings-lifecycle-actions">${lifecycleBtns}</div>
+        </div>`;
+      actionBar.querySelectorAll("[data-toast]").forEach((btn) => {
+        btn.addEventListener("click", () => showToast(btn.dataset.toast));
+      });
+      actionBar.querySelector("[data-lifecycle='confirm']")?.addEventListener("click", () => {
+        booking.phase = "upcoming";
+        booking.issues = [];
+        booking.actionHint = "";
+        booking.lifecycle = { mode: "reopen", readiness: 60 };
+        booking.nextAction = {
+          kind: "clear",
+          title: "Ready for travel",
+          body: "Confirmed — no open blockers before departure.",
+        };
+        showToast("Booking confirmed…");
+        renderBookingDetail(booking);
+        renderBookingsList();
+      });
+      actionBar.querySelector("[data-lifecycle='cancel']")?.addEventListener("click", () => {
+        showToast("Booking cancelled…");
+      });
+      actionBar.querySelector("[data-lifecycle='reopen']")?.addEventListener("click", () => {
+        booking.phase = "needs_action";
+        booking.issues = ["supplier_pending"];
+        booking.actionHint = "Confirm supplier services";
+        booking.lifecycle = { mode: "confirm-cancel" };
+        booking.nextAction = {
+          kind: "task",
+          title: "Confirm supplier services",
+          body: "Reopened — confirm services before travel.",
+          cta: "Confirm supplier services",
+        };
+        showToast("Booking reopened…");
+        renderBookingDetail(booking);
+        renderBookingsList();
+      });
+    }
+
+    if (notes && notes.dataset.slug !== booking.slug) {
+      notes.value = booking.notes || "";
+      notes.dataset.slug = booking.slug;
+    }
+    if (notesStatus) notesStatus.textContent = "All changes saved";
+    if (itinerarySub) itinerarySub.textContent = booking.itinerarySub;
+    if (itineraryNote) itineraryNote.textContent = booking.itineraryNote;
+
+    if (ledgerGrid) {
+      const L = booking.ledger;
+      const customerBalanceCopy = formatCustomerBalanceCopy(L.customerBalance);
+      const vendorPayCopy = formatVendorPayCopy(L.vendorPayable, L.vendorSettled);
+      const cells = [
+        { label: "Booking receivable", value: formatINR(L.receivable, { signed: false }), tone: "" },
+        { label: "Total cost", value: formatINR(L.totalCost, { signed: false }), tone: "" },
+        { label: "Margin", value: formatINR(L.margin, { signed: false }), tone: "is-positive" },
+        { label: "Customer paid", value: formatINR(L.customerPaid, { signed: false }), tone: "is-positive" },
+        {
+          label: "Customer balance",
+          value: customerBalanceCopy,
+          tone: L.customerBalance > 0 ? "is-collect" : L.customerBalance < 0 ? "is-credit" : "",
+        },
+        { label: "Vendor payable", value: formatINR(L.vendorPayable, { signed: false }), tone: "" },
+        {
+          label: "Supplier payouts",
+          value: vendorPayCopy,
+          tone: Math.max(0, L.vendorPayable - L.vendorSettled) > 0 ? "is-pay" : "",
+        },
+        {
+          label: "Cash movement summary",
+          value: `${formatINR(L.cashIn, { signed: false })} in / ${formatINR(L.cashOut, { signed: false })} out`,
+          tone: "",
+          sub: `${L.entryCount} ledger entries`,
+        },
+      ];
+      ledgerGrid.innerHTML = cells
+        .map(
+          (c) => `
+        <article class="bookings-ledger-cell">
+          <p class="bookings-ledger-label">${escapeHtml(c.label)}</p>
+          <p class="bookings-ledger-value ${c.tone}">${escapeHtml(c.value)}</p>
+          ${c.sub ? `<p class="bookings-ledger-sub">${escapeHtml(c.sub)}</p>` : ""}
+        </article>`
+        )
+        .join("");
+    }
+  }
+
+  function openBookingDetail(slug, { tab = "overview", updateHash = true, push = false } = {}) {
+    const booking = getBookingBySlug(slug);
+    if (!booking) {
+      setBookingsListMode({ updateHash: true });
+      return;
+    }
+    bookingsState.detailSlug = slug;
+    if (bookingsListEl) bookingsListEl.hidden = true;
+    if (bookingsDetailEl) {
+      bookingsDetailEl.hidden = false;
+      bookingsDetailEl.classList.remove("is-entering");
+      void bookingsDetailEl.offsetWidth;
+      bookingsDetailEl.classList.add("is-entering");
+    }
+    setActiveNav("Bookings");
+    setBreadcrumb({ root: "Operations", mid: "Bookings", current: booking.title });
+    document.title = `Paryatech — ${booking.title}`;
+    renderBookingDetail(booking);
+    setBookingDetailTab(tab, { updateHash: false });
+    if (updateHash) {
+      const next = tab === "overview" ? `#bookings/${slug}` : `#bookings/${slug}/${tab}`;
+      if (window.location.hash !== next) {
+        if (push) history.pushState(null, "", next);
+        else history.replaceState(null, "", next);
+      }
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function parseBookingsHash() {
+    const hash = (window.location.hash || "").replace(/^#/, "");
+    if (!hash.startsWith("bookings")) return { mode: "list" };
+    const parts = hash.split("/").filter(Boolean);
+    // bookings | bookings/list | bookings/{slug} | bookings/{slug}/{tab}
+    if (parts.length <= 1 || parts[1] === "list") return { mode: "list" };
+    const slug = parts[1];
+    if (!getBookingBySlug(slug)) return { mode: "list" };
+    const tab = parts[2] && BOOKING_DETAIL_TABS[parts[2]] ? parts[2] : "overview";
+    return { mode: "detail", slug, tab };
+  }
+
+  function applyBookingsRoute({ updateHash = false } = {}) {
+    const route = parseBookingsHash();
+    if (route.mode === "detail") {
+      openBookingDetail(route.slug, { tab: route.tab, updateHash });
+    } else {
+      setBookingsListMode({ updateHash });
+    }
+  }
+
+  function initBookingsModule() {
+    breadcrumbMid?.addEventListener("click", () => {
+      if (currentShell !== "bookings" || !bookingsState.detailSlug) return;
+      setBookingsListMode({ updateHash: true, push: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    const bookingListTabs = {
+      needs_action: true,
+      upcoming: true,
+      travelling: true,
+      completed: true,
+      payments: true,
+    };
+    document.querySelectorAll("[data-bookings-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        bookingsState.tab = bookingListTabs[btn.dataset.bookingsTab] ? btn.dataset.bookingsTab : "needs_action";
+        bookingsState.page = 0;
+        renderBookingsList();
+      });
+    });
+
+    const paymentsSearch = document.getElementById("payments-search");
+    paymentsSearch?.addEventListener("input", () => {
+      paymentsState.search = paymentsSearch.value;
+      renderBookingsPaymentsTable();
+    });
+    document.getElementById("payments-filter-stage")?.addEventListener("change", (e) => {
+      paymentsState.stage = e.target.value;
+      renderBookingsPaymentsTable();
+    });
+    document.getElementById("payments-filter-type")?.addEventListener("change", (e) => {
+      paymentsState.type = e.target.value;
+      renderBookingsPaymentsTable();
+    });
+    document.getElementById("payments-filter-date")?.addEventListener("change", (e) => {
+      paymentsState.date = e.target.value;
+      renderBookingsPaymentsTable();
+    });
+    document.getElementById("payments-filter-method")?.addEventListener("change", (e) => {
+      paymentsState.method = e.target.value;
+      renderBookingsPaymentsTable();
+    });
+    document.getElementById("payments-clear-filters")?.addEventListener("click", () => {
+      paymentsState.search = "";
+      paymentsState.stage = "all";
+      paymentsState.type = "all";
+      paymentsState.date = "30";
+      paymentsState.method = "all";
+      if (paymentsSearch) paymentsSearch.value = "";
+      const stage = document.getElementById("payments-filter-stage");
+      const type = document.getElementById("payments-filter-type");
+      const date = document.getElementById("payments-filter-date");
+      const method = document.getElementById("payments-filter-method");
+      if (stage) stage.value = "all";
+      if (type) type.value = "all";
+      if (date) date.value = "30";
+      if (method) method.value = "all";
+      const more = document.getElementById("payments-more-filters");
+      if (more) more.open = false;
+      renderBookingsPaymentsTable();
+    });
+
+    const search = document.getElementById("bookings-search");
+    search?.addEventListener("input", () => {
+      bookingsState.search = search.value;
+      bookingsState.page = 0;
+      renderBookingsList();
+    });
+
+    document.getElementById("bookings-clear")?.addEventListener("click", clearBookingsFilters);
+
+    const sort = document.getElementById("bookings-sort");
+    sort?.addEventListener("change", () => {
+      bookingsState.sort = sort.value;
+      bookingsState.page = 0;
+      renderBookingsList();
+    });
+
+    document.getElementById("bookings-prev")?.addEventListener("click", () => {
+      if (bookingsState.page > 0) {
+        bookingsState.page -= 1;
+        renderBookingsList();
+      }
+    });
+    document.getElementById("bookings-next")?.addEventListener("click", () => {
+      bookingsState.page += 1;
+      renderBookingsList();
+    });
+
+    document.querySelectorAll("[data-booking-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => setBookingDetailTab(btn.dataset.bookingTab));
+    });
+
+    const notes = document.getElementById("booking-notes");
+    notes?.addEventListener("input", () => {
+      const booking = getBookingBySlug(bookingsState.detailSlug);
+      if (!booking) return;
+      const status = document.getElementById("booking-notes-status");
+      if (status) status.textContent = "Saving…";
+      window.clearTimeout(bookingNotesTimer);
+      bookingNotesTimer = window.setTimeout(() => {
+        booking.notes = notes.value;
+        if (status) status.textContent = "All changes saved";
+      }, 450);
+    });
+  }
 
   const MY_WORK_PERIOD_LABELS = {
     month: "This month",
@@ -1115,34 +2347,78 @@
     return new URLSearchParams(window.location.search).get("view");
   }
 
+  function normalizeHomeView(param) {
+    if (param === "new" || param === "new-user") return "new";
+    if (param === "returning" || param === "returning-user") return "returning";
+    return null;
+  }
+
+  function homeViewToParam(view) {
+    return view === "new" ? "new-user" : "returning-user";
+  }
+
   function resolveView() {
-    const param = getViewFromSearchParams();
-    if (param === "new") return "new";
-    if (param === "returning") return "returning";
-    return hasDemoActivity() ? "returning" : "new";
+    return normalizeHomeView(getViewFromSearchParams()) || "returning";
+  }
+
+  function syncHomeModeUrl(view, { replace = true } = {}) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", homeViewToParam(view));
+    const hash = url.hash || "";
+    if (hash.startsWith("#team") || hash.startsWith("#bookings")) {
+      url.hash = "";
+    }
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    if (replace) history.replaceState(null, "", next);
+    else history.pushState(null, "", next);
+  }
+
+  function updateHomeModeUI(view) {
+    const isNew = view === "new";
+    document.querySelectorAll("[data-home-mode]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.homeMode === view);
+    });
+    if (currentShell === "home") {
+      if (breadcrumbCurrent) {
+        breadcrumbCurrent.textContent = isNew ? "Home · New user" : "Home · Returning";
+      }
+      document.title = isNew ? "Paryatech — New user" : "Paryatech — Returning user";
+    }
+  }
+
+  function setHomeUserMode(mode, { syncUrl = true, replace = true } = {}) {
+    const view = mode === "new" ? "new" : "returning";
+    if (currentShell !== "home") {
+      showView("home", { dashboardView: view, smooth: false, scrollTop: false, syncHomeUrl: syncUrl });
+      return;
+    }
+    applyView(view);
+    if (syncUrl) syncHomeModeUrl(view, { replace });
+    updateHomeModeUI(view);
   }
 
   function applyView(view) {
-    currentView = view;
-    const isNew = view === "new";
+    currentView = view === "new" ? "new" : "returning";
+    const isNew = currentView === "new";
     if (currentShell === "home") {
       dashboardReturning.hidden = isNew;
       dashboardNew.hidden = !isNew;
       if (viewTeam) viewTeam.hidden = true;
-    }
-    document.title = isNew ? "Paryatech — Welcome" : "Paryatech — Home";
-    document.body.classList.toggle("is-new-user", isNew);
-    if (currentShell === "home") {
+      if (viewBookings) viewBookings.hidden = true;
+      if (homeAs) homeAs.hidden = false;
+      if (viewingAs) viewingAs.hidden = false;
       setActiveNav("Home");
       if (breadcrumbRoot) breadcrumbRoot.textContent = "Workspace";
+      updateHomeModeUI(currentView);
+      updateGreeting();
     }
+    document.body.classList.toggle("is-new-user", isNew);
     if (isNew) {
       notifDot.classList.add("is-hidden");
       notifBadge.classList.add("is-hidden");
       notifBtn.setAttribute("aria-label", "Notifications, no unread");
     } else {
       updateUnreadUI();
-      updateGreeting();
     }
   }
 
@@ -1245,29 +2521,35 @@
   }
 
   function setViewingAs(role) {
-    if (!viewTeam) return;
     const next = role === "Admin" || role === "Member" ? role : "Owner";
-    viewTeam.dataset.viewingAs = next;
-    document.querySelectorAll(".viewing-as-btn").forEach((btn) => {
+    if (viewTeam) viewTeam.dataset.viewingAs = next;
+    if (dashboardReturning) dashboardReturning.dataset.viewingAs = next;
+    if (dashboardNew) dashboardNew.dataset.viewingAs = next;
+    document.querySelectorAll(".viewing-as-btn[data-viewing-as]").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.viewingAs === next);
     });
-    if (next === "Member") {
-      const activeTab = document.querySelector("[data-team-tab].is-active")?.dataset.teamTab;
-      if (activeTab === "audit") setTeamTab("overview");
-      else updateTeamPageActions(activeTab || "overview");
-    } else {
-      const activeTab = document.querySelector("[data-team-tab].is-active")?.dataset.teamTab;
-      updateTeamPageActions(activeTab || "overview");
+    if (currentShell === "team") {
+      if (next === "Member") {
+        const activeTab = document.querySelector("[data-team-tab].is-active")?.dataset.teamTab;
+        if (activeTab === "audit") setTeamTab("overview");
+        else updateTeamPageActions(activeTab || "overview");
+      } else {
+        const activeTab = document.querySelector("[data-team-tab].is-active")?.dataset.teamTab;
+        updateTeamPageActions(activeTab || "overview");
+      }
     }
   }
 
   function showView(shell, options = {}) {
-    const next = shell === "team" ? "team" : "home";
+    const next = shell === "team" ? "team" : shell === "bookings" ? "bookings" : "home";
     currentShell = next;
+
     if (next === "team") {
       dashboardReturning.hidden = true;
       dashboardNew.hidden = true;
       if (viewTeam) viewTeam.hidden = false;
+      if (viewBookings) viewBookings.hidden = true;
+      if (homeAs) homeAs.hidden = true;
       if (viewingAs) viewingAs.hidden = false;
       setActiveNav("Team");
       if (breadcrumbRoot) breadcrumbRoot.textContent = "Operations";
@@ -1278,12 +2560,41 @@
       return;
     }
 
+    if (next === "bookings") {
+      dashboardReturning.hidden = true;
+      dashboardNew.hidden = true;
+      if (viewTeam) viewTeam.hidden = true;
+      if (viewBookings) viewBookings.hidden = false;
+      if (homeAs) homeAs.hidden = true;
+      if (viewingAs) viewingAs.hidden = false;
+      setActiveNav("Bookings");
+      if (breadcrumbRoot) breadcrumbRoot.textContent = "Operations";
+      if (options.updateHash === false) {
+        applyBookingsRoute({ updateHash: false });
+      } else if (options.slug) {
+        openBookingDetail(options.slug, { tab: options.tab || "overview", updateHash: true });
+      } else if ((window.location.hash || "").startsWith("#bookings")) {
+        applyBookingsRoute({ updateHash: options.updateHash !== false });
+      } else {
+        setBookingsListMode({ updateHash: options.updateHash !== false });
+      }
+      window.scrollTo({ top: 0, behavior: options.smooth === false ? "auto" : "smooth" });
+      return;
+    }
+
     if (viewTeam) viewTeam.hidden = true;
-    if (viewingAs) viewingAs.hidden = true;
+    if (viewBookings) viewBookings.hidden = true;
     if (breadcrumbRoot) breadcrumbRoot.textContent = "Workspace";
-    applyView(options.dashboardView || resolveView());
-    if (window.location.hash.startsWith("#team")) {
-      history.replaceState(null, "", window.location.pathname + window.location.search);
+    const homeView = options.dashboardView || resolveView();
+    applyView(homeView);
+    if (options.syncHomeUrl !== false) {
+      syncHomeModeUrl(homeView, { replace: true });
+    }
+    const hash = window.location.hash || "";
+    if (hash.startsWith("#team") || hash.startsWith("#bookings")) {
+      const url = new URL(window.location.href);
+      url.hash = "";
+      history.replaceState(null, "", `${url.pathname}${url.search}`);
     }
     if (options.scrollTop !== false) {
       window.scrollTo({ top: 0, behavior: options.smooth === false ? "auto" : "smooth" });
@@ -1393,7 +2704,9 @@
       if (active) item.setAttribute("aria-current", "page");
       else item.removeAttribute("aria-current");
     });
-    breadcrumbCurrent.textContent = name;
+    if (breadcrumbCurrent) breadcrumbCurrent.textContent = name;
+    if (breadcrumbMid) breadcrumbMid.hidden = true;
+    if (breadcrumbSepMid) breadcrumbSepMid.hidden = true;
   }
 
   function applyDashboardFilter(query) {
@@ -1412,16 +2725,11 @@
   function buildSearchIndex() {
     const items = [];
     document
-      .querySelectorAll(
-        "#dashboard-returning .attention-item, #dashboard-returning .followup-item, #dashboard-returning .ops-item, #dashboard-returning .activity-item, #dashboard-returning .kpi-card, #dashboard-returning .workload-item"
-      )
+      .querySelectorAll("#dashboard-returning .home-panel, #dashboard-new .home-panel")
       .forEach((el) => {
-      const title =
-        el.querySelector(".attention-title, .followup-title, .ops-title, .activity-title, .kpi-label, .workload-name")
-          ?.textContent?.trim() || "Result";
+      const title = el.querySelector(".home-panel-label")?.textContent?.replace(/\s+/g, " ").trim() || "Result";
       const meta =
-        el.querySelector(".attention-meta, .followup-meta, .ops-status, .activity-meta, .kpi-meta, .workload-meta")
-          ?.textContent?.trim() || "";
+        el.querySelector(".kpi-meta, .empty-state-desc")?.textContent?.trim() || "";
       items.push({
         title,
         meta,
@@ -1470,37 +2778,70 @@
   /* ---------- Greeting / date ---------- */
 
   function updateGreeting() {
-    if (currentView !== "returning") return;
     const now = new Date();
     const hour = now.getHours();
     const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
-    greeting.textContent = `Good ${part}, Vrushabh`;
-
-    const weekday = now.toLocaleDateString("en-GB", { weekday: "long" });
+    const text = `Good ${part}, Vrushabh`;
+    const weekday = now.toLocaleDateString("en-GB", { weekday: "long" }).toUpperCase();
     const day = now.getDate();
-    const month = now.toLocaleDateString("en-GB", { month: "long" });
-    heroDate.textContent = `${weekday} · ${day} ${month}`;
+    const month = now.toLocaleDateString("en-GB", { month: "long" }).toUpperCase();
+    const time = now
+      .toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .toUpperCase();
+    const dateText = `${weekday} · ${day} ${month} · ${time}`;
+    if (greeting) greeting.textContent = text;
+    if (heroDate) heroDate.textContent = dateText;
+    if (newGreeting) newGreeting.textContent = text;
+    if (newHeroDate) newHeroDate.textContent = dateText;
   }
 
   updateGreeting();
+  window.setInterval(() => {
+    if (currentShell === "home") updateGreeting();
+  }, 60000);
   initNewUserDashboard();
-  if ((window.location.hash || "").startsWith("#team")) {
+  initBookingsModule();
+  const bootHash = window.location.hash || "";
+  if (bootHash.startsWith("#team")) {
     showView("team", { smooth: false });
+  } else if (bootHash.startsWith("#bookings")) {
+    showView("bookings", { smooth: false });
   } else {
     showView("home", { smooth: false, scrollTop: false });
   }
 
+  document.querySelectorAll("[data-home-mode]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setHomeUserMode(btn.dataset.homeMode, { syncUrl: true, replace: false });
+    });
+  });
+
   window.addEventListener("popstate", () => {
-    if ((window.location.hash || "").startsWith("#team")) {
+    const hash = window.location.hash || "";
+    if (hash.startsWith("#team")) {
       showView("team", { smooth: false, updateHash: false });
+    } else if (hash.startsWith("#bookings")) {
+      showView("bookings", { smooth: false, updateHash: false });
     } else {
-      showView("home", { smooth: false, scrollTop: false });
+      showView("home", { smooth: false, scrollTop: false, syncHomeUrl: false });
+      updateHomeModeUI(resolveView());
     }
   });
 
   window.addEventListener("hashchange", () => {
-    if ((window.location.hash || "").startsWith("#team") && currentShell === "team") {
+    const hash = window.location.hash || "";
+    if (hash.startsWith("#team") && currentShell === "team") {
       setTeamTab(getTeamTabFromHash(), { updateHash: false });
+    } else if (hash.startsWith("#bookings") && currentShell === "bookings") {
+      applyBookingsRoute({ updateHash: false });
+    } else if (hash.startsWith("#bookings")) {
+      showView("bookings", { smooth: false, updateHash: false });
+    } else if (hash.startsWith("#team")) {
+      showView("team", { smooth: false, updateHash: false });
     }
   });
 
@@ -1551,6 +2892,11 @@
         return;
       }
 
+      if (name === "Bookings") {
+        showView("bookings");
+        return;
+      }
+
       if (name === "Home") {
         showView("home");
         applyDashboardFilter("");
@@ -1561,7 +2907,7 @@
       setActiveNav(name);
       showToast(`Opened ${name}`);
       if (name === "Inbox") {
-        if (currentShell === "team") showView("home", { scrollTop: false });
+        if (currentShell === "team" || currentShell === "bookings") showView("home", { scrollTop: false });
         applyDashboardFilter("");
         searchInput.value = "";
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1581,9 +2927,64 @@
     runTeamPrimaryCta(teamPagePrimaryCta.dataset.teamCta || "assign");
   });
 
-  document.querySelectorAll(".viewing-as-btn").forEach((btn) => {
+  document.querySelectorAll(".viewing-as-btn[data-viewing-as]").forEach((btn) => {
     btn.addEventListener("click", () => {
       setViewingAs(btn.dataset.viewingAs);
+    });
+  });
+
+  function normalizeHomeDensity(value) {
+    return value === "advance" ? "advance" : "normal";
+  }
+
+  function setHomeDensity(density, { persist = true } = {}) {
+    const next = normalizeHomeDensity(density);
+    const isAdvance = next === "advance";
+    if (dashboardReturning) dashboardReturning.dataset.homeDensity = next;
+    if (dashboardNew) dashboardNew.dataset.homeDensity = next;
+    document.querySelectorAll(".home-density-opt").forEach((btn) => {
+      const active = btn.dataset.densityLabel === next;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    document.querySelectorAll(".home-advance").forEach((el) => {
+      el.setAttribute("aria-hidden", isAdvance ? "false" : "true");
+    });
+    document.querySelectorAll(".home-panel-grid").forEach((el) => {
+      el.setAttribute("aria-hidden", isAdvance ? "true" : "false");
+    });
+    if (persist) {
+      try {
+        localStorage.setItem(STORAGE.homeDensity, next);
+      } catch (_) {
+        /* ignore quota / private mode */
+      }
+    }
+  }
+
+  function initHomeDensity() {
+    let saved = "normal";
+    try {
+      saved = localStorage.getItem(STORAGE.homeDensity) || "normal";
+    } catch (_) {
+      saved = "normal";
+    }
+    setHomeDensity(saved, { persist: false });
+    document.querySelectorAll(".home-density-opt").forEach((btn) => {
+      btn.addEventListener("click", () => setHomeDensity(btn.dataset.densityLabel));
+    });
+  }
+
+  initHomeDensity();
+
+  document.querySelectorAll(".home-notes-compose").forEach((form) => {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = form.querySelector(".home-notes-input");
+      const text = input?.value?.trim();
+      if (!text) return;
+      showToast(form.dataset.toast || "Note saved");
+      if (input) input.value = "";
     });
   });
 
@@ -3719,6 +5120,8 @@
     const nav = el.dataset.kpiNav;
     if (nav === "Team") {
       showView("team");
+    } else if (nav === "Bookings") {
+      showView("bookings");
     } else if (nav) {
       setActiveNav(nav);
     }

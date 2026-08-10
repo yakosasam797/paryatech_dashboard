@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=opsqueue01" />
+  <link rel="stylesheet" href="styles.css?v=list-launch01" />
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -320,13 +320,13 @@
 
           <div class="home-advance" aria-label="Advance workspace">
             <section class="kpi-grid home-advance-kpis" aria-label="Key metrics">
-              <article class="kpi-card kpi-card-static" data-search="booking value confirmed">
+              <article class="kpi-card kpi-card-static kpi-card-danger" data-search="at-risk bookings voucher">
                 <div class="kpi-card-head">
-                  <p class="kpi-label">Booking value</p>
-                  <span class="kpi-icon" aria-hidden="true"><img src="assets/currency-rupee.svg" alt="" width="14" height="14" /></span>
+                  <p class="kpi-label is-danger">At-risk bookings</p>
+                  <span class="kpi-icon kpi-icon-danger" aria-hidden="true"><img src="assets/warning.svg" alt="" width="14" height="14" /></span>
                 </div>
-                <p class="kpi-value">₹18.40L</p>
-                <p class="kpi-meta">6 confirmed · previous 30 days</p>
+                <p class="kpi-value is-danger">2</p>
+                <p class="kpi-meta">1 voucher blocked · 5 travellers affected</p>
               </article>
               <article class="kpi-card kpi-card-static" data-search="payment due overdue">
                 <div class="kpi-card-head">
@@ -336,14 +336,6 @@
                 <p class="kpi-value">₹2.28L</p>
                 <p class="kpi-meta">to collect · ₹80K overdue</p>
               </article>
-              <article class="kpi-card kpi-card-static kpi-card-danger" data-search="at-risk bookings voucher">
-                <div class="kpi-card-head">
-                  <p class="kpi-label is-danger">At-risk bookings</p>
-                  <span class="kpi-icon kpi-icon-danger" aria-hidden="true"><img src="assets/warning.svg" alt="" width="14" height="14" /></span>
-                </div>
-                <p class="kpi-value is-danger">2</p>
-                <p class="kpi-meta">1 voucher blocked · 5 travellers affected</p>
-              </article>
               <article class="kpi-card kpi-card-static" data-search="queries needing action">
                 <div class="kpi-card-head">
                   <p class="kpi-label">Queries needing action</p>
@@ -352,406 +344,352 @@
                 <p class="kpi-value">7</p>
                 <p class="kpi-meta">3 unassigned · 2 overdue · 2 waiting on us</p>
               </article>
+              <article class="kpi-card kpi-card-static" data-search="booking value confirmed">
+                <div class="kpi-card-head">
+                  <p class="kpi-label">Booking value</p>
+                  <span class="kpi-icon" aria-hidden="true"><img src="assets/currency-rupee.svg" alt="" width="14" height="14" /></span>
+                </div>
+                <p class="kpi-value">₹18.40L</p>
+                <p class="kpi-meta">6 confirmed · previous 30 days</p>
+              </article>
             </section>
 
-            <div class="content-grid home-advance-grid">
-              <div class="content-primary">
-                <section class="card home-advance-card" aria-labelledby="adv-queries-title" data-search="active queries pipeline">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/queries.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="adv-queries-title">Active queries</h2>
-                      <span class="team-count-pill">12</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-kpi-nav="Queries" data-toast="Opened Queries">Open queries</button>
-                  </header>
-                  <div class="table-scroll home-advance-table-scroll">
-                    <table class="team-table home-advance-table">
-                      <thead>
-                        <tr>
-                          <th scope="col">Customer / trip</th>
-                          <th scope="col">Stage</th>
-                          <th scope="col">Owner</th>
-                          <th scope="col">Value</th>
-                          <th scope="col">Status</th>
-                          <th scope="col" class="roster-actions-col">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div class="member-cell">
-                              <div>
-                                <p class="member-name">Jain Family</p>
-                                <p class="member-role">Shimla Package · Q-1842</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td><span class="roster-metric-unit">Negotiation</span></td>
-                          <td><span class="roster-metric-unit">Priya</span></td>
-                          <td><span class="roster-revenue">₹4.20L</span></td>
-                          <td><span class="mywork-query-status is-nego">In nego</span></td>
-                          <td class="roster-actions-col">
-                            <div class="roster-row-actions">
-                              <button type="button" class="btn btn-primary btn-xs" data-toast="Opening Jain Family query…">Open</button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="member-cell">
-                              <div>
-                                <p class="member-name">Patel Group</p>
-                                <p class="member-role">Rajasthan Circuit · Q-1831</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td><span class="roster-metric-unit">Proposal</span></td>
-                          <td><span class="roster-metric-unit">Rahul</span></td>
-                          <td><span class="roster-revenue">₹6.40L</span></td>
-                          <td><span class="mywork-query-status is-critical">Overdue</span></td>
-                          <td class="roster-actions-col">
-                            <div class="roster-row-actions">
-                              <button type="button" class="btn btn-primary btn-xs" data-toast="Opening Patel Group query…">Open</button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="member-cell">
-                              <div>
-                                <p class="member-name">Kapoor Family</p>
-                                <p class="member-role">Kerala Backwaters · Q-1828</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td><span class="roster-metric-unit">Quoted</span></td>
-                          <td><span class="roster-metric-unit">Priya</span></td>
-                          <td><span class="roster-revenue">₹2.80L</span></td>
-                          <td><span class="mywork-query-status is-quoted">Expiring</span></td>
-                          <td class="roster-actions-col">
-                            <div class="roster-row-actions">
-                              <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Kapoor Family query…">Open</button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="member-cell">
-                              <div>
-                                <p class="member-name">Mehta Honeymoon</p>
-                                <p class="member-role">Bali Escape · Q-1819</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td><span class="roster-metric-unit">New</span></td>
-                          <td><span class="roster-metric-unit">Unassigned</span></td>
-                          <td><span class="roster-revenue">₹3.10L</span></td>
-                          <td><span class="mywork-query-status is-new">New</span></td>
-                          <td class="roster-actions-col">
-                            <div class="roster-row-actions">
-                              <button type="button" class="btn btn-outline btn-xs" data-toast="Assigning Mehta query…">Assign</button>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+            <div class="home-advance-row home-advance-row--2">
+              <section class="card home-advance-card" aria-labelledby="adv-queries-title" data-search="open queries pipeline">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/queries.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="adv-queries-title">Open queries</h2>
+                    <span class="team-count-pill">12</span>
                   </div>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-kpi-nav="Queries" data-toast="Opened Queries">View all</button>
-                  </footer>
-                </section>
-
-                <section class="card home-advance-card" aria-labelledby="adv-bookings-title" data-search="bookings confirmed trips">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-bookings.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="adv-bookings-title">Bookings</h2>
-                      <span class="team-count-pill">9</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-kpi-nav="Bookings">Open bookings</button>
-                  </header>
-                  <div class="table-scroll home-advance-table-scroll">
-                    <table class="team-table home-advance-table">
-                      <thead>
-                        <tr>
-                          <th scope="col">Trip</th>
-                          <th scope="col">Window</th>
-                          <th scope="col">Risk / payment</th>
-                          <th scope="col">Amount</th>
-                          <th scope="col" class="roster-actions-col">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div class="member-cell">
-                              <div>
-                                <p class="member-name">Tripura Trip</p>
-                                <p class="member-role">Jain Family · BK-9021</p>
-                              </div>
+                  <button type="button" class="home-advance-open-cta" data-kpi-nav="Queries" data-toast="Opened Queries">Open queries</button>
+                </header>
+                <div class="table-scroll home-advance-table-scroll">
+                  <table class="team-table home-advance-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Customer / trip</th>
+                        <th scope="col">Stage</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Value</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="roster-actions-col">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="member-cell">
+                            <div>
+                              <p class="member-name">Patel Group</p>
+                              <p class="member-role">Rajasthan Circuit · Q-1831</p>
                             </div>
-                          </td>
-                          <td><span class="roster-metric-unit">Departs today</span></td>
-                          <td><span class="mywork-query-status is-critical">Voucher blocked</span></td>
-                          <td><span class="roster-revenue">₹1.85L</span></td>
-                          <td class="roster-actions-col">
-                            <div class="roster-row-actions">
-                              <button type="button" class="btn btn-primary btn-xs" data-toast="Opening Tripura Trip booking…">Review</button>
+                          </div>
+                        </td>
+                        <td><span class="roster-metric-unit">Proposal</span></td>
+                        <td><span class="roster-metric-unit">Rahul</span></td>
+                        <td><span class="roster-revenue">₹6.40L</span></td>
+                        <td><span class="mywork-query-status is-critical">Overdue</span></td>
+                        <td class="roster-actions-col">
+                          <div class="roster-row-actions">
+                            <button type="button" class="btn btn-primary btn-xs" data-toast="Opening Patel Group query…">Open</button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="member-cell">
+                            <div>
+                              <p class="member-name">Mehta Honeymoon</p>
+                              <p class="member-role">Bali Escape · Q-1819</p>
                             </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="member-cell">
-                              <div>
-                                <p class="member-name">Goa Weekend</p>
-                                <p class="member-role">Shah Family · BK-9014</p>
-                              </div>
+                          </div>
+                        </td>
+                        <td><span class="roster-metric-unit">New</span></td>
+                        <td><span class="roster-metric-unit">Unassigned</span></td>
+                        <td><span class="roster-revenue">₹3.10L</span></td>
+                        <td><span class="mywork-query-status is-new">New</span></td>
+                        <td class="roster-actions-col">
+                          <div class="roster-row-actions">
+                            <button type="button" class="btn btn-outline btn-xs" data-toast="Assigning Mehta query…">Assign</button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="member-cell">
+                            <div>
+                              <p class="member-name">Kapoor Family</p>
+                              <p class="member-role">Kerala Backwaters · Q-1828</p>
                             </div>
-                          </td>
-                          <td><span class="roster-metric-unit">12–15 Aug</span></td>
-                          <td><span class="mywork-query-status is-quoted">₹84K pending</span></td>
-                          <td><span class="roster-revenue">₹2.40L</span></td>
-                          <td class="roster-actions-col">
-                            <div class="roster-row-actions">
-                              <button type="button" class="btn btn-outline btn-xs" data-toast="Reminder sent">Remind</button>
+                          </div>
+                        </td>
+                        <td><span class="roster-metric-unit">Quoted</span></td>
+                        <td><span class="roster-metric-unit">Priya</span></td>
+                        <td><span class="roster-revenue">₹2.80L</span></td>
+                        <td><span class="mywork-query-status is-quoted">Expiring</span></td>
+                        <td class="roster-actions-col">
+                          <div class="roster-row-actions">
+                            <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Kapoor Family query…">Open</button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="member-cell">
+                            <div>
+                              <p class="member-name">Jain Family</p>
+                              <p class="member-role">Shimla Package · Q-1842</p>
                             </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="member-cell">
-                              <div>
-                                <p class="member-name">Kerala Backwaters</p>
-                                <p class="member-role">Patel Group · BK-9008</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td><span class="roster-metric-unit">20–26 Aug</span></td>
-                          <td><span class="mywork-query-status is-new">Confirmed</span></td>
-                          <td><span class="roster-revenue">₹5.10L</span></td>
-                          <td class="roster-actions-col">
-                            <div class="roster-row-actions">
-                              <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Kerala booking…">Open</button>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div class="member-cell">
-                              <div>
-                                <p class="member-name">Shimla Package</p>
-                                <p class="member-role">Mehta Group · BK-9002</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td><span class="roster-metric-unit">Departs in 5d</span></td>
-                          <td><span class="mywork-query-status is-quoted">Passport missing</span></td>
-                          <td><span class="roster-revenue">₹1.20L</span></td>
-                          <td class="roster-actions-col">
-                            <div class="roster-row-actions">
-                              <button type="button" class="btn btn-outline btn-xs" data-toast="Document request sent">Request</button>
-                            </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                          </div>
+                        </td>
+                        <td><span class="roster-metric-unit">Negotiation</span></td>
+                        <td><span class="roster-metric-unit">Priya</span></td>
+                        <td><span class="roster-revenue">₹4.20L</span></td>
+                        <td><span class="mywork-query-status is-nego">In nego</span></td>
+                        <td class="roster-actions-col">
+                          <div class="roster-row-actions">
+                            <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Jain Family query…">Open</button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <footer class="home-advance-card-foot">
+                  <button type="button" class="text-link text-link-btn" data-kpi-nav="Queries" data-toast="Opened Queries">View all</button>
+                </footer>
+              </section>
+              <section class="card home-advance-card" aria-labelledby="adv-bookings-title" data-search="bookings confirmed trips">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-bookings.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="adv-bookings-title">Bookings</h2>
+                    <span class="team-count-pill">9</span>
                   </div>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-kpi-nav="Bookings">View all</button>
-                  </footer>
+                  <button type="button" class="home-advance-open-cta" data-kpi-nav="Bookings">Open bookings</button>
+                </header>
+                <div class="table-scroll home-advance-table-scroll">
+                  <table class="team-table home-advance-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Trip</th>
+                        <th scope="col">Window</th>
+                        <th scope="col">Risk / payment</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col" class="roster-actions-col">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="member-cell">
+                            <div>
+                              <p class="member-name">Tripura Trip</p>
+                              <p class="member-role">Jain Family · BK-9021</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="roster-metric-unit">Departs today</span></td>
+                        <td><span class="mywork-query-status is-critical">Voucher blocked</span></td>
+                        <td><span class="roster-revenue">₹1.85L</span></td>
+                        <td class="roster-actions-col">
+                          <div class="roster-row-actions">
+                            <button type="button" class="btn btn-primary btn-xs" data-toast="Opening Tripura Trip booking…">Review</button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="member-cell">
+                            <div>
+                              <p class="member-name">Goa Weekend</p>
+                              <p class="member-role">Shah Family · BK-9014</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="roster-metric-unit">12–15 Aug</span></td>
+                        <td><span class="mywork-query-status is-quoted">₹84K pending</span></td>
+                        <td><span class="roster-revenue">₹2.40L</span></td>
+                        <td class="roster-actions-col">
+                          <div class="roster-row-actions">
+                            <button type="button" class="btn btn-outline btn-xs" data-toast="Reminder sent">Remind</button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="member-cell">
+                            <div>
+                              <p class="member-name">Shimla Package</p>
+                              <p class="member-role">Mehta Group · BK-9002</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="roster-metric-unit">Departs in 5d</span></td>
+                        <td><span class="mywork-query-status is-quoted">Passport missing</span></td>
+                        <td><span class="roster-revenue">₹1.20L</span></td>
+                        <td class="roster-actions-col">
+                          <div class="roster-row-actions">
+                            <button type="button" class="btn btn-outline btn-xs" data-toast="Document request sent">Request</button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="member-cell">
+                            <div>
+                              <p class="member-name">Kerala Backwaters</p>
+                              <p class="member-role">Patel Group · BK-9008</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="roster-metric-unit">20–26 Aug</span></td>
+                        <td><span class="mywork-query-status is-new">Confirmed</span></td>
+                        <td><span class="roster-revenue">₹5.10L</span></td>
+                        <td class="roster-actions-col">
+                          <div class="roster-row-actions">
+                            <button type="button" class="btn btn-outline btn-xs" data-toast="Opening Kerala booking…">Open</button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <footer class="home-advance-card-foot">
+                  <button type="button" class="text-link text-link-btn" data-kpi-nav="Bookings">View all</button>
+                </footer>
+              </section>
+            </div>
+            <div class="home-advance-row home-advance-row--3">
+              <section class="card home-advance-card" aria-labelledby="adv-tasks-title" data-search="tasks open due today">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-tasks.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="adv-tasks-title">Tasks</h2>
+                    <span class="team-count-pill">11</span>
+                  </div>
+                  <button type="button" class="home-advance-open-cta" data-kpi-nav="Tasks" data-toast="Opened Tasks">Open tasks</button>
+                </header>
+                <ul class="mywork-item-list home-advance-dense-list">
+                  <li>
+                    <button type="button" class="mywork-item" data-toast="Opening task…">
+                      <span class="mywork-record-id">TK-88</span>
+                      <span class="mywork-item-copy">
+                        <strong>Chase hotel voucher</strong>
+                        <span>Tripura Trip · BK-9021</span>
+                      </span>
+                      <span class="mywork-due is-danger">Overdue</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" class="mywork-item" data-toast="Opening task…">
+                      <span class="mywork-record-id">TK-76</span>
+                      <span class="mywork-item-copy">
+                        <strong>Send revised proposal</strong>
+                        <span>Patel Group · Q-1831</span>
+                      </span>
+                      <span class="mywork-query-status is-critical">Blocked</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" class="mywork-item" data-toast="Opening task…">
+                      <span class="mywork-record-id">TK-84</span>
+                      <span class="mywork-item-copy">
+                        <strong>Collect balance payment</strong>
+                        <span>Goa Weekend · BK-9014</span>
+                      </span>
+                      <span class="mywork-due is-warning">Due today</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" class="mywork-item" data-toast="Opening task…">
+                      <span class="mywork-record-id">TK-79</span>
+                      <span class="mywork-item-copy">
+                        <strong>Request passports</strong>
+                        <span>Shimla Package · BK-9002</span>
+                      </span>
+                      <span class="mywork-due is-neutral">Tue</span>
+                    </button>
+                  </li>
+                </ul>
+                <footer class="home-advance-card-foot">
+                  <button type="button" class="text-link text-link-btn" data-kpi-nav="Tasks" data-toast="Opened Tasks">View all</button>
+                </footer>
                 </section>
-
-                <section class="card home-advance-card" aria-labelledby="followups-title" data-search="follow-ups proposals">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/queries-alt.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="followups-title">Follow-ups</h2>
-                      <span class="team-count-pill">3 due</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-kpi-nav="Queries">Open queries</button>
-                  </header>
-                  <ul class="mywork-item-list home-advance-dense-list">
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening Jain Family follow-up…">
-                        <span class="mywork-record-id">FU-12</span>
-                        <span class="mywork-item-copy">
-                          <strong>Jain Family · Shimla</strong>
-                          <span>Scheduled · 16:00 IST</span>
-                        </span>
-                        <span class="mywork-query-status is-new">Due today</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening Patel Group follow-up…">
-                        <span class="mywork-record-id">FU-09</span>
-                        <span class="mywork-item-copy">
-                          <strong>Patel Group · Rajasthan</strong>
-                          <span>₹6.40L proposal</span>
-                        </span>
-                        <span class="mywork-query-status is-critical">Overdue</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening Kapoor Family follow-up…">
-                        <span class="mywork-record-id">FU-07</span>
-                        <span class="mywork-item-copy">
-                          <strong>Kapoor Family · Kerala</strong>
-                          <span>₹2.80L · Expires in 2 days</span>
-                        </span>
-                        <span class="mywork-query-status is-quoted">Expiring</span>
-                      </button>
-                    </li>
-                  </ul>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-kpi-nav="Queries">View all</button>
-                  </footer>
+              <section class="card home-advance-card" aria-labelledby="followups-title" data-search="follow-ups proposals">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/queries-alt.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="followups-title">Follow-ups</h2>
+                    <span class="team-count-pill">3 due</span>
+                  </div>
+                  <button type="button" class="home-advance-open-cta" data-kpi-nav="Queries">Open queries</button>
+                </header>
+                <ul class="mywork-item-list home-advance-dense-list">
+                  <li>
+                    <button type="button" class="mywork-item" data-toast="Opening Patel Group follow-up…">
+                      <span class="mywork-record-id">FU-09</span>
+                      <span class="mywork-item-copy">
+                        <strong>Patel Group · Rajasthan</strong>
+                        <span>₹6.40L proposal</span>
+                      </span>
+                      <span class="mywork-query-status is-critical">Overdue</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" class="mywork-item" data-toast="Opening Jain Family follow-up…">
+                      <span class="mywork-record-id">FU-12</span>
+                      <span class="mywork-item-copy">
+                        <strong>Jain Family · Shimla</strong>
+                        <span>Scheduled · 16:00 IST</span>
+                      </span>
+                      <span class="mywork-query-status is-new">Due today</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" class="mywork-item" data-toast="Opening Kapoor Family follow-up…">
+                      <span class="mywork-record-id">FU-07</span>
+                      <span class="mywork-item-copy">
+                        <strong>Kapoor Family · Kerala</strong>
+                        <span>₹2.80L · Expires in 2 days</span>
+                      </span>
+                      <span class="mywork-query-status is-quoted">Expiring</span>
+                    </button>
+                  </li>
+                </ul>
+                <footer class="home-advance-card-foot">
+                  <button type="button" class="text-link text-link-btn" data-kpi-nav="Queries">View all</button>
+                </footer>
                 </section>
-              </div>
-
-              <div class="content-secondary">
-                <section class="card home-advance-card" aria-labelledby="adv-inbox-title" data-search="inbox unread messages">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-inbox.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="adv-inbox-title">Inbox</h2>
-                      <span class="team-count-pill">18</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-kpi-nav="Inbox" data-toast="Opened Inbox">Open inbox</button>
-                  </header>
-                  <ul class="mywork-item-list home-advance-dense-list">
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening inbox thread…">
-                        <span class="mywork-record-id">IN-441</span>
-                        <span class="mywork-item-copy">
-                          <strong>Re: Shimla hotel confirmation</strong>
-                          <span>Coral Bay · Email · 12m ago</span>
-                        </span>
-                        <span class="mywork-query-status is-critical">Unread</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening inbox thread…">
-                        <span class="mywork-record-id">IN-438</span>
-                        <span class="mywork-item-copy">
-                          <strong>Payment receipt — Goa Weekend</strong>
-                          <span>Shah Family · WhatsApp · 1h ago</span>
-                        </span>
-                        <span class="mywork-query-status is-new">Customer</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening inbox thread…">
-                        <span class="mywork-record-id">IN-435</span>
-                        <span class="mywork-item-copy">
-                          <strong>Supplier rate hold expires Friday</strong>
-                          <span>Coral Bay · Email · 3h ago</span>
-                        </span>
-                        <span class="mywork-query-status is-quoted">Supplier</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening inbox thread…">
-                        <span class="mywork-record-id">IN-429</span>
-                        <span class="mywork-item-copy">
-                          <strong>Docs needed for Patel Group</strong>
-                          <span>Priya · Internal · Yesterday</span>
-                        </span>
-                        <span class="mywork-query-status is-nego">Internal</span>
-                      </button>
-                    </li>
-                  </ul>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-kpi-nav="Inbox" data-toast="Opened Inbox">View all</button>
-                  </footer>
+              <section class="card home-advance-card home-notes" aria-labelledby="notes-title" data-search="notes reminders">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-news.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="notes-title">Notes</h2>
+                    <span class="team-count-pill">3</span>
+                  </div>
+                </header>
+                <ul class="home-notes-list">
+                  <li class="home-notes-item">
+                    <p class="home-notes-item-body">Coral Bay holding Bali rates until Friday EOD — confirm Mehta honeymoon.</p>
+                    <time class="home-notes-item-time">2h ago</time>
+                  </li>
+                  <li class="home-notes-item">
+                    <p class="home-notes-item-body">Shah Family prefer evening airport pickup · no early check-in needed.</p>
+                    <time class="home-notes-item-time">Yesterday</time>
+                  </li>
+                  <li class="home-notes-item">
+                    <p class="home-notes-item-body">Shimla passports must be chased before Tuesday or risk departure slip.</p>
+                    <time class="home-notes-item-time">2d ago</time>
+                  </li>
+                </ul>
+                <form class="home-notes-compose" data-toast="Note saved">
+                  <label class="sr-only" for="home-note-input">New note</label>
+                  <textarea id="home-note-input" class="home-notes-input" rows="2" placeholder="Write a note…"></textarea>
+                  <button type="submit" class="btn btn-outline btn-sm">Save note</button>
+                </form>
                 </section>
-
-                <section class="card home-advance-card" aria-labelledby="adv-tasks-title" data-search="tasks open due today">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-tasks.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="adv-tasks-title">Tasks</h2>
-                      <span class="team-count-pill">11</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-kpi-nav="Tasks" data-toast="Opened Tasks">Open tasks</button>
-                  </header>
-                  <ul class="mywork-item-list home-advance-dense-list">
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening task…">
-                        <span class="mywork-record-id">TK-88</span>
-                        <span class="mywork-item-copy">
-                          <strong>Chase hotel voucher</strong>
-                          <span>Tripura Trip · BK-9021</span>
-                        </span>
-                        <span class="mywork-due is-danger">Overdue</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening task…">
-                        <span class="mywork-record-id">TK-84</span>
-                        <span class="mywork-item-copy">
-                          <strong>Collect balance payment</strong>
-                          <span>Goa Weekend · BK-9014</span>
-                        </span>
-                        <span class="mywork-due is-warning">Due today</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening task…">
-                        <span class="mywork-record-id">TK-79</span>
-                        <span class="mywork-item-copy">
-                          <strong>Request passports</strong>
-                          <span>Shimla Package · BK-9002</span>
-                        </span>
-                        <span class="mywork-due is-neutral">Tue</span>
-                      </button>
-                    </li>
-                    <li>
-                      <button type="button" class="mywork-item" data-toast="Opening task…">
-                        <span class="mywork-record-id">TK-76</span>
-                        <span class="mywork-item-copy">
-                          <strong>Send revised proposal</strong>
-                          <span>Patel Group · Q-1831</span>
-                        </span>
-                        <span class="mywork-query-status is-critical">Blocked</span>
-                      </button>
-                    </li>
-                  </ul>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-kpi-nav="Tasks" data-toast="Opened Tasks">View all</button>
-                  </footer>
-                </section>
-
-                <section class="card home-advance-card home-notes" aria-labelledby="notes-title" data-search="notes reminders">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-news.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="notes-title">Notes</h2>
-                      <span class="team-count-pill">3</span>
-                    </div>
-                  </header>
-                  <ul class="home-notes-list">
-                    <li class="home-notes-item">
-                      <p class="home-notes-item-body">Coral Bay holding Bali rates until Friday EOD — confirm Mehta honeymoon.</p>
-                      <time class="home-notes-item-time">2h ago</time>
-                    </li>
-                    <li class="home-notes-item">
-                      <p class="home-notes-item-body">Shah Family prefer evening airport pickup · no early check-in needed.</p>
-                      <time class="home-notes-item-time">Yesterday</time>
-                    </li>
-                    <li class="home-notes-item">
-                      <p class="home-notes-item-body">Shimla passports must be chased before Tuesday or risk departure slip.</p>
-                      <time class="home-notes-item-time">2d ago</time>
-                    </li>
-                  </ul>
-                  <form class="home-notes-compose" data-toast="Note saved">
-                    <label class="sr-only" for="home-note-input">New note</label>
-                    <textarea id="home-note-input" class="home-notes-input" rows="2" placeholder="Write a note…"></textarea>
-                    <button type="submit" class="btn btn-outline btn-sm">Save note</button>
-                  </form>
-                </section>
-              </div>
             </div>
           </div>
 
@@ -873,15 +811,15 @@
             </article>
           </section>
 
-          <div class="home-advance" aria-label="Advance workspace">
+                              <div class="home-advance" aria-label="Advance workspace">
             <section class="kpi-grid home-advance-kpis" aria-label="Key metrics">
               <article class="kpi-card kpi-card-static">
                 <div class="kpi-card-head">
-                  <p class="kpi-label">Booking value</p>
-                  <span class="kpi-icon" aria-hidden="true"><img src="assets/currency-rupee.svg" alt="" width="14" height="14" /></span>
+                  <p class="kpi-label">At-risk bookings</p>
+                  <span class="kpi-icon" aria-hidden="true"><img src="assets/warning.svg" alt="" width="14" height="14" /></span>
                 </div>
-                <p class="kpi-value">₹0</p>
-                <p class="kpi-meta">No confirmed bookings yet</p>
+                <p class="kpi-value">0</p>
+                <p class="kpi-meta">No risks to resolve</p>
               </article>
               <article class="kpi-card kpi-card-static">
                 <div class="kpi-card-head">
@@ -893,135 +831,98 @@
               </article>
               <article class="kpi-card kpi-card-static">
                 <div class="kpi-card-head">
-                  <p class="kpi-label">At-risk bookings</p>
-                  <span class="kpi-icon" aria-hidden="true"><img src="assets/warning.svg" alt="" width="14" height="14" /></span>
-                </div>
-                <p class="kpi-value">0</p>
-                <p class="kpi-meta">No risks to resolve</p>
-              </article>
-              <article class="kpi-card kpi-card-static">
-                <div class="kpi-card-head">
                   <p class="kpi-label">Queries needing action</p>
                   <span class="kpi-icon" aria-hidden="true"><img src="assets/queries.svg" alt="" width="14" height="14" /></span>
                 </div>
                 <p class="kpi-value">0</p>
                 <p class="kpi-meta">Pipeline is empty</p>
               </article>
+              <article class="kpi-card kpi-card-static">
+                <div class="kpi-card-head">
+                  <p class="kpi-label">Booking value</p>
+                  <span class="kpi-icon" aria-hidden="true"><img src="assets/currency-rupee.svg" alt="" width="14" height="14" /></span>
+                </div>
+                <p class="kpi-value">₹0</p>
+                <p class="kpi-meta">No confirmed bookings yet</p>
+              </article>
             </section>
 
-            <div class="content-grid home-advance-grid">
-              <div class="content-primary">
-                <section class="card home-advance-card" aria-labelledby="new-adv-queries-title">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/queries.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="new-adv-queries-title">Active queries</h2>
-                      <span class="team-count-pill">0</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-open-modal="new-query">Create query</button>
-                  </header>
-                  <div class="empty-state is-visible" aria-label="Queries empty">
-                    <p class="empty-state-title">No queries yet</p>
-                    <p class="empty-state-desc">Live pipeline rows with stage, owner, and value will show here.</p>
+            <div class="home-advance-row home-advance-row--2">
+              <section class="card home-advance-card" aria-labelledby="new-adv-queries-title">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/queries.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="new-adv-queries-title">Open queries</h2>
+                    <span class="team-count-pill">0</span>
                   </div>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-open-modal="new-query">View all</button>
-                  </footer>
-                </section>
-
-                <section class="card home-advance-card" aria-labelledby="new-adv-bookings-title">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-bookings.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="new-adv-bookings-title">Bookings</h2>
-                      <span class="team-count-pill">0</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-kpi-nav="Bookings">Open bookings</button>
-                  </header>
-                  <div class="empty-state is-visible" aria-label="Bookings empty">
-                    <p class="empty-state-title">No bookings yet</p>
-                    <p class="empty-state-desc">Confirmed trips with windows, risk, and amounts appear here.</p>
+                  <button type="button" class="home-advance-open-cta" data-kpi-nav="Queries">Open queries</button>
+                </header>
+                <div class="empty-state is-visible" aria-label="Queries empty">
+                  <p class="empty-state-title">No open queries yet</p>
+                  <p class="empty-state-desc">New enquiries will appear here as a Team-style table.</p>
+                </div>
+              </section>
+              <section class="card home-advance-card" aria-labelledby="new-adv-bookings-title">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-bookings.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="new-adv-bookings-title">Bookings</h2>
+                    <span class="team-count-pill">0</span>
                   </div>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-kpi-nav="Bookings">View all</button>
-                  </footer>
-                </section>
-
-                <section class="card home-advance-card" aria-labelledby="new-followups-title">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/queries-alt.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="new-followups-title">Follow-ups</h2>
-                      <span class="team-count-pill">0</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-kpi-nav="Queries">Open queries</button>
-                  </header>
-                  <div class="empty-state is-visible" aria-label="Follow-ups empty">
-                    <p class="empty-state-title">No follow-ups yet</p>
-                    <p class="empty-state-desc">Scheduled customer follow-ups will show here.</p>
+                  <button type="button" class="home-advance-open-cta" data-kpi-nav="Bookings">Open bookings</button>
+                </header>
+                <div class="empty-state is-visible" aria-label="Bookings empty">
+                  <p class="empty-state-title">No bookings yet</p>
+                  <p class="empty-state-desc">Confirmed trips and risk rows will show in this table.</p>
+                </div>
+              </section>
+            </div>
+            <div class="home-advance-row home-advance-row--3">
+              <section class="card home-advance-card" aria-labelledby="new-adv-tasks-title">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-tasks.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="new-adv-tasks-title">Tasks</h2>
+                    <span class="team-count-pill">0</span>
                   </div>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-kpi-nav="Queries">View all</button>
-                  </footer>
-                </section>
-              </div>
-
-              <div class="content-secondary">
-                <section class="card home-advance-card" aria-labelledby="new-adv-inbox-title">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-inbox.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="new-adv-inbox-title">Inbox</h2>
-                      <span class="team-count-pill">0</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-kpi-nav="Inbox" data-toast="Opened Inbox">Open inbox</button>
-                  </header>
-                  <div class="empty-state is-visible" aria-label="Inbox empty">
-                    <p class="empty-state-title">Inbox is empty</p>
-                    <p class="empty-state-desc">Customer and supplier threads will collect here.</p>
+                  <button type="button" class="home-advance-open-cta" data-kpi-nav="Tasks">Open tasks</button>
+                </header>
+                <div class="empty-state is-visible" aria-label="Tasks empty">
+                  <p class="empty-state-title">No tasks yet</p>
+                  <p class="empty-state-desc">Open and overdue tasks will land here.</p>
+                </div>
+              </section>
+              <section class="card home-advance-card" aria-labelledby="new-followups-title">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/queries-alt.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="new-followups-title">Follow-ups</h2>
+                    <span class="team-count-pill">0</span>
                   </div>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-kpi-nav="Inbox" data-toast="Opened Inbox">View all</button>
-                  </footer>
-                </section>
-
-                <section class="card home-advance-card" aria-labelledby="new-adv-tasks-title">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-tasks.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="new-adv-tasks-title">Tasks</h2>
-                      <span class="team-count-pill">0</span>
-                    </div>
-                    <button type="button" class="home-advance-open-cta" data-kpi-nav="Tasks" data-toast="Opened Tasks">Open tasks</button>
-                  </header>
-                  <div class="empty-state is-visible" aria-label="Tasks empty">
-                    <p class="empty-state-title">No open tasks</p>
-                    <p class="empty-state-desc">Ops and follow-up tasks with due dates will show here.</p>
+                </header>
+                <div class="empty-state is-visible" aria-label="Follow-ups empty">
+                  <p class="empty-state-title">No follow-ups yet</p>
+                  <p class="empty-state-desc">Scheduled customer follow-ups will show here.</p>
+                </div>
+              </section>
+              <section class="card home-advance-card home-notes" aria-labelledby="new-notes-title">
+                <header class="card-head home-advance-card-head roster-card-head">
+                  <div class="card-title-row">
+                    <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-news.svg" alt="" width="14" height="14" /></span>
+                    <h2 id="new-notes-title">Notes</h2>
+                    <span class="team-count-pill">0</span>
                   </div>
-                  <footer class="home-advance-card-foot">
-                    <button type="button" class="text-link text-link-btn" data-kpi-nav="Tasks" data-toast="Opened Tasks">View all</button>
-                  </footer>
-                </section>
-
-                <section class="card home-advance-card home-notes" aria-labelledby="new-notes-title">
-                  <header class="card-head home-advance-card-head roster-card-head">
-                    <div class="card-title-row">
-                      <span class="home-advance-title-icon" aria-hidden="true"><img src="assets/nav-news.svg" alt="" width="14" height="14" /></span>
-                      <h2 id="new-notes-title">Notes</h2>
-                      <span class="team-count-pill">0</span>
-                    </div>
-                  </header>
-                  <div class="empty-state is-visible" aria-label="Notes empty">
-                    <p class="empty-state-title">No notes yet</p>
-                    <p class="empty-state-desc">Write reminders below — supplier holds, preferences, and ops notes.</p>
-                  </div>
-                  <form class="home-notes-compose" data-toast="Note saved">
-                    <label class="sr-only" for="new-home-note-input">New note</label>
-                    <textarea id="new-home-note-input" class="home-notes-input" rows="2" placeholder="Write a note…"></textarea>
-                    <button type="submit" class="btn btn-outline btn-sm">Save note</button>
-                  </form>
-                </section>
-              </div>
+                </header>
+                <div class="empty-state is-visible" aria-label="Notes empty">
+                  <p class="empty-state-title">No notes yet</p>
+                  <p class="empty-state-desc">Write reminders below — supplier holds, preferences, and ops notes.</p>
+                </div>
+                <form class="home-notes-compose" data-toast="Note saved">
+                  <label class="sr-only" for="new-home-note-input">New note</label>
+                  <textarea id="new-home-note-input" class="home-notes-input" rows="2" placeholder="Write a note…"></textarea>
+                  <button type="submit" class="btn btn-outline btn-sm">Save note</button>
+                </form>
+              </section>
             </div>
           </div>
 
@@ -1968,14 +1869,13 @@
         </div>
 
         <!-- Bookings module -->
-        <div id="view-bookings" class="dashboard-view bookings-view" hidden>
+        <div id="view-bookings" class="dashboard-view bookings-view" data-viewing-as="Owner" hidden>
           <!-- List -->
           <div id="bookings-list" class="bookings-list">
             <p class="team-kicker">OPS · BOOKINGS</p>
             <header class="team-page-head">
               <div class="team-page-copy">
                 <h1 class="team-page-title" id="bookings-page-title">Bookings</h1>
-                <p class="team-page-sub" id="bookings-page-sub">0 bookings need action · 0 travelling now · No balance</p>
               </div>
               <div class="team-page-actions">
                 <button type="button" class="btn btn-outline btn-sm" id="bookings-refresh" data-toast="Bookings refreshed">
@@ -1986,40 +1886,181 @@
               </div>
             </header>
 
-            <nav class="team-tabs bookings-tabs" role="tablist" aria-label="Booking views">
-              <button type="button" class="team-tab is-active" role="tab" data-bookings-tab="needs_action" aria-selected="true">Needs action <span class="bookings-tab-count" data-count="needs_action">0</span></button>
-              <button type="button" class="team-tab" role="tab" data-bookings-tab="upcoming" aria-selected="false">Upcoming <span class="bookings-tab-count" data-count="upcoming">0</span></button>
+            <nav class="team-tabs bookings-tabs" role="tablist" aria-label="Booking lifecycle">
+              <button type="button" class="team-tab is-active" role="tab" data-bookings-tab="upcoming" aria-selected="true">Upcoming <span class="bookings-tab-count" data-count="upcoming">0</span></button>
               <button type="button" class="team-tab" role="tab" data-bookings-tab="travelling" aria-selected="false">Travelling <span class="bookings-tab-count" data-count="travelling">0</span></button>
               <button type="button" class="team-tab" role="tab" data-bookings-tab="completed" aria-selected="false">Completed <span class="bookings-tab-count" data-count="completed">0</span></button>
-              <button type="button" class="team-tab" role="tab" data-bookings-tab="payments" aria-selected="false">Payments <span class="bookings-tab-count" data-count="payments">0</span></button>
+              <button type="button" class="team-tab" role="tab" data-bookings-tab="cancelled" aria-selected="false">Cancelled <span class="bookings-tab-count" data-count="cancelled">0</span></button>
             </nav>
 
-            <section class="card bookings-list-card" id="bookings-list-card">
-              <header class="card-head roster-card-head bookings-list-head" id="bookings-queue-head">
-                <div class="card-title-row"><h2>Ops queue</h2></div>
-                <div class="bookings-toolbar">
-                  <label class="bookings-search">
-                    <img src="assets/search.svg" alt="" width="14" height="14" />
-                    <span class="sr-only">Search bookings</span>
-                    <input type="search" id="bookings-search" placeholder="Search booking, ref or customer…" autocomplete="off" />
-                  </label>
-                  <button type="button" class="btn btn-outline btn-sm" id="bookings-filters" data-toast="Filters coming soon">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                    Filters
-                  </button>
-                  <button type="button" class="text-link text-link-btn bookings-clear" id="bookings-clear" hidden>
-                    Clear
-                  </button>
-                  <label class="bookings-sort">
-                    <span class="sr-only">Sort</span>
-                    <select id="bookings-sort" class="team-select roster-period" aria-label="Sort bookings">
-                      <option value="priority" selected>Sort: priority</option>
-                      <option value="travel">Sort: travel date</option>
-                      <option value="balance">Sort: money due</option>
+            <div class="audit-toolbar bookings-archive-toolbar" id="bookings-archive-toolbar" hidden>
+              <div class="period-pills bookings-scope-pills" role="group" aria-label="Booking scope">
+                <button type="button" class="period-pill" data-bookings-scope="mine">Mine</button>
+                <button type="button" class="period-pill" data-bookings-scope="unassigned">Unassigned</button>
+                <button type="button" class="period-pill is-active" data-bookings-scope="all">All</button>
+              </div>
+              <select class="team-select audit-filter owner-only" id="bookings-archive-scope-member" aria-label="Filter by member" hidden>
+                <option value="all">All members</option>
+                <option value="vrushabh">Vrushabh Jain</option>
+                <option value="neha">Neha Kapoor</option>
+                <option value="meera">Meera Iyer</option>
+              </select>
+              <div class="audit-search">
+                <img src="assets/search.svg" alt="" width="14" height="14" />
+                <input type="search" id="bookings-archive-search" placeholder="Search booking, query, customer, traveller, vendor…" aria-label="Search bookings" autocomplete="off" />
+              </div>
+              <select class="team-select audit-filter" id="bookings-archive-attention" aria-label="Attention">
+                <option value="all">All</option>
+                <option value="healthy">Healthy</option>
+                <option value="needs_action">Needs action</option>
+                <option value="at_risk">At risk</option>
+              </select>
+              <select class="team-select audit-filter" id="bookings-archive-sort" aria-label="Sort bookings">
+                <option value="travel" selected>Travel date</option>
+                <option value="priority">Priority</option>
+                <option value="balance">Money due</option>
+              </select>
+              <select class="team-select audit-filter" id="bookings-archive-window" aria-label="Date range">
+                <option value="all" selected>All dates</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+              <details class="audit-more" id="bookings-archive-more">
+                <summary class="btn btn-outline btn-sm">More filters</summary>
+                <div class="audit-more-panel">
+                  <label class="audit-filter-field">
+                    <span>Open work</span>
+                    <select class="team-select audit-filter" id="bookings-archive-issue" aria-label="Open work">
+                      <option value="all">Any</option>
+                      <option value="supplier">Supplier</option>
+                      <option value="documents">Documents</option>
+                      <option value="vouchers">Vouchers</option>
+                      <option value="customer_payment">Customer payment</option>
+                      <option value="supplier_payment">Supplier payment</option>
+                      <option value="tasks">Tasks</option>
                     </select>
                   </label>
+                  <label class="audit-filter-field">
+                    <span>Owner</span>
+                    <select class="team-select audit-filter" id="bookings-archive-owner" aria-label="Owner">
+                      <option value="all">All</option>
+                      <option value="vrushabh">Vrushabh Jain</option>
+                      <option value="neha">Neha Kapoor</option>
+                      <option value="meera">Meera Iyer</option>
+                    </select>
+                  </label>
+                  <label class="audit-filter-field">
+                    <span>Departure window</span>
+                    <select class="team-select audit-filter" id="bookings-archive-depart" aria-label="Departure window">
+                      <option value="all">All</option>
+                      <option value="7">Next 7 days</option>
+                      <option value="14">Next 14 days</option>
+                      <option value="30">Next 30 days</option>
+                      <option value="overdue">Already departed</option>
+                    </select>
+                  </label>
+                  <label class="audit-filter-field">
+                    <span>Destination</span>
+                    <select class="team-select audit-filter" id="bookings-archive-destination" aria-label="Destination">
+                      <option value="all">All</option>
+                    </select>
+                  </label>
+                  <label class="audit-filter-field">
+                    <span>Booking source</span>
+                    <select class="team-select audit-filter" id="bookings-archive-source" aria-label="Booking source">
+                      <option value="all">All</option>
+                      <option value="query">Query</option>
+                      <option value="direct">Direct</option>
+                    </select>
+                  </label>
+                  <button type="button" class="btn btn-outline btn-sm" id="bookings-archive-clear" hidden>Clear filters</button>
+                </div>
+              </details>
+            </div>
+
+            <section class="card bookings-list-card" id="bookings-list-card" data-list-mode="ops">
+              <header class="card-head roster-card-head bookings-list-head" id="bookings-queue-head">
+                <div class="card-title-row">
+                  <h2 id="bookings-queue-title">Ops queue</h2>
+                  <span class="team-count-pill" id="bookings-queue-count" hidden>0</span>
                 </div>
               </header>
+              <div class="audit-toolbar bookings-ops-toolbar" id="bookings-ops-filters">
+                <div class="period-pills bookings-scope-pills" role="group" aria-label="Booking scope">
+                  <button type="button" class="period-pill" data-bookings-scope="mine">Mine</button>
+                  <button type="button" class="period-pill" data-bookings-scope="unassigned">Unassigned</button>
+                  <button type="button" class="period-pill is-active" data-bookings-scope="all">All</button>
+                </div>
+                <select class="team-select audit-filter owner-only" id="bookings-scope-member" aria-label="Filter by member" hidden>
+                  <option value="all">All members</option>
+                  <option value="vrushabh">Vrushabh Jain</option>
+                  <option value="neha">Neha Kapoor</option>
+                  <option value="meera">Meera Iyer</option>
+                </select>
+                <div class="audit-search">
+                  <img src="assets/search.svg" alt="" width="14" height="14" />
+                  <input type="search" id="bookings-search" placeholder="Search booking, query, customer, traveller, vendor…" aria-label="Search bookings" autocomplete="off" />
+                </div>
+                <select class="team-select audit-filter" id="bookings-attention" aria-label="Attention">
+                  <option value="all">All</option>
+                  <option value="healthy">Healthy</option>
+                  <option value="needs_action">Needs action</option>
+                  <option value="at_risk">At risk</option>
+                </select>
+                <select class="team-select audit-filter" id="bookings-issue" aria-label="Open work">
+                  <option value="all">Any</option>
+                  <option value="supplier">Supplier</option>
+                  <option value="documents">Documents</option>
+                  <option value="vouchers">Vouchers</option>
+                  <option value="customer_payment">Customer payment</option>
+                  <option value="supplier_payment">Supplier payment</option>
+                  <option value="tasks">Tasks</option>
+                </select>
+                <select class="team-select audit-filter" id="bookings-sort" aria-label="Sort bookings">
+                  <option value="priority" selected>Sort: priority</option>
+                  <option value="travel">Sort: travel date</option>
+                  <option value="balance">Sort: money due</option>
+                </select>
+                <details class="audit-more" id="bookings-ops-more">
+                  <summary class="btn btn-outline btn-sm">More filters</summary>
+                  <div class="audit-more-panel">
+                    <label class="audit-filter-field">
+                      <span>Owner</span>
+                      <select class="team-select audit-filter" id="bookings-owner" aria-label="Owner">
+                        <option value="all">All</option>
+                        <option value="vrushabh">Vrushabh Jain</option>
+                        <option value="neha">Neha Kapoor</option>
+                        <option value="meera">Meera Iyer</option>
+                      </select>
+                    </label>
+                    <label class="audit-filter-field">
+                      <span>Departure window</span>
+                      <select class="team-select audit-filter" id="bookings-depart" aria-label="Departure window">
+                        <option value="all">All</option>
+                        <option value="7">Next 7 days</option>
+                        <option value="14">Next 14 days</option>
+                        <option value="30">Next 30 days</option>
+                        <option value="overdue">Already departed</option>
+                      </select>
+                    </label>
+                    <label class="audit-filter-field">
+                      <span>Destination</span>
+                      <select class="team-select audit-filter" id="bookings-destination" aria-label="Destination">
+                        <option value="all">All</option>
+                      </select>
+                    </label>
+                    <label class="audit-filter-field">
+                      <span>Booking source</span>
+                      <select class="team-select audit-filter" id="bookings-source" aria-label="Booking source">
+                        <option value="all">All</option>
+                        <option value="query">Query</option>
+                        <option value="direct">Direct</option>
+                      </select>
+                    </label>
+                  </div>
+                </details>
+                <button type="button" class="btn btn-outline btn-sm" id="bookings-clear" hidden>Clear filters</button>
+              </div>
 
               <div class="bookings-list-body" id="bookings-list-body"></div>
               <footer class="table-pagination" id="bookings-pagination">
@@ -2101,132 +2142,340 @@
 
           <!-- Detail -->
           <div id="bookings-detail" class="bookings-detail" hidden>
-            <header class="bookings-detail-head">
-              <div class="bookings-detail-head-main">
-                <div class="bookings-initial" id="booking-detail-initial" aria-hidden="true">B</div>
-                <div class="bookings-detail-head-copy">
-                  <h1 class="bookings-detail-title" id="booking-detail-title">Booking</h1>
-                  <p class="bookings-detail-meta" id="booking-detail-meta"></p>
-                  <span class="booking-status-pill" id="booking-detail-status">Pending</span>
+            <div class="bookings-detail-chrome">
+              <p class="team-kicker bookings-detail-kicker" id="booking-detail-destination">Destination</p>
+              <header class="bookings-detail-head team-page-head" id="booking-detail-banner">
+                <div class="bookings-detail-copy team-page-copy">
+                  <h1 class="bookings-detail-title team-page-title" id="booking-detail-title">Booking</h1>
+                  <p class="bookings-detail-sub team-page-sub" id="booking-detail-meta"></p>
                 </div>
+                <div class="bookings-detail-actions team-page-actions">
+                  <button type="button" class="btn btn-outline btn-sm owner-admin-only" id="booking-edit" data-toast="Opening edit booking…">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                    Edit booking
+                  </button>
+                </div>
+              </header>
+              <div class="bookings-detail-status-row" id="booking-detail-status"></div>
+
+              <nav class="team-tabs bookings-detail-tabs" role="tablist" aria-label="Booking sections">
+                <button type="button" class="team-tab is-active" role="tab" data-booking-tab="overview" aria-selected="true">Overview</button>
+                <button type="button" class="team-tab" role="tab" data-booking-tab="services" aria-selected="false">Services &amp; vendors</button>
+                <button type="button" class="team-tab" role="tab" data-booking-tab="travellers" aria-selected="false">Travellers</button>
+                <button type="button" class="team-tab" role="tab" data-booking-tab="documents" aria-selected="false">Documents</button>
+                <button type="button" class="team-tab" role="tab" data-booking-tab="finance" aria-selected="false">Finance</button>
+                <button type="button" class="team-tab" role="tab" data-booking-tab="vouchers" aria-selected="false">Vouchers</button>
+                <button type="button" class="team-tab" role="tab" data-booking-tab="communication" aria-selected="false">Communication</button>
+                <button type="button" class="team-tab" role="tab" data-booking-tab="activity" aria-selected="false">Activity</button>
+              </nav>
+            </div>
+
+            <div class="bookings-detail-scroll" id="bookings-detail-scroll">
+              <section class="bookings-detail-panel is-active" data-booking-panel="overview" id="booking-panel-overview">
+                <div class="bookings-ops-panel" id="booking-panel-overview-body"></div>
+              </section>
+
+              <section class="bookings-detail-panel" data-booking-panel="services" hidden>
+                <div class="bookings-ops-panel" id="booking-panel-services"></div>
+              </section>
+              <section class="bookings-detail-panel" data-booking-panel="travellers" hidden>
+                <div class="bookings-ops-panel" id="booking-panel-travellers"></div>
+              </section>
+              <section class="bookings-detail-panel" data-booking-panel="documents" hidden>
+                <div class="bookings-ops-panel" id="booking-panel-documents"></div>
+              </section>
+              <section class="bookings-detail-panel" data-booking-panel="finance" hidden>
+                <div class="bookings-ops-panel" id="booking-panel-finance"></div>
+              </section>
+              <section class="bookings-detail-panel" data-booking-panel="vouchers" hidden>
+                <div class="bookings-ops-panel" id="booking-panel-vouchers"></div>
+              </section>
+              <section class="bookings-detail-panel" data-booking-panel="communication" hidden>
+                <div class="bookings-ops-panel" id="booking-panel-communication"></div>
+              </section>
+              <section class="bookings-detail-panel" data-booking-panel="activity" hidden>
+                <div class="bookings-ops-panel" id="booking-panel-activity"></div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <!-- Queries module -->
+        <div id="view-queries" class="dashboard-view queries-view" data-viewing-as="Owner" hidden>
+          <div id="queries-pipeline" class="queries-pipeline">
+            <header class="team-page-head queries-page-head">
+              <div class="team-page-copy">
+                <h1 class="team-page-title" id="queries-page-title">Query Pipeline</h1>
+                <p class="team-page-sub" id="queries-page-sub">0 queries · ₹0 pipeline value</p>
               </div>
-              <div class="bookings-detail-actions">
-                <button type="button" class="btn btn-outline btn-sm" id="booking-edit" data-toast="Opening edit booking…">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-                  Edit booking
+              <div class="team-page-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="queries-new" data-open-query-create>
+                  <img src="assets/plus.svg" alt="" width="14" height="14" class="queries-btn-icon queries-btn-icon--light" />
+                  New query
                 </button>
               </div>
             </header>
 
-            <section class="bookings-summary-grid" id="booking-summary-grid" aria-label="Booking summary"></section>
+            <div class="queries-toolbar" role="toolbar" aria-label="Query pipeline controls">
+              <div class="period-pills queries-scope-pills" role="group" aria-label="Query scope">
+                <button type="button" class="period-pill is-active" data-queries-scope="mine">Mine</button>
+                <button type="button" class="period-pill" data-queries-scope="all">All</button>
+              </div>
 
-            <section class="bookings-action-bar" id="booking-action-bar" aria-label="Next action and lifecycle"></section>
+              <label class="queries-search">
+                <img src="assets/search.svg" alt="" width="16" height="16" />
+                <input type="search" id="queries-search" placeholder="Search queries..." aria-label="Search queries" autocomplete="off" />
+              </label>
 
-            <nav class="team-tabs bookings-detail-tabs" role="tablist" aria-label="Booking sections">
-              <button type="button" class="team-tab is-active" role="tab" data-booking-tab="overview" aria-selected="true">Overview</button>
-              <button type="button" class="team-tab" role="tab" data-booking-tab="services" aria-selected="false">Services &amp; vendors</button>
-              <button type="button" class="team-tab" role="tab" data-booking-tab="fulfilment" aria-selected="false">Fulfilment &amp; tasks</button>
-              <button type="button" class="team-tab" role="tab" data-booking-tab="travellers" aria-selected="false">Travellers</button>
-              <button type="button" class="team-tab" role="tab" data-booking-tab="documents" aria-selected="false">Documents</button>
-              <button type="button" class="team-tab" role="tab" data-booking-tab="finance" aria-selected="false">Finance</button>
-              <button type="button" class="team-tab" role="tab" data-booking-tab="vouchers" aria-selected="false">Vouchers</button>
-              <button type="button" class="team-tab" role="tab" data-booking-tab="communication" aria-selected="false">Communication</button>
-              <button type="button" class="team-tab" role="tab" data-booking-tab="activity" aria-selected="false">Activity</button>
-            </nav>
+              <div class="period-pills queries-view-pills" role="group" aria-label="Pipeline view">
+                <button type="button" class="period-pill is-active" data-queries-view="kanban">
+                  <img src="assets/queries-kanban.svg" alt="" width="14" height="14" />
+                  Kanban
+                </button>
+                <button type="button" class="period-pill" data-queries-view="list">
+                  <img src="assets/queries-list.svg" alt="" width="14" height="14" />
+                  List
+                </button>
+              </div>
 
-            <section class="bookings-detail-panel is-active" data-booking-panel="overview" id="booking-panel-overview">
-              <article class="bookings-card">
-                <header class="bookings-card-head">
-                  <div>
-                    <h2 class="bookings-card-title">Booking notes</h2>
-                    <p class="bookings-card-sub">Internal notes for the operations team.</p>
-                  </div>
-                  <p class="bookings-save-status" id="booking-notes-status">All changes saved</p>
-                </header>
-                <label class="sr-only" for="booking-notes">Booking notes</label>
-                <textarea id="booking-notes" class="bookings-notes" rows="8" spellcheck="true"></textarea>
-              </article>
+              <button type="button" class="btn btn-outline btn-sm" id="queries-filters" data-toast="Filters coming soon…">
+                <img src="assets/queries-filters.svg" alt="" width="14" height="14" />
+                Filters
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm queries-refresh-btn" id="queries-refresh" aria-label="Refresh query pipeline" data-toast="Pipeline refreshed">
+                <img src="assets/queries-refresh.svg" alt="" width="14" height="14" />
+              </button>
+            </div>
 
-              <article class="bookings-card">
-                <header class="bookings-card-head bookings-card-head--split">
-                  <div>
-                    <h2 class="bookings-card-title">Itinerary</h2>
-                    <p class="bookings-card-sub" id="booking-itinerary-sub">No linked proposal itinerary.</p>
-                  </div>
-                  <button type="button" class="btn btn-outline btn-sm" id="booking-itinerary-btn" data-toast="Opening full itinerary…">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M6 6v14M18 6v14M9 10h6M9 14h6"/></svg>
-                    View full itinerary
+            <div id="queries-kanban" class="queries-kanban" aria-label="Query pipeline board"></div>
+
+            <div id="queries-list" class="queries-list card" hidden>
+              <div class="table-scroll">
+                <table class="team-table queries-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Customer / trip</th>
+                      <th scope="col">Stage</th>
+                      <th scope="col">Owner</th>
+                      <th scope="col">Value</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Updated</th>
+                    </tr>
+                  </thead>
+                  <tbody id="queries-list-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Flight query (create mode) -->
+          <div id="queries-create" class="queries-create" hidden>
+            <header class="queries-create-bar">
+              <div class="queries-create-bar-inner">
+                <div class="queries-create-bar-start">
+                  <button type="button" class="queries-create-back" id="queries-create-back" aria-label="Back to query pipeline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
                   </button>
-                </header>
-                <p class="bookings-card-note" id="booking-itinerary-note">Service lines on the Services &amp; vendors tab remain the operational source of truth.</p>
-              </article>
-
-              <article class="bookings-card">
-                <header class="bookings-card-head bookings-card-head--split">
-                  <div>
-                    <h2 class="bookings-card-title">
-                      <svg class="bookings-card-title-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v4M16 4v4"/></svg>
-                      Ledger Summary
-                    </h2>
-                    <p class="bookings-card-sub">Booking finance is sourced from the booking ledger. Firm amounts post when the booking is confirmed.</p>
+                  <div class="queries-create-bar-copy">
+                    <h1 class="queries-create-title" id="queries-create-title">New Flight query</h1>
+                    <p class="queries-create-sub">Create a flight query</p>
                   </div>
-                  <button type="button" class="text-link text-link-btn" id="booking-finance-link" data-toast="Opening Finance…">
-                    View in Finance
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
-                  </button>
-                </header>
-                <div class="bookings-ledger-grid" id="booking-ledger-grid"></div>
-              </article>
-            </section>
+                </div>
+                <button type="submit" form="queries-create-form" class="btn btn-primary queries-create-submit" id="queries-create-submit-top" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                  Create query
+                </button>
+              </div>
+            </header>
 
-            <section class="bookings-detail-panel" data-booking-panel="services" hidden>
-              <div class="bookings-placeholder">
-                <h2 class="bookings-placeholder-title">Services &amp; vendors</h2>
-                <p class="bookings-placeholder-desc">Supplier lines and vendor confirmations for this booking will show here.</p>
+            <form id="queries-create-form" class="queries-create-form" novalidate>
+              <div class="queries-create-body">
+                <section class="queries-create-card" aria-labelledby="qc-flight-title">
+                  <div class="queries-create-card-head">
+                    <h2 class="queries-create-section-title" id="qc-flight-title">Flight details</h2>
+                    <p class="queries-create-section-sub">Fill in the requirements for this query.</p>
+                  </div>
+
+                  <div class="queries-create-fields">
+                    <label class="queries-create-field queries-create-field--full" data-qc-required="customer">
+                      <span class="queries-create-label">Customer <span class="req" aria-hidden="true">*</span></span>
+                      <span class="queries-create-control queries-create-control--underline queries-create-control--select">
+                        <select name="customer" id="qc-customer" required aria-describedby="qc-customer-error">
+                          <option value="" disabled selected>Select customer</option>
+                          <option value="Kapoor Family">Kapoor Family</option>
+                          <option value="Sharma Family">Sharma Family</option>
+                          <option value="Mehta Group">Mehta Group</option>
+                          <option value="XYZ Family">XYZ Family</option>
+                        </select>
+                        <span class="queries-create-chevron-hit" aria-hidden="true">
+                          <img src="assets/chevron.svg" alt="" width="16" height="16" class="queries-create-chevron" />
+                        </span>
+                      </span>
+                      <p class="queries-create-field-error" id="qc-customer-error" hidden>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                        Select a customer
+                      </p>
+                    </label>
+
+                    <label class="queries-create-field" data-qc-required="from">
+                      <span class="queries-create-label">From <span class="req" aria-hidden="true">*</span></span>
+                      <span class="queries-create-control queries-create-control--box queries-create-control--select">
+                        <img src="assets/map-pin.svg" alt="" width="16" height="16" class="queries-create-lead-icon" />
+                        <select name="from" id="qc-from" required aria-describedby="qc-from-error">
+                          <option value="" disabled selected>Departure airport</option>
+                          <option value="BOM">BOM — Mumbai</option>
+                          <option value="DEL">DEL — Delhi</option>
+                          <option value="BLR">BLR — Bengaluru</option>
+                          <option value="HYD">HYD — Hyderabad</option>
+                        </select>
+                        <span class="queries-create-chevron-hit" aria-hidden="true">
+                          <img src="assets/chevron.svg" alt="" width="16" height="16" class="queries-create-chevron" />
+                        </span>
+                      </span>
+                      <p class="queries-create-field-error" id="qc-from-error" hidden>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                        Select departure airport
+                      </p>
+                    </label>
+
+                    <label class="queries-create-field" data-qc-required="to">
+                      <span class="queries-create-label">To <span class="req" aria-hidden="true">*</span></span>
+                      <span class="queries-create-control queries-create-control--box queries-create-control--select">
+                        <img src="assets/map-pin.svg" alt="" width="16" height="16" class="queries-create-lead-icon" />
+                        <select name="to" id="qc-to" required aria-describedby="qc-to-error">
+                          <option value="" disabled selected>Arrival airport</option>
+                          <option value="DXB">DXB — Dubai</option>
+                          <option value="SIN">SIN — Singapore</option>
+                          <option value="BKK">BKK — Bangkok</option>
+                          <option value="MLE">MLE — Male</option>
+                        </select>
+                        <span class="queries-create-chevron-hit" aria-hidden="true">
+                          <img src="assets/chevron.svg" alt="" width="16" height="16" class="queries-create-chevron" />
+                        </span>
+                      </span>
+                      <p class="queries-create-field-error" id="qc-to-error" hidden>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                        Select arrival airport
+                      </p>
+                    </label>
+
+                    <div class="queries-create-field queries-create-field--full queries-create-toggle-row">
+                      <button type="button" class="queries-create-switch" id="qc-round-trip" role="switch" aria-checked="false" aria-labelledby="qc-round-trip-label">
+                        <span class="queries-create-switch-thumb" aria-hidden="true"></span>
+                      </button>
+                      <span class="queries-create-toggle-label" id="qc-round-trip-label">Round trip · <span id="qc-round-trip-state">Off</span></span>
+                      <input type="hidden" name="roundTrip" id="qc-round-trip-value" value="false" />
+                    </div>
+
+                    <label class="queries-create-field">
+                      <span class="queries-create-label">Departure date</span>
+                      <span class="queries-create-control queries-create-control--underline queries-create-control--date">
+                        <img src="assets/calendar.svg" alt="" width="16" height="16" class="queries-create-lead-icon" />
+                        <input type="date" name="departureDate" id="qc-departure" aria-label="Departure date" />
+                      </span>
+                    </label>
+
+                    <div class="queries-create-field queries-create-field--full">
+                      <span class="queries-create-label">
+                        Preferred time
+                        <span class="queries-create-label-hint">(select up to 4)</span>
+                      </span>
+                      <div class="queries-create-chips" role="group" aria-label="Preferred time windows">
+                        <button type="button" class="queries-create-chip" data-time-chip="0-6" aria-pressed="false">12 AM–6 AM</button>
+                        <button type="button" class="queries-create-chip" data-time-chip="6-12" aria-pressed="false">6 AM–12 PM</button>
+                        <button type="button" class="queries-create-chip" data-time-chip="12-18" aria-pressed="false">12–6 PM</button>
+                        <button type="button" class="queries-create-chip" data-time-chip="18-24" aria-pressed="false">6 PM–12 AM</button>
+                      </div>
+                      <input type="hidden" name="preferredTimes" id="qc-preferred-times" value="" />
+                    </div>
+                  </div>
+                </section>
+
+                <section class="queries-create-card" aria-labelledby="qc-group-title">
+                  <div class="queries-create-card-head">
+                    <h2 class="queries-create-section-title" id="qc-group-title">Group size</h2>
+                    <p class="queries-create-section-sub">Party size for this query.</p>
+                  </div>
+                  <div class="queries-create-fields queries-create-fields--group">
+                    <label class="queries-create-field">
+                      <span class="queries-create-label">
+                        Adults
+                        <span class="queries-create-label-hint">(2+)</span>
+                      </span>
+                      <span class="queries-create-control queries-create-control--underline">
+                        <input type="number" name="adults" id="qc-adults" min="1" value="1" inputmode="numeric" />
+                      </span>
+                    </label>
+                    <label class="queries-create-field">
+                      <span class="queries-create-label">
+                        Infants
+                        <span class="queries-create-label-hint">(0–2)</span>
+                      </span>
+                      <span class="queries-create-control queries-create-control--underline">
+                        <input type="number" name="infants" id="qc-infants" min="0" max="2" value="0" inputmode="numeric" />
+                      </span>
+                    </label>
+                  </div>
+                </section>
+
+                <section class="queries-create-card" aria-labelledby="qc-assign-title">
+                  <div class="queries-create-card-head">
+                    <h2 class="queries-create-section-title" id="qc-assign-title">Assignment &amp; follow-up</h2>
+                  </div>
+                  <div class="queries-create-fields">
+                    <label class="queries-create-field">
+                      <span class="queries-create-label">Assigned to</span>
+                      <span class="queries-create-control queries-create-control--underline queries-create-control--select">
+                        <select name="assignedTo" id="qc-assigned">
+                          <option value="Paryatech Super Admin" selected>Paryatech Super Admin</option>
+                          <option value="Neha Kapoor">Neha Kapoor</option>
+                          <option value="Vrushabh Jain">Vrushabh Jain</option>
+                        </select>
+                        <span class="queries-create-chevron-hit" aria-hidden="true">
+                          <img src="assets/chevron.svg" alt="" width="16" height="16" class="queries-create-chevron" />
+                        </span>
+                      </span>
+                    </label>
+
+                    <label class="queries-create-field">
+                      <span class="queries-create-label">Priority</span>
+                      <span class="queries-create-control queries-create-control--underline queries-create-control--select">
+                        <select name="priority" id="qc-priority">
+                          <option value="Low">Low</option>
+                          <option value="Medium" selected>Medium</option>
+                          <option value="High">High</option>
+                        </select>
+                        <span class="queries-create-chevron-hit" aria-hidden="true">
+                          <img src="assets/chevron.svg" alt="" width="16" height="16" class="queries-create-chevron" />
+                        </span>
+                      </span>
+                    </label>
+
+                    <label class="queries-create-field">
+                      <span class="queries-create-label">Due date</span>
+                      <span class="queries-create-control queries-create-control--underline queries-create-control--date">
+                        <img src="assets/calendar.svg" alt="" width="16" height="16" class="queries-create-lead-icon" />
+                        <input type="date" name="dueDate" id="qc-due" aria-label="Due date" />
+                      </span>
+                    </label>
+
+                    <label class="queries-create-field queries-create-field--full">
+                      <span class="queries-create-label">Notes</span>
+                      <span class="queries-create-control queries-create-control--underline queries-create-control--textarea">
+                        <textarea name="notes" id="qc-notes" rows="3" placeholder="Anything else the team should know..."></textarea>
+                      </span>
+                    </label>
+                  </div>
+                </section>
+
+                <div class="queries-create-footer">
+                  <button type="submit" class="btn btn-primary queries-create-submit queries-create-submit--block" id="queries-create-submit-bottom" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                    Create query
+                  </button>
+                </div>
               </div>
-            </section>
-            <section class="bookings-detail-panel" data-booking-panel="fulfilment" hidden>
-              <div class="bookings-placeholder">
-                <h2 class="bookings-placeholder-title">Fulfilment &amp; tasks</h2>
-                <p class="bookings-placeholder-desc">Tasks and readiness for this booking will show here.</p>
-              </div>
-            </section>
-            <section class="bookings-detail-panel" data-booking-panel="travellers" hidden>
-              <div class="bookings-placeholder">
-                <h2 class="bookings-placeholder-title">Travellers</h2>
-                <p class="bookings-placeholder-desc">Traveller details and pax documents for this booking will show here.</p>
-              </div>
-            </section>
-            <section class="bookings-detail-panel" data-booking-panel="documents" hidden>
-              <div class="bookings-placeholder">
-                <h2 class="bookings-placeholder-title">Documents</h2>
-                <p class="bookings-placeholder-desc">Proposals, vouchers, and files attached to this booking will show here.</p>
-              </div>
-            </section>
-            <section class="bookings-detail-panel" data-booking-panel="finance" hidden>
-              <div class="bookings-placeholder">
-                <h2 class="bookings-placeholder-title">Finance</h2>
-                <p class="bookings-placeholder-desc">Ledger entries, receipts, and settlements for this booking will show here.</p>
-              </div>
-            </section>
-            <section class="bookings-detail-panel" data-booking-panel="vouchers" hidden>
-              <div class="bookings-placeholder">
-                <h2 class="bookings-placeholder-title">Vouchers</h2>
-                <p class="bookings-placeholder-desc">Issued vouchers and delivery status for this booking will show here.</p>
-              </div>
-            </section>
-            <section class="bookings-detail-panel" data-booking-panel="communication" hidden>
-              <div class="bookings-placeholder">
-                <h2 class="bookings-placeholder-title">Communication</h2>
-                <p class="bookings-placeholder-desc">Customer and vendor messages for this booking will show here.</p>
-              </div>
-            </section>
-            <section class="bookings-detail-panel" data-booking-panel="activity" hidden>
-              <div class="bookings-placeholder">
-                <h2 class="bookings-placeholder-title">Activity</h2>
-                <p class="bookings-placeholder-desc">Lifecycle and ops activity for this booking will show here.</p>
-              </div>
-            </section>
+            </form>
           </div>
         </div>
       </main>
@@ -2901,6 +3150,6 @@
 
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="script.js?v=opsqueue01"></script>
+  <script src="script.js?v=list-launch01"></script>
 </body>
 </html>

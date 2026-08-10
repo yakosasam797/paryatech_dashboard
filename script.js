@@ -30,6 +30,7 @@
   const dashboardNew = document.getElementById("dashboard-new");
   const viewTeam = document.getElementById("view-team");
   const viewBookings = document.getElementById("view-bookings");
+  const viewQueries = document.getElementById("view-queries");
   const bookingsListEl = document.getElementById("bookings-list");
   const bookingsDetailEl = document.getElementById("bookings-detail");
   const viewingAs = document.getElementById("viewing-as");
@@ -127,7 +128,6 @@
   const BOOKING_DETAIL_TABS = {
     overview: true,
     services: true,
-    fulfilment: true,
     travellers: true,
     documents: true,
     finance: true,
@@ -139,17 +139,622 @@
   const DEMO_OWNER = { initials: "VJ", name: "Vrushabh Jain", id: "vrushabh" };
 
   const BOOKING_ISSUE_LABELS = {
-    payment_overdue: "Payment overdue",
-    supplier_pending: "Supplier pending",
-    documents_missing: "Documents missing",
+    supplier: "Supplier",
+    documents: "Documents",
+    vouchers: "Vouchers",
+    customer_payment: "Customer payment",
+    supplier_payment: "Supplier payment",
+  };
+
+  const BOOKING_ISSUE_CHIP_LIMIT = 2;
+
+  const BOOKING_MONEY_ISSUE_KEYS = new Set(["customer_payment", "supplier_payment"]);
+
+  const BOOKING_CONFIRM_META = {
+    supplier: { label: "Supplier", tab: "services", openToast: "Attach vouchers, then confirm each vendor…" },
+    voucher: { label: "Voucher", tab: "vouchers", openToast: "Opening traveller vouchers…" },
+    documents: { label: "Documents", tab: "documents", openToast: "Opening documents…" },
+  };
+
+  const SERVICE_TYPES = {
+    trip: "Trip",
+    flight: "Flight",
+    hotel: "Hotel",
+    visa: "Visa",
+    cruise: "Cruise",
+    transport: "Transport",
+  };
+
+  const SERVICE_TYPE_KEYS = Object.keys(SERVICE_TYPES);
+
+  const SERVICE_CATALOG = [
+    {
+      id: "cat-airport-transfer",
+      type: "transport",
+      name: "Airport transfer",
+      vendor: "City Transfer Desk",
+      vendorContact: "+91 98xxx 70001",
+      vendorEmail: "desk@citytransfer.in",
+      serviceDetail: "Private airport transfer · sedan",
+      cost: 4500,
+      paymentTerms: { kind: "schedule", schedule: [{ id: "cat-tr-full", label: "Full", percent: 100, trigger: "on_confirm" }] },
+      vouchers: [{ name: "Transfer voucher", attached: false, fileName: "" }],
+    },
+    {
+      id: "cat-day-excursion",
+      type: "trip",
+      name: "Day excursion",
+      vendor: "Local Excursions Co",
+      vendorContact: "+91 98xxx 70002",
+      vendorEmail: "ops@localexcursions.in",
+      serviceDetail: "Half-day guided excursion · entrance excluded",
+      cost: 9000,
+      paymentTerms: { kind: "unknown" },
+      vouchers: [{ name: "Excursion voucher", attached: false, fileName: "" }],
+    },
+    {
+      id: "cat-visa-assist",
+      type: "visa",
+      name: "Visa assistance",
+      vendor: "Visa Assist Desk",
+      vendorContact: "+91 98xxx 70003",
+      vendorEmail: "visa@paryatech.in",
+      serviceDetail: "Tourist visa filing assistance · docs checklist",
+      cost: 3500,
+      paymentTerms: { kind: "schedule", schedule: [{ id: "cat-visa-full", label: "Full", percent: 100, trigger: "on_confirm" }] },
+      vouchers: [{ name: "Visa filing receipt", attached: false, fileName: "" }],
+    },
+  ];
+
+  /** Alternate vendors by service type — used when deal is not yet confirmed. */
+  const VENDOR_ALTERNATES = {
+    hotel: [
+      { vendor: "Skyline Stays", vendorContact: "+971 4 555 2200", vendorEmail: "book@skylinestays.ae", serviceDetail: "City hotel · twin rooms · breakfast", cost: 31000, paymentTerms: { kind: "schedule", schedule: [{ id: "alt-h1", label: "On confirmation", percent: 50, trigger: "on_confirm" }, { id: "alt-h2", label: "Balance", percent: 50, trigger: "before_checkin", daysBefore: 7 }] } },
+      { vendor: "Harbour Inn", vendorContact: "+971 4 555 3300", vendorEmail: "ops@harbourinn.ae", serviceDetail: "Harbour-view rooms · breakfast", cost: 29500, paymentTerms: { kind: "unknown" } },
+      { vendor: "Palm Court Hotel", vendorContact: "+971 4 555 4400", vendorEmail: "reservations@palmcourt.ae", serviceDetail: "Family rooms · breakfast", cost: 34000, paymentTerms: { kind: "schedule", schedule: [{ id: "alt-h3", label: "Full", percent: 100, trigger: "on_confirm" }] } },
+    ],
+    transport: [
+      { vendor: "Desert Wheels", vendorContact: "+971 50 555 2211", vendorEmail: "desk@desertwheels.ae", serviceDetail: "Airport arrival + departure · private van", cost: 6500, paymentTerms: { kind: "unknown" } },
+      { vendor: "Gulf Ride Co", vendorContact: "+971 50 555 8890", vendorEmail: "ops@gulfride.ae", serviceDetail: "Private airport transfers · SUV", cost: 7200, paymentTerms: { kind: "schedule", schedule: [{ id: "alt-t1", label: "Full", percent: 100, trigger: "on_confirm" }] } },
+      { vendor: "City Transfer Desk", vendorContact: "+91 98xxx 70001", vendorEmail: "desk@citytransfer.in", serviceDetail: "Private airport transfer · sedan", cost: 4500, paymentTerms: { kind: "schedule", schedule: [{ id: "alt-t2", label: "Full", percent: 100, trigger: "on_confirm" }] } },
+    ],
+    flight: [
+      { vendor: "SkyBridge Air", vendorContact: "+91 22xxx 11001", vendorEmail: "groups@skybridge.air", serviceDetail: "Group air seats · economy", cost: 42000, paymentTerms: { kind: "schedule", schedule: [{ id: "alt-f1", label: "On confirmation", percent: 100, trigger: "on_confirm" }] } },
+      { vendor: "AeroDesk Partners", vendorContact: "+91 22xxx 11002", vendorEmail: "desk@aerodesk.in", serviceDetail: "Scheduled flight block · economy", cost: 40500, paymentTerms: { kind: "unknown" } },
+    ],
+    visa: [
+      { vendor: "Visa Assist Desk", vendorContact: "+91 98xxx 70003", vendorEmail: "visa@paryatech.in", serviceDetail: "Tourist visa filing assistance", cost: 3500, paymentTerms: { kind: "schedule", schedule: [{ id: "alt-v1", label: "Full", percent: 100, trigger: "on_confirm" }] } },
+      { vendor: "Border Paperworks", vendorContact: "+91 98xxx 70044", vendorEmail: "ops@borderpaper.in", serviceDetail: "Visa filing + appointment support", cost: 4200, paymentTerms: { kind: "unknown" } },
+    ],
+    cruise: [
+      { vendor: "Backwater Co", vendorContact: "+91 47xxx 88002", vendorEmail: "book@backwaterco.in", serviceDetail: "Houseboat · all meals", cost: 72000, paymentTerms: { kind: "schedule", schedule: [{ id: "alt-c1", label: "Full", percent: 100, trigger: "on_confirm" }] } },
+      { vendor: "Lagoon Cruise Desk", vendorContact: "+91 47xxx 88055", vendorEmail: "desk@lagooncruise.in", serviceDetail: "Overnight cruise · meals included", cost: 68000, paymentTerms: { kind: "unknown" } },
+    ],
+    trip: [
+      { vendor: "Local Excursions Co", vendorContact: "+91 98xxx 70002", vendorEmail: "ops@localexcursions.in", serviceDetail: "Half-day guided excursion", cost: 9000, paymentTerms: { kind: "unknown" } },
+      { vendor: "Ground Ops Partner", vendorContact: "+91 98xxx 70066", vendorEmail: "ground@ops-partner.in", serviceDetail: "Ground package · guide + transfers", cost: 12000, paymentTerms: { kind: "schedule", schedule: [{ id: "alt-tr1", label: "Full", percent: 100, trigger: "on_confirm" }] } },
+    ],
   };
 
   const BOOKING_PHASE_RANK = {
-    needs_action: 0,
+    upcoming: 0,
     travelling: 1,
-    upcoming: 2,
-    completed: 3,
+    completed: 2,
+    cancelled: 3,
   };
+
+  /** Destination cover images for Overview banner (Proposal-style). */
+  const BOOKING_DESTINATION_COVERS = {
+    Dubai:
+      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1600&q=80",
+    Ladakh:
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=80",
+    Kerala:
+      "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1600&q=80",
+    Goa: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1600&q=80",
+    Manali:
+      "https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1600&q=80",
+    Tripura:
+      "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1600&q=80",
+    Jaipur:
+      "https://images.unsplash.com/photo-1477587458883-7a23e8f7eef9?auto=format&fit=crop&w=1600&q=80",
+  };
+
+  function bookingCoverImage(booking) {
+    if (booking?.coverImage) return booking.coverImage;
+    const dest = String(booking?.destination || "").trim();
+    return BOOKING_DESTINATION_COVERS[dest] || "";
+  }
+
+  const DEMO_STAFF = {
+    vrushabh: DEMO_OWNER,
+    neha: { initials: "NK", name: "Neha Kapoor", id: "neha", avatarClass: "avatar-mint" },
+    meera: { initials: "MI", name: "Meera Iyer", id: "meera", avatarClass: "avatar-mint" },
+  };
+
+  const QUERY_STAGES = [
+    { id: "new_inquiry", label: "New Inquiry", dot: "#94a3b8" },
+    { id: "in_progress", label: "In Progress", dot: "#94a3b8" },
+    { id: "proposal_sent", label: "Proposal Sent", dot: "#94a3b8" },
+    { id: "follow_up", label: "Follow Up", dot: "#94a3b8" },
+    { id: "confirmed", label: "Confirmed", dot: "#94a3b8" },
+    { id: "completed", label: "Completed", dot: "#94a3b8", showTotal: true },
+    { id: "lost", label: "Lost", dot: "#94a3b8" },
+  ];
+
+  const QUERY_STAGE_LABELS = Object.fromEntries(QUERY_STAGES.map((s) => [s.id, s.label]));
+
+  let QUERIES = [
+    {
+      id: "Q-1040",
+      title: "Tripura Trip",
+      customer: "Jain Family",
+      stage: "confirmed",
+      value: 0,
+      status: "Pending Us",
+      attention: "amber",
+      ownerId: "vrushabh",
+      updatedAt: Date.now() - 16 * 24 * 60 * 60 * 1000,
+    },
+    {
+      id: "Q-1041",
+      title: "Ladakh Trip",
+      customer: "Jain Family",
+      stage: "completed",
+      value: 1000000,
+      status: "Pending Us",
+      attention: "green",
+      ownerId: "vrushabh",
+      updatedAt: Date.now() - 23 * 24 * 60 * 60 * 1000,
+    },
+    {
+      id: "Q-1042",
+      title: "Dubai Trip",
+      customer: "XYZ Family",
+      stage: "completed",
+      value: 100000,
+      status: "Pending Us",
+      attention: "amber",
+      ownerId: "vrushabh",
+      updatedAt: Date.now() - 23 * 24 * 60 * 60 * 1000,
+    },
+  ];
+
+  const queriesState = {
+    scope: "mine",
+    view: "kanban",
+    search: "",
+    createOpen: false,
+  };
+
+  function getQueriesViewerOwnerId() {
+    const role = viewQueries?.dataset.viewingAs || viewTeam?.dataset.viewingAs || "Owner";
+    if (role === "Member") return "meera";
+    if (role === "Admin") return "neha";
+    return "vrushabh";
+  }
+
+  function queryOwner(query) {
+    return DEMO_STAFF[query.ownerId] || DEMO_OWNER;
+  }
+
+  function formatQueryRelativeTime(ts) {
+    const diff = Math.max(0, Date.now() - Number(ts || Date.now()));
+    const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+    if (days <= 0) return "Today";
+    if (days === 1) return "1 day ago";
+    return `${days} days ago`;
+  }
+
+  function formatQueryPipelineValue(amount) {
+    const n = Math.round(Number(amount) || 0);
+    return `₹${n.toLocaleString("en-IN")}`;
+  }
+
+  function syncQueriesCreateMode() {
+    const pipeline = document.getElementById("queries-pipeline");
+    const create = document.getElementById("queries-create");
+    if (pipeline) pipeline.hidden = !!queriesState.createOpen;
+    if (create) create.hidden = !queriesState.createOpen;
+    if (viewQueries) {
+      viewQueries.dataset.createMode = queriesState.createOpen ? "true" : "false";
+    }
+  }
+
+  function syncQueriesCreateRoundTripLabel(on) {
+    const state = document.getElementById("qc-round-trip-state");
+    if (state) state.textContent = on ? "On" : "Off";
+  }
+
+  function clearQueriesCreateFieldError(field) {
+    if (!field) return;
+    field.classList.remove("is-error");
+    const err = field.querySelector(".queries-create-field-error");
+    if (err) err.hidden = true;
+  }
+
+  function setQueriesCreateFieldError(field, show) {
+    if (!field) return;
+    field.classList.toggle("is-error", show);
+    const err = field.querySelector(".queries-create-field-error");
+    if (err) err.hidden = !show;
+  }
+
+  function validateQueriesCreateRequired({ report = false } = {}) {
+    const ids = ["qc-customer", "qc-from", "qc-to"];
+    let firstInvalid = null;
+    let allValid = true;
+    ids.forEach((id) => {
+      const input = document.getElementById(id);
+      const field = input?.closest("[data-qc-required]");
+      const valid = Boolean(input?.value);
+      if (!valid) {
+        allValid = false;
+        if (!firstInvalid) firstInvalid = input;
+      }
+      if (report) setQueriesCreateFieldError(field, !valid);
+      else if (valid) clearQueriesCreateFieldError(field);
+    });
+    return { allValid, firstInvalid };
+  }
+
+  function resetQueriesCreateForm() {
+    const form = document.getElementById("queries-create-form");
+    if (!form) return;
+    form.reset();
+    const roundTrip = document.getElementById("qc-round-trip");
+    const roundTripValue = document.getElementById("qc-round-trip-value");
+    if (roundTrip) roundTrip.setAttribute("aria-checked", "false");
+    if (roundTripValue) roundTripValue.value = "false";
+    syncQueriesCreateRoundTripLabel(false);
+    form.querySelectorAll("[data-time-chip]").forEach((chip) => {
+      chip.setAttribute("aria-pressed", "false");
+    });
+    const times = document.getElementById("qc-preferred-times");
+    if (times) times.value = "";
+    const customer = document.getElementById("qc-customer");
+    const from = document.getElementById("qc-from");
+    const to = document.getElementById("qc-to");
+    if (customer) customer.value = "";
+    if (from) from.value = "";
+    if (to) to.value = "";
+    form.querySelectorAll("[data-qc-required]").forEach((field) => clearQueriesCreateFieldError(field));
+    updateQueriesCreateSubmitState();
+  }
+
+  function updateQueriesCreateSubmitState() {
+    const { allValid } = validateQueriesCreateRequired({ report: false });
+    document.querySelectorAll(".queries-create-submit").forEach((btn) => {
+      btn.disabled = !allValid;
+    });
+  }
+
+  function openQueriesCreate() {
+    if (currentShell !== "queries") {
+      showView("queries", { smooth: false, create: true });
+    } else {
+      queriesState.createOpen = true;
+      syncQueriesCreateMode();
+      resetQueriesCreateForm();
+      if (window.location.hash !== "#queries/new") {
+        history.replaceState(null, "", "#queries/new");
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    document.getElementById("qc-customer")?.focus();
+  }
+
+  function closeQueriesCreate() {
+    queriesState.createOpen = false;
+    syncQueriesCreateMode();
+    resetQueriesCreateForm();
+    if ((window.location.hash || "").startsWith("#queries")) {
+      history.replaceState(null, "", "#queries");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function filteredQueries() {
+    const q = (queriesState.search || "").trim().toLowerCase();
+    const mineId = getQueriesViewerOwnerId();
+    return QUERIES.filter((item) => {
+      if (queriesState.scope === "mine" && item.ownerId !== mineId) return false;
+      if (!q) return true;
+      const hay = `${item.title} ${item.customer} ${item.id} ${item.status} ${QUERY_STAGE_LABELS[item.stage] || ""}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }
+
+  function queryCardHtml(query) {
+    const owner = queryOwner(query);
+    const valueHtml =
+      query.value > 0
+        ? `<span class="queries-card-value">${escapeHtml(formatQueryPipelineValue(query.value))}</span>`
+        : "";
+    return `
+      <article class="queries-card" data-query-id="${escapeHtml(query.id)}" tabindex="0">
+        <div class="queries-card-top">
+          <span class="queries-card-dot is-${escapeHtml(query.attention)}" aria-hidden="true"></span>
+          <div class="queries-card-copy">
+            <h3 class="queries-card-title">${escapeHtml(query.title)}</h3>
+            <p class="queries-card-customer">${escapeHtml(query.customer)}</p>
+          </div>
+        </div>
+        <div class="queries-card-meta">
+          <span class="queries-card-kicker">Trip</span>
+          ${valueHtml}
+        </div>
+        <div class="queries-card-foot">
+          <span class="queries-card-status">${escapeHtml(query.status)}</span>
+          <div class="queries-card-updated">
+            <span class="avatar ${escapeHtml(owner.avatarClass || "avatar-mint")} queries-card-avatar" title="${escapeHtml(
+              owner.name
+            )}" aria-hidden="true">${escapeHtml(owner.initials)}</span>
+            <span class="queries-card-time">
+              <img src="assets/queries-clock.svg" alt="" width="12" height="12" />
+              ${escapeHtml(formatQueryRelativeTime(query.updatedAt))}
+            </span>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function renderQueriesKanban(list) {
+    const board = document.getElementById("queries-kanban");
+    if (!board) return;
+    board.innerHTML = QUERY_STAGES.map((stage) => {
+      const items = list.filter((q) => q.stage === stage.id);
+      const total = items.reduce((sum, q) => sum + (Number(q.value) || 0), 0);
+      const body = items.length
+        ? `<div class="queries-column-cards">${items.map(queryCardHtml).join("")}</div>`
+        : `<p class="queries-column-empty">No queries</p>`;
+      const totalHtml =
+        stage.showTotal && items.length
+          ? `<p class="queries-column-total">${escapeHtml(formatQueryPipelineValue(total))}</p>`
+          : "";
+      return `
+        <section class="queries-column" data-stage="${escapeHtml(stage.id)}">
+          <header class="queries-column-head">
+            <div class="queries-column-title-row">
+              <span class="queries-column-dot" style="background:${escapeHtml(stage.dot)}" aria-hidden="true"></span>
+              <h2 class="queries-column-title">${escapeHtml(stage.label)}</h2>
+              <span class="queries-column-count">${items.length}</span>
+              <button type="button" class="queries-column-add" data-stage-add="${escapeHtml(
+                stage.id
+              )}" aria-label="Add query to ${escapeHtml(stage.label)}">
+                <img src="assets/queries-col-plus.svg" alt="" width="16" height="16" />
+              </button>
+            </div>
+            ${totalHtml}
+          </header>
+          <div class="queries-column-body">${body}</div>
+        </section>`;
+    }).join("");
+
+    board.querySelectorAll("[data-stage-add]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        openQueriesCreate();
+        showToast(`New query → ${QUERY_STAGE_LABELS[btn.dataset.stageAdd] || "pipeline"}`);
+      });
+    });
+  }
+
+  function renderQueriesList(list) {
+    const tbody = document.getElementById("queries-list-body");
+    if (!tbody) return;
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state is-visible"><p class="empty-state-title">No queries match</p><p class="empty-state-desc">Try another search or switch to All.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list
+      .map((query) => {
+        const owner = queryOwner(query);
+        return `<tr data-query-id="${escapeHtml(query.id)}">
+          <td>
+            <div class="queries-list-trip">
+              <span class="queries-card-dot is-${escapeHtml(query.attention)}" aria-hidden="true"></span>
+              <div>
+                <p class="queries-list-title">${escapeHtml(query.title)}</p>
+                <p class="queries-list-customer">${escapeHtml(query.customer)} · ${escapeHtml(query.id)}</p>
+              </div>
+            </div>
+          </td>
+          <td>${escapeHtml(QUERY_STAGE_LABELS[query.stage] || query.stage)}</td>
+          <td>
+            <div class="member-cell">
+              <span class="avatar ${escapeHtml(owner.avatarClass || "avatar-mint")}" aria-hidden="true">${escapeHtml(
+                owner.initials
+              )}</span>
+              <span>${escapeHtml(owner.name)}</span>
+            </div>
+          </td>
+          <td>${query.value > 0 ? escapeHtml(formatQueryPipelineValue(query.value)) : "—"}</td>
+          <td><span class="queries-card-status">${escapeHtml(query.status)}</span></td>
+          <td>${escapeHtml(formatQueryRelativeTime(query.updatedAt))}</td>
+        </tr>`;
+      })
+      .join("");
+  }
+
+  function renderQueriesPipeline() {
+    if (!viewQueries) return;
+    const list = filteredQueries();
+    const totalValue = list.reduce((sum, q) => sum + (Number(q.value) || 0), 0);
+    const sub = document.getElementById("queries-page-sub");
+    if (sub) {
+      sub.textContent = `${list.length} quer${list.length === 1 ? "y" : "ies"} · ${formatQueryPipelineValue(
+        totalValue
+      )} pipeline value`;
+    }
+
+    const kanban = document.getElementById("queries-kanban");
+    const listEl = document.getElementById("queries-list");
+    const isKanban = queriesState.view === "kanban";
+    if (kanban) kanban.hidden = !isKanban;
+    if (listEl) listEl.hidden = isKanban;
+    if (isKanban) renderQueriesKanban(list);
+    else renderQueriesList(list);
+
+    document.querySelectorAll("[data-queries-scope]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.queriesScope === queriesState.scope);
+    });
+    document.querySelectorAll("[data-queries-view]").forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.queriesView === queriesState.view);
+    });
+  }
+
+  function initQueriesModule() {
+    if (!viewQueries) return;
+    syncQueriesCreateMode();
+
+    document.querySelectorAll("[data-queries-scope]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        queriesState.scope = btn.dataset.queriesScope === "mine" ? "mine" : "all";
+        renderQueriesPipeline();
+      });
+    });
+    document.querySelectorAll("[data-queries-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        queriesState.view = btn.dataset.queriesView === "list" ? "list" : "kanban";
+        renderQueriesPipeline();
+      });
+    });
+    document.getElementById("queries-search")?.addEventListener("input", (e) => {
+      queriesState.search = e.target.value || "";
+      renderQueriesPipeline();
+    });
+    document.getElementById("queries-refresh")?.addEventListener("click", () => {
+      renderQueriesPipeline();
+    });
+    document.querySelectorAll("[data-open-query-create], [data-open-query-modal]").forEach((btn) => {
+      btn.addEventListener("click", () => openQueriesCreate());
+    });
+    document.getElementById("queries-create-back")?.addEventListener("click", () => {
+      closeQueriesCreate();
+    });
+
+    const createForm = document.getElementById("queries-create-form");
+    const roundTripBtn = document.getElementById("qc-round-trip");
+    roundTripBtn?.addEventListener("click", () => {
+      const next = roundTripBtn.getAttribute("aria-checked") !== "true";
+      roundTripBtn.setAttribute("aria-checked", next ? "true" : "false");
+      const hidden = document.getElementById("qc-round-trip-value");
+      if (hidden) hidden.value = next ? "true" : "false";
+      syncQueriesCreateRoundTripLabel(next);
+    });
+
+    createForm?.querySelectorAll(".queries-create-control--date").forEach((control) => {
+      control.addEventListener("click", (e) => {
+        const input = control.querySelector('input[type="date"]');
+        if (!input || e.target === input) return;
+        e.preventDefault();
+        if (typeof input.showPicker === "function") {
+          try {
+            input.showPicker();
+            return;
+          } catch (_) {
+            /* fall through */
+          }
+        }
+        input.focus();
+        input.click();
+      });
+    });
+
+    createForm?.querySelectorAll("[data-time-chip]").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const pressed = chip.getAttribute("aria-pressed") === "true";
+        if (!pressed) {
+          const selected = createForm.querySelectorAll('[data-time-chip][aria-pressed="true"]').length;
+          if (selected >= 4) {
+            showToast("Select up to 4 time windows");
+            return;
+          }
+        }
+        chip.setAttribute("aria-pressed", pressed ? "false" : "true");
+        const times = [...createForm.querySelectorAll('[data-time-chip][aria-pressed="true"]')].map(
+          (el) => el.dataset.timeChip
+        );
+        const hidden = document.getElementById("qc-preferred-times");
+        if (hidden) hidden.value = times.join(",");
+      });
+    });
+
+    ["qc-customer", "qc-from", "qc-to"].forEach((id) => {
+      const el = document.getElementById(id);
+      el?.addEventListener("change", () => {
+        const field = el.closest("[data-qc-required]");
+        if (el.value) clearQueriesCreateFieldError(field);
+        updateQueriesCreateSubmitState();
+      });
+      el?.addEventListener("blur", () => {
+        const field = el.closest("[data-qc-required]");
+        if (field?.classList.contains("is-error") || !el.value) {
+          setQueriesCreateFieldError(field, !el.value);
+        }
+      });
+    });
+
+    createForm?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const { allValid, firstInvalid } = validateQueriesCreateRequired({ report: true });
+      updateQueriesCreateSubmitState();
+      if (!allValid) {
+        firstInvalid?.focus();
+        showToast("Customer, From, and To are required");
+        return;
+      }
+      const data = new FormData(createForm);
+      const from = String(data.get("from") || "").trim();
+      const to = String(data.get("to") || "").trim();
+      const tripLabel = from && to ? `${from} → ${to}` : to || from || "Flight";
+      data.set("destination", tripLabel);
+      createQueryFromForm(data);
+      incrementDemoCount("queries");
+      completeChecklistItem("query");
+      closeQueriesCreate();
+      showToast(`Query for “${tripLabel}” created`);
+    });
+
+    renderQueriesPipeline();
+  }
+
+  function createQueryFromForm(data) {
+    const customer = String(data.get("customer") || "").trim() || "New customer";
+    const destination = String(data.get("destination") || "").trim() || "New trip";
+    const from = String(data.get("from") || "").trim();
+    const to = String(data.get("to") || "").trim();
+    const notes = String(data.get("notes") || "").trim();
+    const priority = String(data.get("priority") || "Medium").trim();
+    const adults = Math.max(1, Number(data.get("adults")) || 1);
+    const infants = Math.max(0, Number(data.get("infants")) || 0);
+    const budgetRaw = String(data.get("budget") || "").replace(/[₹,\s]/g, "");
+    let value = 0;
+    if (/l$/i.test(budgetRaw)) value = Math.round(parseFloat(budgetRaw) * 100000) || 0;
+    else value = Math.round(parseFloat(budgetRaw)) || 0;
+    const routeTitle = from && to ? `${from} → ${to}` : destination;
+    const id = `Q-${1000 + QUERIES.length + 1}`;
+    QUERIES.unshift({
+      id,
+      title: `${routeTitle} Trip`.replace(/\s+Trip Trip$/i, " Trip"),
+      customer,
+      stage: "new_inquiry",
+      value,
+      status: "Pending Us",
+      attention: priority === "High" ? "amber" : "green",
+      ownerId: getQueriesViewerOwnerId(),
+      updatedAt: Date.now(),
+      adults,
+      infants,
+      notes,
+      priority,
+      from,
+      to,
+    });
+    queriesState.scope = "all";
+    queriesState.view = "kanban";
+    renderQueriesPipeline();
+  }
 
   const BOOKINGS = [
     {
@@ -159,30 +764,243 @@
       customer: "XYZ Family",
       destination: "Dubai",
       queryId: "Q-1042",
-      phase: "needs_action",
-      issues: ["supplier_pending", "documents_missing"],
+      proposalVersion: "v3",
+      phase: "upcoming",
+      confirmed: true,
+      confirmations: { supplier: "pending", voucher: "blocked", documents: "missing" },
+      paymentOverdue: false,
       paymentsOpen: true,
       priority: 1,
-      travelStart: "2026-08-06",
-      travelEnd: "2026-08-06",
+      travelStart: "2026-08-18",
+      travelEnd: "2026-08-22",
       pax: 3,
+      createdAt: "6 Aug · 18:10",
       owner: DEMO_OWNER,
+      team: [DEMO_STAFF.vrushabh, DEMO_STAFF.neha],
       toCollect: 0,
-      toPaySuppliers: 20500,
-      actionHint: "Complete post-trip closure",
+      toPaySuppliers: 0,
+      actionHint: "Close supplier, voucher and documents",
       linkedProposal: "XYZ Family Dubai Proposal",
       tripLabel: "Dubai",
-      notes:
-        "Converted from Q-1042 · XYZ Family · Dubai\nRoute: Mumbai → Dubai\n3 adults\nSupplier confirms and documents still open after travel.",
+      notesList: [
+        { author: "Vrushabh Jain", time: "7 Aug · 11:20", body: "Customer prefers late airport pickup on arrival." },
+        { author: "Neha Kapoor", time: "7 Aug · 14:05", body: "Do not mention supplier rate to the customer." },
+      ],
       itinerarySub: "Itinerary locked from confirmed query.",
-      itineraryNote: "Service lines on the Services & vendors tab remain the operational source of truth.",
+      itineraryNote: "Mumbai → Dubai · 3 adults · hotel + transfers.",
+      services: [
+        {
+          id: "svc-dubai-hotel",
+          type: "hotel",
+          name: "Hotel",
+          vendor: "ABC DMC Dubai",
+          vendorContact: "+971 4 555 0180",
+          vendorEmail: "ops@abcdmc.ae",
+          serviceDetail: "Tamara Hotel · 2 Deluxe twin · breakfast · 18–22 Aug",
+          cost: 33000,
+          confirmation: "pending",
+          deadline: "Today 4 PM",
+          status: "Awaiting vouchers",
+          paymentTerms: {
+            kind: "schedule",
+            schedule: [
+              { id: "pt-dubai-h1", label: "On confirmation", percent: 50, trigger: "on_confirm" },
+              { id: "pt-dubai-h2", label: "Balance", percent: 50, trigger: "before_checkin", daysBefore: 7 },
+            ],
+          },
+          payables: [],
+          vouchers: [
+            { id: "vh-hotel-conf", name: "Hotel confirmation voucher", attached: false, fileName: "" },
+            { id: "vh-hotel-room", name: "Rooming / meal plan sheet", attached: false, fileName: "" },
+          ],
+        },
+        {
+          id: "svc-dubai-transfers",
+          type: "transport",
+          name: "Transfers",
+          vendor: "Desert Wheels",
+          vendorContact: "+971 50 555 2211",
+          vendorEmail: "desk@desertwheels.ae",
+          serviceDetail: "Airport arrival + departure · private van · 3 pax",
+          cost: 6500,
+          confirmation: "pending",
+          deadline: "Today 6 PM",
+          status: "Vouchers not attached",
+          paymentTerms: { kind: "unknown" },
+          payables: [],
+          vouchers: [{ id: "vh-transfer", name: "Transfer voucher", attached: false, fileName: "" }],
+        },
+      ],
+      tasks: [
+        { id: "T-201", title: "Confirm hotel with ABC DMC", priority: "high", assignee: DEMO_STAFF.neha, due: "Today 4 PM", dependency: "None", status: "open" },
+        { id: "T-202", title: "Unblock hotel voucher", priority: "high", assignee: DEMO_STAFF.vrushabh, due: "Today", dependency: "Hotel confirmation", status: "blocked" },
+        { id: "T-203", title: "Collect passports", priority: "medium", assignee: DEMO_STAFF.meera, due: "Tomorrow", dependency: "None", status: "open" },
+      ],
+      travellers: [
+        {
+          id: "trv-dubai-amit",
+          legalName: "Amit XYZ",
+          name: "Amit XYZ",
+          type: "Adult",
+          dob: "1984-03-12",
+          gender: "Male",
+          nationality: "Indian",
+          contact: "+91 98xxx 10001",
+          email: "amit.xyz@email.com",
+          lead: true,
+          role: "Lead traveller",
+          passport: "Missing",
+          visaStatus: "Documents pending",
+          specialFlags: [{ kind: "pickup", note: "Late airport pickup on arrival" }],
+          linkedServices: [
+            { serviceId: "svc-dubai-hotel", label: "Hotel · Tamara" },
+            { serviceId: "svc-dubai-transfers", label: "Airport transfers" },
+          ],
+          source: "query",
+          queryTravellerId: "QT-1042-1",
+        },
+        {
+          id: "trv-dubai-priya",
+          legalName: "Priya XYZ",
+          name: "Priya XYZ",
+          type: "Adult",
+          dob: "1988-07-21",
+          gender: "Female",
+          nationality: "Indian",
+          contact: "+91 98xxx 10002",
+          email: "priya.xyz@email.com",
+          lead: false,
+          role: "Spouse",
+          passport: "Uploaded",
+          visaStatus: "Documents pending",
+          specialFlags: [],
+          linkedServices: [
+            { serviceId: "svc-dubai-hotel", label: "Hotel · Tamara" },
+            { serviceId: "svc-dubai-transfers", label: "Airport transfers" },
+          ],
+          source: "query",
+          queryTravellerId: "QT-1042-2",
+        },
+        {
+          id: "trv-dubai-arjun",
+          legalName: "Arjun XYZ",
+          name: "Arjun XYZ",
+          type: "Child",
+          dob: "2014-01-09",
+          gender: "Male",
+          nationality: "Indian",
+          contact: "",
+          email: "",
+          lead: false,
+          role: "Child",
+          guardianId: "trv-dubai-amit",
+          guardianName: "Amit XYZ",
+          passport: "Requested",
+          visaStatus: "Documents pending",
+          specialFlags: [],
+          linkedServices: [
+            { serviceId: "svc-dubai-hotel", label: "Hotel · Tamara" },
+            { serviceId: "svc-dubai-transfers", label: "Airport transfers" },
+          ],
+          source: "query",
+          queryTravellerId: "QT-1042-3",
+        },
+      ],
+      documents: [
+        {
+          id: "doc-dubai-pass-amit",
+          type: "Passport",
+          traveller: "Amit XYZ",
+          status: "Missing",
+          required: true,
+          requiredBy: "12 Aug",
+          blocks: "Visa processing",
+        },
+        {
+          id: "doc-dubai-pass-priya",
+          type: "Passport",
+          traveller: "Priya XYZ",
+          status: "Uploaded",
+          required: true,
+          requiredBy: "12 Aug",
+          blocks: "Visa processing",
+          fileName: "priya-xyz-passport.pdf",
+          fileSize: "1.1 MB",
+          fileKind: "pdf",
+          receivedAt: "8 Aug · 11:20",
+          receivedVia: "WhatsApp",
+          uploadedBy: "Priya XYZ",
+          reviewHints: ["Name matches traveller", "Expiry 19 Jan 2032 — after trip", "Photo page readable"],
+          extracted: { passportNo: "Z•••••8821", expiry: "19 Jan 2032", nationality: "Indian" },
+        },
+        {
+          id: "doc-dubai-pass-arjun",
+          type: "Passport",
+          traveller: "Arjun XYZ",
+          status: "Requested",
+          required: true,
+          requiredBy: "12 Aug",
+          blocks: "Visa processing",
+          requestedAt: "7 Aug · 16:40",
+          requestedVia: "WhatsApp",
+        },
+        { id: "doc-dubai-visa-amit", type: "Visa copy", traveller: "Amit XYZ", status: "Missing", required: true, requiredBy: "14 Aug", blocks: "Visa processing" },
+        { id: "doc-dubai-visa-priya", type: "Visa copy", traveller: "Priya XYZ", status: "Missing", required: true, requiredBy: "14 Aug", blocks: "Visa processing" },
+        { id: "doc-dubai-visa-arjun", type: "Visa copy", traveller: "Arjun XYZ", status: "Missing", required: true, requiredBy: "14 Aug", blocks: "Visa processing" },
+        {
+          id: "doc-dubai-arrival",
+          type: "Arrival flight details",
+          traveller: "",
+          status: "Requested",
+          required: true,
+          requiredBy: "15 Aug",
+          note: "Customer upload for arrival logistics — not an agency-issued ticket",
+          requestedAt: "7 Aug · 10:15",
+          requestedVia: "WhatsApp",
+        },
+      ],
+      vouchers: [
+        {
+          id: "tv-dubai-hotel",
+          serviceId: "svc-dubai-hotel",
+          name: "Hotel voucher",
+          source: "vendor",
+          status: "blocked",
+          blockReason: "Hotel confirmation pending",
+          fileName: "",
+          sentAt: "",
+        },
+        {
+          id: "tv-dubai-transfer",
+          serviceId: "svc-dubai-transfers",
+          name: "Transfer voucher",
+          source: "agency",
+          status: "blocked",
+          blockReason: "Transfer vendor not confirmed",
+          fileName: "",
+          sentAt: "",
+        },
+      ],
+      threads: [
+        { party: "Vendor", channel: "Email", with: "ABC DMC Dubai", preview: "Please confirm Tamara hold by 4 PM.", related: "Hotel", assignee: "Neha Kapoor", when: "Today · 09:40" },
+        { party: "Customer", channel: "WhatsApp", with: "Amit XYZ", preview: "Shared passport checklist.", related: "Documents", assignee: "Meera Iyer", when: "Today · 10:15" },
+      ],
+      activity: [
+        { time: "6 Aug · 18:10", body: "Booking created from Q-1042 · accepted Proposal v3." },
+        { time: "6 Aug · 18:11", body: "Traveller snapshot copied from Query Q-1042 · Amit (lead), Priya, Arjun." },
+        { time: "6 Aug · 18:12", body: "Neha Kapoor assigned to fulfilment tasks." },
+        { time: "7 Aug · 09:40", body: "Supplier confirmation requested for hotel." },
+        { time: "7 Aug · 11:42", body: "₹20,500 customer receipt recorded." },
+      ],
       ledger: {
         receivable: 20500,
-        totalCost: 20500,
-        margin: 0,
+        sellingPrice: 20500,
+        totalCost: 39500,
+        margin: -19000,
+        deposits: 20500,
         customerPaid: 20500,
         customerBalance: 0,
-        vendorPayable: 20500,
+        vendorPayable: 39500,
         vendorSettled: 0,
         cashIn: 20500,
         cashOut: 0,
@@ -190,11 +1008,12 @@
       },
       nextAction: {
         kind: "task",
-        title: "Complete post-trip closure",
-        body: "Trip dates have ended — close supplier confirms and missing documents.",
-        cta: "Complete post-trip closure",
+        title: "Confirm hotel with ABC DMC",
+        body: "Booking is confirmed — ops still need supplier vouchers and traveller documents.",
+        cta: "Open services",
+        ctaTarget: "services",
       },
-      lifecycle: { mode: "confirm-cancel" },
+      lifecycle: { mode: "reopen" },
     },
     {
       id: "BK-2026-000002",
@@ -203,26 +1022,112 @@
       customer: "Jain Family",
       destination: "Ladakh",
       queryId: "Q-1038",
-      phase: "needs_action",
-      issues: ["payment_overdue"],
+      proposalVersion: "v2",
+      phase: "completed",
+      confirmed: true,
+      confirmations: { supplier: "confirmed", voucher: "issued", documents: "received" },
+      paymentOverdue: true,
       paymentsOpen: true,
       priority: 2,
       travelStart: "2026-07-15",
       travelEnd: "2026-07-21",
       pax: 1,
       owner: DEMO_OWNER,
+      team: [DEMO_STAFF.vrushabh],
       toCollect: 223456,
+      collectDue: "2026-08-11",
       toPaySuppliers: 0,
       actionHint: "Collect overdue balance",
       linkedProposal: "Ladakh Trip Proposal",
       tripLabel: "Ladakh",
-      notes: "Converted from Q-1038 · balance still open after travel.",
+      notesList: [{ author: "Vrushabh Jain", time: "22 Jul · 10:00", body: "Customer promised bank transfer this week — chase if not landed." }],
       itinerarySub: "Itinerary fulfilled.",
-      itineraryNote: "Service lines on the Services & vendors tab remain the operational source of truth.",
+      itineraryNote: "Leh circuit completed · post-trip balance still open.",
+      services: [
+        {
+          id: "svc-ladakh",
+          type: "trip",
+          name: "Stay + ground",
+          vendor: "Ladakh Trails",
+          vendorContact: "+91 19xxx 44100",
+          vendorEmail: "ops@ladakhtrails.in",
+          serviceDetail: "Leh hotel + local transport pack · delivered",
+          cost: 0,
+          confirmation: "confirmed",
+          deadline: "—",
+          status: "Delivered",
+          paymentTerms: { kind: "schedule", schedule: [{ id: "pt-ladakh-1", label: "Full", percent: 100, trigger: "on_confirm" }] },
+          payables: [{ id: "pay-ladakh-1", label: "Full", amount: 0, dueLabel: "—", dueDate: "", status: "paid" }],
+          vouchers: [{ id: "vh-ladakh", name: "Trip voucher pack", attached: true, fileName: "ladakh-pack.pdf" }],
+        },
+      ],
+      tasks: [
+        { id: "T-110", title: "Collect overdue balance", priority: "high", assignee: DEMO_STAFF.vrushabh, due: "Overdue", dependency: "None", status: "overdue" },
+      ],
+      travellers: [{ name: "Vrushabh Jain", age: 34, type: "Adult", contact: "+91 98xxx 20001", passport: "Verified", visa: "Not required", special: "—" }],
+      documents: [
+        {
+          id: "doc-ladakh-pass",
+          type: "Passport",
+          traveller: "Vrushabh Jain",
+          status: "Verified",
+          required: true,
+          requiredBy: "—",
+          fileName: "vrushabh-jain-passport.pdf",
+          fileSize: "980 KB",
+          fileKind: "pdf",
+          receivedAt: "12 Jul · 14:10",
+          receivedVia: "Email",
+          uploadedBy: "Vrushabh Jain",
+          verifiedAt: "12 Jul · 15:02",
+          verifiedBy: "Meera Iyer",
+          extracted: { passportNo: "A•••••4410", expiry: "4 May 2030", nationality: "Indian" },
+        },
+        {
+          id: "doc-ladakh-arrival",
+          type: "Arrival flight details",
+          traveller: "",
+          status: "Verified",
+          required: false,
+          requiredBy: "—",
+          note: "Customer-uploaded reference for arrival",
+          fileName: "ladakh-arrival-itinerary.pdf",
+          fileSize: "180 KB",
+          fileKind: "pdf",
+          receivedAt: "13 Jul · 09:00",
+          receivedVia: "Email",
+          uploadedBy: "Vrushabh Jain",
+          verifiedAt: "13 Jul · 09:40",
+          verifiedBy: "Meera Iyer",
+          reviewHints: ["Leh arrival · matches travel start"],
+        },
+      ],
+      vouchers: [
+        {
+          id: "tv-ladakh",
+          serviceId: "svc-ladakh",
+          name: "Trip voucher pack",
+          source: "agency",
+          status: "sent",
+          blockReason: "",
+          fileName: "ladakh-pack.pdf",
+          sentAt: "14 Jul, 4:00 PM",
+        },
+      ],
+      threads: [
+        { party: "Customer", channel: "WhatsApp", with: "Jain Family", preview: "Reminder for ₹2,23,456 balance.", related: "Finance", assignee: "Vrushabh Jain", when: "Today · 10:15" },
+      ],
+      activity: [
+        { time: "10 Jul · 12:00", body: "Booking created from Q-1038 · accepted Proposal v2." },
+        { time: "21 Jul · 20:00", body: "Trip marked completed." },
+        { time: "22 Jul · 09:00", body: "Balance due reminder raised for ₹2,23,456." },
+      ],
       ledger: {
         receivable: 1123456,
+        sellingPrice: 1123456,
         totalCost: 0,
         margin: 1123456,
+        deposits: 900000,
         customerPaid: 900000,
         customerBalance: 223456,
         vendorPayable: 0,
@@ -235,7 +1140,8 @@
         kind: "task",
         title: "Collect overdue balance",
         body: "₹2,23,456 still to collect from the customer.",
-        cta: "Send payment reminder",
+        cta: "Open finance",
+        ctaTarget: "finance",
       },
       lifecycle: { mode: "reopen", readiness: 80 },
     },
@@ -246,27 +1152,201 @@
       customer: "Mehta Family",
       destination: "Kerala",
       queryId: "Q-1040",
+      proposalVersion: "v1",
       phase: "travelling",
-      issues: [],
+      confirmed: true,
+      confirmations: { supplier: "confirmed", voucher: "issued", documents: "received" },
+      paymentOverdue: false,
       paymentsOpen: false,
       priority: 3,
       travelStart: "2026-08-05",
       travelEnd: "2026-08-12",
       pax: 4,
       owner: DEMO_OWNER,
+      team: [DEMO_STAFF.vrushabh, DEMO_STAFF.meera],
       toCollect: 0,
       toPaySuppliers: 0,
       moneySettled: true,
       actionHint: "",
       linkedProposal: "Kerala Family Escape",
       tripLabel: "Kerala",
-      notes: "Converted from Q-1040 · travellers currently on ground.",
+      notesList: [{ author: "Meera Iyer", time: "5 Aug · 08:30", body: "Ops on-call for day-of houseboat changes." }],
       itinerarySub: "Live trip · Munnar → Alleppey.",
-      itineraryNote: "Ops on-call for day-of changes.",
+      itineraryNote: "Travellers currently on ground.",
+      services: [
+        {
+          id: "svc-kerala-hotel",
+          type: "hotel",
+          name: "Hotel Munnar",
+          vendor: "Hill Mist",
+          vendorContact: "+91 48xxx 21001",
+          vendorEmail: "stay@hillmist.in",
+          serviceDetail: "Deluxe rooms · 3 nights · breakfast",
+          cost: 48000,
+          confirmation: "confirmed",
+          deadline: "—",
+          status: "In use",
+          paymentTerms: {
+            kind: "schedule",
+            schedule: [
+              { id: "pt-kerala-h1", label: "On confirmation", percent: 50, trigger: "on_confirm" },
+              { id: "pt-kerala-h2", label: "Balance", percent: 50, trigger: "before_checkin", daysBefore: 7 },
+            ],
+          },
+          payables: [
+            { id: "pay-kerala-h1", label: "On confirmation", amount: 24000, dueLabel: "paid", dueDate: "2026-07-20", status: "paid" },
+            { id: "pay-kerala-h2", label: "Balance", amount: 24000, dueLabel: "paid", dueDate: "2026-07-29", status: "paid" },
+          ],
+          vouchers: [{ id: "vh-kerala-hotel", name: "Hotel voucher", attached: true, fileName: "hill-mist.pdf" }],
+        },
+        {
+          id: "svc-kerala-boat",
+          type: "cruise",
+          name: "Houseboat",
+          vendor: "Backwater Co",
+          vendorContact: "+91 47xxx 88002",
+          vendorEmail: "book@backwaterco.in",
+          serviceDetail: "Premium houseboat · 2 nights · all meals",
+          cost: 72000,
+          confirmation: "confirmed",
+          deadline: "—",
+          status: "In use",
+          paymentTerms: { kind: "schedule", schedule: [{ id: "pt-kerala-b1", label: "Full", percent: 100, trigger: "on_confirm" }] },
+          payables: [{ id: "pay-kerala-b1", label: "Full", amount: 72000, dueLabel: "paid", dueDate: "2026-07-22", status: "paid" }],
+          vouchers: [{ id: "vh-kerala-boat", name: "Houseboat voucher", attached: true, fileName: "backwater.pdf" }],
+        },
+      ],
+      tasks: [
+        { id: "T-301", title: "Monitor live trip", priority: "low", assignee: DEMO_STAFF.meera, due: "Daily", dependency: "None", status: "open" },
+      ],
+      travellers: [
+        { name: "Raj Mehta", age: 45, type: "Adult", contact: "+91 98xxx 30001", passport: "Verified", visa: "Not required", special: "—" },
+        { name: "Sneha Mehta", age: 42, type: "Adult", contact: "+91 98xxx 30002", passport: "Verified", visa: "Not required", special: "Veg meals" },
+        { name: "Ishaan Mehta", age: 14, type: "Child", contact: "—", passport: "Verified", visa: "Not required", special: "—" },
+        { name: "Anaya Mehta", age: 10, type: "Child", contact: "—", passport: "Verified", visa: "Not required", special: "—" },
+      ],
+      documents: [
+        {
+          id: "doc-kerala-pass-raj",
+          type: "Passport",
+          traveller: "Raj Mehta",
+          status: "Verified",
+          required: true,
+          requiredBy: "—",
+          fileName: "raj-mehta-passport.pdf",
+          fileSize: "1.0 MB",
+          fileKind: "pdf",
+          receivedAt: "22 Jul · 11:00",
+          receivedVia: "WhatsApp",
+          uploadedBy: "Raj Mehta",
+          verifiedAt: "22 Jul · 12:15",
+          verifiedBy: "Meera Iyer",
+          extracted: { passportNo: "B•••••2201", expiry: "8 Aug 2029", nationality: "Indian" },
+        },
+        {
+          id: "doc-kerala-pass-sneha",
+          type: "Passport",
+          traveller: "Sneha Mehta",
+          status: "Verified",
+          required: true,
+          requiredBy: "—",
+          fileName: "sneha-mehta-passport.pdf",
+          fileSize: "1.0 MB",
+          fileKind: "pdf",
+          receivedAt: "22 Jul · 11:02",
+          receivedVia: "WhatsApp",
+          uploadedBy: "Raj Mehta",
+          verifiedAt: "22 Jul · 12:16",
+          verifiedBy: "Meera Iyer",
+          extracted: { passportNo: "B•••••2202", expiry: "8 Aug 2029", nationality: "Indian" },
+        },
+        {
+          id: "doc-kerala-pass-ishaan",
+          type: "Passport",
+          traveller: "Ishaan Mehta",
+          status: "Verified",
+          required: true,
+          requiredBy: "—",
+          fileName: "ishaan-mehta-passport.pdf",
+          fileSize: "900 KB",
+          fileKind: "pdf",
+          receivedAt: "22 Jul · 11:05",
+          receivedVia: "WhatsApp",
+          uploadedBy: "Raj Mehta",
+          verifiedAt: "22 Jul · 12:18",
+          verifiedBy: "Meera Iyer",
+          extracted: { passportNo: "B•••••2203", expiry: "11 Nov 2031", nationality: "Indian" },
+        },
+        {
+          id: "doc-kerala-pass-anaya",
+          type: "Passport",
+          traveller: "Anaya Mehta",
+          status: "Verified",
+          required: true,
+          requiredBy: "—",
+          fileName: "anaya-mehta-passport.pdf",
+          fileSize: "880 KB",
+          fileKind: "pdf",
+          receivedAt: "22 Jul · 11:06",
+          receivedVia: "WhatsApp",
+          uploadedBy: "Raj Mehta",
+          verifiedAt: "22 Jul · 12:19",
+          verifiedBy: "Meera Iyer",
+          extracted: { passportNo: "B•••••2204", expiry: "11 Nov 2031", nationality: "Indian" },
+        },
+        {
+          id: "doc-kerala-arrival",
+          type: "Arrival flight details",
+          traveller: "",
+          status: "Verified",
+          required: false,
+          requiredBy: "—",
+          note: "Customer-uploaded reference for arrival",
+          fileName: "mehta-kochi-arrival.pdf",
+          fileSize: "210 KB",
+          fileKind: "pdf",
+          receivedAt: "23 Jul · 08:40",
+          receivedVia: "Email",
+          uploadedBy: "Raj Mehta",
+          verifiedAt: "23 Jul · 09:10",
+          verifiedBy: "Meera Iyer",
+        },
+      ],
+      vouchers: [
+        {
+          id: "tv-kerala-hotel",
+          serviceId: "svc-kerala-hotel",
+          name: "Hotel voucher",
+          source: "vendor",
+          status: "sent",
+          blockReason: "",
+          fileName: "hill-mist-voucher.pdf",
+          sentAt: "5 Aug, 7:10 AM",
+        },
+        {
+          id: "tv-kerala-boat",
+          serviceId: "svc-kerala-boat",
+          name: "Houseboat voucher",
+          source: "agency",
+          status: "sent",
+          blockReason: "",
+          fileName: "backwater-voucher.pdf",
+          sentAt: "5 Aug, 7:12 AM",
+        },
+      ],
+      threads: [
+        { party: "Customer", channel: "WhatsApp", with: "Raj Mehta", preview: "All good in Munnar — thanks.", related: "Trip", assignee: "Meera Iyer", when: "Yesterday · 19:10" },
+      ],
+      activity: [
+        { time: "20 Jul · 11:00", body: "Booking created from Q-1040 · accepted Proposal v1." },
+        { time: "5 Aug · 06:00", body: "Phase moved to Travelling." },
+      ],
       ledger: {
         receivable: 180000,
+        sellingPrice: 180000,
         totalCost: 120000,
         margin: 60000,
+        deposits: 180000,
         customerPaid: 180000,
         customerBalance: 0,
         vendorPayable: 120000,
@@ -289,27 +1369,237 @@
       customer: "Sharma Family",
       destination: "Goa",
       queryId: "Q-1045",
+      proposalVersion: "v3",
       phase: "upcoming",
-      issues: [],
+      confirmed: true,
+      confirmations: { supplier: "pending", voucher: "pending", documents: "missing" },
+      paymentOverdue: false,
       paymentsOpen: false,
       priority: 4,
       travelStart: "2026-08-18",
       travelEnd: "2026-08-22",
       pax: 2,
       owner: DEMO_OWNER,
+      team: [],
       toCollect: 0,
       toPaySuppliers: 0,
       moneySettled: true,
-      actionHint: "",
+      actionHint: "Confirm water sports add-on · verify arrival flight details · issue vouchers",
       linkedProposal: "Goa Weekend",
       tripLabel: "Goa",
-      notes: "Converted from Q-1045 · departure in 10 days.",
+      notesList: [{ author: "Neha Kapoor", time: "1 Aug · 16:20", body: "Hotel agreed complimentary room upgrade — do not promise to customer until voucher issued." }],
       itinerarySub: "Confirmed hotel + airport transfers.",
-      itineraryNote: "Vouchers ready to issue closer to travel.",
+      itineraryNote: "Departure in 10 days · voucher still pending.",
+      services: [
+        {
+          id: "svc-goa-hotel",
+          type: "hotel",
+          name: "Hotel",
+          vendor: "Coast Stay Goa",
+          vendorContact: "+91 83xxx 45001",
+          vendorEmail: "reservations@coaststay.in",
+          serviceDetail: "Sea-view twin · 4 nights · breakfast · room upgrade held",
+          cost: 36000,
+          confirmation: "confirmed",
+          deadline: "—",
+          status: "Confirmed",
+          paymentTerms: {
+            kind: "schedule",
+            schedule: [
+              { id: "pt-goa-h1", label: "On confirmation", percent: 50, trigger: "on_confirm" },
+              { id: "pt-goa-h2", label: "Balance", percent: 50, trigger: "before_checkin", daysBefore: 7 },
+            ],
+          },
+          payables: [
+            { id: "pay-goa-h1", label: "On confirmation", amount: 18000, dueLabel: "paid", dueDate: "2026-07-30", status: "paid" },
+            { id: "pay-goa-h2", label: "Balance", amount: 18000, dueLabel: "paid", dueDate: "2026-08-11", status: "paid" },
+          ],
+          vouchers: [{ id: "vh-goa-hotel", name: "Hotel voucher", attached: true, fileName: "coast-stay.pdf" }],
+        },
+        {
+          id: "svc-goa-transfers",
+          type: "transport",
+          name: "Transfers",
+          vendor: "Goa Cabs",
+          vendorContact: "+91 98xxx 66020",
+          vendorEmail: "desk@goacabs.in",
+          serviceDetail: "Airport transfers · sedan · 2 pax",
+          cost: 12000,
+          confirmation: "confirmed",
+          deadline: "—",
+          status: "Confirmed",
+          paymentTerms: { kind: "schedule", schedule: [{ id: "pt-goa-t1", label: "Full", percent: 100, trigger: "on_confirm" }] },
+          payables: [{ id: "pay-goa-t1", label: "Full", amount: 12000, dueLabel: "paid", dueDate: "2026-07-30", status: "paid" }],
+          vouchers: [{ id: "vh-goa-transfer", name: "Transfer voucher", attached: true, fileName: "goa-cabs.pdf" }],
+        },
+        {
+          id: "svc-goa-watersports",
+          type: "trip",
+          name: "Water sports",
+          vendor: "Baga Adventures",
+          vendorContact: "+91 83xxx 44110",
+          vendorEmail: "book@bagaadventures.in",
+          serviceDetail: "Parasail + jet ski combo · 2 pax · added after confirm",
+          cost: 8000,
+          confirmation: "pending",
+          deadline: "12 Aug",
+          status: "Awaiting vouchers",
+          addedAfterConfirmation: true,
+          source: "post_confirmation",
+          paymentTerms: { kind: "unknown" },
+          payables: [],
+          vouchers: [{ id: "vh-goa-water", name: "Activity voucher", attached: false, fileName: "" }],
+        },
+      ],
+      tasks: [
+        { id: "T-401", title: "Confirm water sports add-on", priority: "high", assignee: DEMO_STAFF.neha, due: "12 Aug", dependency: "None", status: "open" },
+        { id: "T-402", title: "Issue travel vouchers", priority: "medium", assignee: DEMO_STAFF.neha, due: "13 Aug", dependency: "Water sports confirm", status: "blocked" },
+      ],
+      travellers: [
+        {
+          id: "trv-goa-rohit",
+          legalName: "Rohit Sharma",
+          name: "Rohit Sharma",
+          type: "Adult",
+          dob: "1990-04-18",
+          nationality: "Indian",
+          contact: "+91 98xxx 40001",
+          email: "rohit.sharma@email.com",
+          lead: true,
+          role: "Lead traveller",
+          passport: "Verified",
+          visaStatus: "Not required",
+          specialFlags: [],
+          linkedServices: [
+            { serviceId: "svc-goa-hotel", label: "Hotel" },
+            { serviceId: "svc-goa-transfers", label: "Transfers" },
+            { serviceId: "svc-goa-watersports", label: "Water sports" },
+          ],
+          source: "query",
+          queryTravellerId: "QT-1045-1",
+        },
+        {
+          id: "trv-goa-kavita",
+          legalName: "Kavita Sharma",
+          name: "Kavita Sharma",
+          type: "Adult",
+          dob: "1992-11-02",
+          nationality: "Indian",
+          contact: "+91 98xxx 40002",
+          email: "",
+          lead: false,
+          role: "Spouse",
+          passport: "Verified",
+          visaStatus: "Not required",
+          specialFlags: [{ kind: "dietary", note: "Vegetarian meals" }],
+          linkedServices: [
+            { serviceId: "svc-goa-hotel", label: "Hotel" },
+            { serviceId: "svc-goa-transfers", label: "Transfers" },
+            { serviceId: "svc-goa-watersports", label: "Water sports" },
+          ],
+          source: "query",
+          queryTravellerId: "QT-1045-2",
+        },
+      ],
+      documents: [
+        {
+          id: "doc-goa-pass-rohit",
+          type: "Passport",
+          traveller: "Rohit Sharma",
+          status: "Verified",
+          required: true,
+          requiredBy: "—",
+          fileName: "rohit-sharma-passport.pdf",
+          fileSize: "1.0 MB",
+          fileKind: "pdf",
+          receivedAt: "28 Jul · 10:00",
+          receivedVia: "Email",
+          uploadedBy: "Rohit Sharma",
+          verifiedAt: "28 Jul · 10:45",
+          verifiedBy: "Neha Kapoor",
+          extracted: { passportNo: "C•••••7710", expiry: "2 Feb 2030", nationality: "Indian" },
+        },
+        {
+          id: "doc-goa-pass-kavita",
+          type: "Passport",
+          traveller: "Kavita Sharma",
+          status: "Verified",
+          required: true,
+          requiredBy: "—",
+          fileName: "kavita-sharma-passport.pdf",
+          fileSize: "1.0 MB",
+          fileKind: "pdf",
+          receivedAt: "28 Jul · 10:02",
+          receivedVia: "Email",
+          uploadedBy: "Rohit Sharma",
+          verifiedAt: "28 Jul · 10:46",
+          verifiedBy: "Neha Kapoor",
+          extracted: { passportNo: "C•••••7711", expiry: "2 Feb 2030", nationality: "Indian" },
+        },
+        {
+          id: "doc-goa-arrival",
+          type: "Arrival flight details",
+          traveller: "",
+          status: "Uploaded",
+          required: true,
+          requiredBy: "11 Aug",
+          note: "Customer upload for arrival logistics — verify before travel",
+          fileName: "sharma-goa-arrival.pdf",
+          fileSize: "240 KB",
+          fileKind: "pdf",
+          receivedAt: "8 Aug · 09:12",
+          receivedVia: "WhatsApp",
+          uploadedBy: "Rohit Sharma",
+          reviewHints: ["AI 984 · 18 Aug 06:40 BOM→GOI", "Matches travel start", "Return leg attached"],
+        },
+      ],
+      vouchers: [
+        {
+          id: "tv-goa-hotel",
+          serviceId: "svc-goa-hotel",
+          name: "Hotel voucher",
+          source: "vendor",
+          status: "ready",
+          blockReason: "",
+          fileName: "",
+          sentAt: "",
+        },
+        {
+          id: "tv-goa-transfer",
+          serviceId: "svc-goa-transfers",
+          name: "Transfer voucher",
+          source: "agency",
+          status: "issued",
+          blockReason: "",
+          fileName: "goa-transfer-voucher.pdf",
+          sentAt: "",
+        },
+        {
+          id: "tv-goa-water",
+          serviceId: "svc-goa-water",
+          name: "Activity voucher",
+          source: "upload",
+          status: "blocked",
+          blockReason: "Water sports vendor not confirmed",
+          fileName: "",
+          sentAt: "",
+        },
+      ],
+      threads: [
+        { party: "Vendor", channel: "Email", with: "Coast Stay Goa", preview: "Confirmation on file — ready for voucher.", related: "Hotel", assignee: "Neha Kapoor", when: "2 Aug · 11:00" },
+      ],
+      activity: [
+        { time: "28 Jul · 15:40", body: "Booking created from Q-1045 · accepted Proposal v3." },
+        { time: "30 Jul · 10:00", body: "Supplier confirmed hotel and transfers." },
+        { time: "1 Aug · 09:00", body: "Voucher pack marked ready to issue." },
+        { time: "6 Aug · 16:20", body: "Water sports line added after confirmation · customer selling price unchanged." },
+      ],
       ledger: {
         receivable: 72000,
+        sellingPrice: 72000,
         totalCost: 48000,
         margin: 24000,
+        deposits: 72000,
         customerPaid: 72000,
         customerBalance: 0,
         vendorPayable: 48000,
@@ -319,11 +1609,284 @@
         entryCount: 3,
       },
       nextAction: {
-        kind: "clear",
-        title: "Ready for travel",
-        body: "No open blockers before departure.",
+        kind: "task",
+        title: "Confirm water sports add-on",
+        body: "Line was added after confirmation — attach vouchers, confirm vendor. Selling price stays locked unless amended.",
+        cta: "Open services",
+        ctaTarget: "services",
       },
       lifecycle: { mode: "reopen", readiness: 85 },
+    },
+    {
+      id: "BK-2026-000006",
+      slug: "patel-manali",
+      title: "Patel Family · Manali",
+      customer: "Patel Family",
+      destination: "Manali",
+      queryId: "Q-1048",
+      proposalVersion: "v2",
+      phase: "upcoming",
+      confirmed: true,
+      confirmations: { supplier: "confirmed", voucher: "issued", documents: "missing" },
+      paymentOverdue: false,
+      paymentsOpen: true,
+      priority: 4,
+      travelStart: "2026-08-24",
+      travelEnd: "2026-08-28",
+      pax: 5,
+      owner: DEMO_OWNER,
+      team: [DEMO_STAFF.vrushabh, DEMO_STAFF.meera],
+      toCollect: 15000,
+      collectDue: "2026-08-20",
+      toPaySuppliers: 0,
+      actionHint: "Collect passports and trip docs",
+      linkedProposal: "Manali Family Escape",
+      tripLabel: "Manali",
+      notesList: [{ author: "Meera Iyer", time: "3 Aug · 12:40", body: "Passports needed before voucher pack is sent to travellers." }],
+      itinerarySub: "Hotel + Volvo confirmed.",
+      itineraryNote: "Documents outstanding · departure approaching.",
+      services: [
+        {
+          id: "svc-manali-hotel",
+          type: "hotel",
+          name: "Hotel",
+          vendor: "Snow Peak Manali",
+          vendorContact: "+91 19xxx 33010",
+          vendorEmail: "stay@snowpeak.in",
+          serviceDetail: "Family rooms · 4 nights · breakfast",
+          cost: 42000,
+          confirmation: "confirmed",
+          deadline: "—",
+          status: "Confirmed",
+          paymentTerms: {
+            kind: "schedule",
+            schedule: [
+              { id: "pt-manali-h1", label: "On confirmation", percent: 50, trigger: "on_confirm" },
+              { id: "pt-manali-h2", label: "Balance", percent: 50, trigger: "before_checkin", daysBefore: 7 },
+            ],
+          },
+          payables: [
+            { id: "pay-manali-h1", label: "On confirmation", amount: 21000, dueLabel: "paid", dueDate: "2026-08-03", status: "paid" },
+            { id: "pay-manali-h2", label: "Balance", amount: 21000, dueLabel: "paid", dueDate: "2026-08-17", status: "paid" },
+          ],
+          vouchers: [{ id: "vh-manali-hotel", name: "Hotel voucher", attached: true, fileName: "snow-peak.pdf" }],
+        },
+        {
+          id: "svc-manali-volvo",
+          type: "transport",
+          name: "Volvo",
+          vendor: "HRTC Desk",
+          vendorContact: "+91 17xxx 22000",
+          vendorEmail: "desk@hrtc.gov.in",
+          serviceDetail: "Delhi–Manali Volvo · 5 seats",
+          cost: 20000,
+          confirmation: "confirmed",
+          deadline: "—",
+          status: "Confirmed",
+          paymentTerms: { kind: "schedule", schedule: [{ id: "pt-manali-v1", label: "Full", percent: 100, trigger: "on_confirm" }] },
+          payables: [{ id: "pay-manali-v1", label: "Full", amount: 20000, dueLabel: "paid", dueDate: "2026-08-03", status: "paid" }],
+          vouchers: [{ id: "vh-manali-volvo", name: "Volvo voucher", attached: true, fileName: "hrtc.pdf" }],
+        },
+      ],
+      tasks: [
+        { id: "T-501", title: "Collect missing passports", priority: "high", assignee: DEMO_STAFF.meera, due: "10 Aug", dependency: "None", status: "open" },
+        { id: "T-502", title: "Collect remaining ₹15,000", priority: "medium", assignee: DEMO_STAFF.vrushabh, due: "15 Aug", dependency: "None", status: "open" },
+      ],
+      travellers: [
+        {
+          id: "trv-manali-karan",
+          legalName: "Karan Patel",
+          name: "Karan Patel",
+          type: "Adult",
+          dob: "1986-05-14",
+          nationality: "Indian",
+          contact: "+91 98xxx 50001",
+          lead: true,
+          role: "Lead traveller",
+          passport: "Missing",
+          visaStatus: "Not required",
+          specialFlags: [],
+          linkedServices: [
+            { serviceId: "svc-manali-hotel", label: "Hotel" },
+            { serviceId: "svc-manali-volvo", label: "Volvo" },
+          ],
+          source: "query",
+        },
+        {
+          id: "trv-manali-nisha",
+          legalName: "Nisha Patel",
+          name: "Nisha Patel",
+          type: "Adult",
+          dob: "1988-09-30",
+          nationality: "Indian",
+          contact: "+91 98xxx 50002",
+          lead: false,
+          role: "Spouse",
+          passport: "Missing",
+          visaStatus: "Not required",
+          specialFlags: [],
+          linkedServices: [
+            { serviceId: "svc-manali-hotel", label: "Hotel" },
+            { serviceId: "svc-manali-volvo", label: "Volvo" },
+          ],
+          source: "query",
+        },
+        {
+          id: "trv-manali-dev",
+          legalName: "Dev Patel",
+          name: "Dev Patel",
+          type: "Child",
+          dob: "2015-02-11",
+          nationality: "Indian",
+          contact: "",
+          lead: false,
+          role: "Child",
+          guardianId: "trv-manali-karan",
+          guardianName: "Karan Patel",
+          passport: "Missing",
+          visaStatus: "Not required",
+          specialFlags: [],
+          linkedServices: [
+            { serviceId: "svc-manali-hotel", label: "Hotel" },
+            { serviceId: "svc-manali-volvo", label: "Volvo" },
+          ],
+          source: "query",
+        },
+        {
+          id: "trv-manali-riya",
+          legalName: "Riya Patel",
+          name: "Riya Patel",
+          type: "Child",
+          dob: "2018-06-03",
+          nationality: "Indian",
+          contact: "",
+          lead: false,
+          role: "Child",
+          guardianId: "trv-manali-karan",
+          guardianName: "Karan Patel",
+          passport: "Missing",
+          visaStatus: "Not required",
+          specialFlags: [],
+          linkedServices: [
+            { serviceId: "svc-manali-hotel", label: "Hotel" },
+            { serviceId: "svc-manali-volvo", label: "Volvo" },
+          ],
+          source: "query",
+        },
+        {
+          id: "trv-manali-aarav",
+          legalName: "Aarav Patel",
+          name: "Aarav Patel",
+          type: "Child",
+          dob: "2021-08-19",
+          nationality: "Indian",
+          contact: "",
+          lead: false,
+          role: "Child",
+          guardianId: "trv-manali-karan",
+          guardianName: "Karan Patel",
+          passport: "Missing",
+          visaStatus: "Not required",
+          specialFlags: [{ kind: "pickup", note: "Car seat required" }],
+          linkedServices: [
+            { serviceId: "svc-manali-hotel", label: "Hotel" },
+            { serviceId: "svc-manali-volvo", label: "Volvo" },
+          ],
+          source: "query",
+        },
+      ],
+      documents: [
+        { id: "doc-manali-pass-karan", type: "Passport", traveller: "Karan Patel", status: "Missing", required: true, requiredBy: "10 Aug", blocks: "Voucher send-out" },
+        { id: "doc-manali-pass-nisha", type: "Passport", traveller: "Nisha Patel", status: "Missing", required: true, requiredBy: "10 Aug", blocks: "Voucher send-out" },
+        { id: "doc-manali-pass-dev", type: "Passport", traveller: "Dev Patel", status: "Missing", required: true, requiredBy: "10 Aug", blocks: "Voucher send-out" },
+        { id: "doc-manali-pass-riya", type: "Passport", traveller: "Riya Patel", status: "Missing", required: true, requiredBy: "10 Aug", blocks: "Voucher send-out" },
+        { id: "doc-manali-pass-aarav", type: "Passport", traveller: "Aarav Patel", status: "Missing", required: true, requiredBy: "10 Aug", blocks: "Voucher send-out" },
+        {
+          id: "doc-manali-id",
+          type: "ID / KYC",
+          traveller: "Karan Patel",
+          status: "Expiring",
+          required: true,
+          requiredBy: "10 Aug",
+          note: "Aadhaar on file expires before travel — request updated copy",
+          fileName: "karan-patel-aadhaar.pdf",
+          fileSize: "420 KB",
+          fileKind: "pdf",
+          receivedAt: "3 Aug · 18:20",
+          receivedVia: "WhatsApp",
+          uploadedBy: "Karan Patel",
+          reviewHints: ["ID expiry 9 Aug 2026 — before trip end", "Name matches lead traveller"],
+          extracted: { idNo: "XXXX-XXXX-4412", expiry: "9 Aug 2026" },
+        },
+        {
+          id: "doc-manali-arrival",
+          type: "Arrival flight details",
+          traveller: "",
+          status: "Uploaded",
+          required: true,
+          requiredBy: "12 Aug",
+          note: "Customer upload for arrival logistics — verify before travel",
+          fileName: "patel-manali-arrival.pdf",
+          fileSize: "190 KB",
+          fileKind: "pdf",
+          receivedAt: "7 Aug · 21:05",
+          receivedVia: "Email",
+          uploadedBy: "Karan Patel",
+          reviewHints: ["Volvo + flight combo · check arrival time vs hotel check-in"],
+        },
+      ],
+      vouchers: [
+        {
+          id: "tv-manali-hotel",
+          serviceId: "svc-manali-hotel",
+          name: "Hotel voucher",
+          source: "vendor",
+          status: "issued",
+          blockReason: "",
+          fileName: "snow-peak-voucher.pdf",
+          sentAt: "",
+        },
+        {
+          id: "tv-manali-volvo",
+          serviceId: "svc-manali-volvo",
+          name: "Volvo voucher",
+          source: "integration",
+          status: "issued",
+          blockReason: "",
+          fileName: "hrtc-voucher.pdf",
+          sentAt: "",
+        },
+      ],
+      threads: [
+        { party: "Customer", channel: "WhatsApp", with: "Karan Patel", preview: "Please upload all five passports.", related: "Documents", assignee: "Meera Iyer", when: "Today · 08:50" },
+      ],
+      activity: [
+        { time: "2 Aug · 17:00", body: "Booking created from Q-1048 · accepted Proposal v2." },
+        { time: "3 Aug · 11:00", body: "Supplier confirmed hotel and Volvo." },
+        { time: "4 Aug · 09:30", body: "Document request sent to customer." },
+      ],
+      ledger: {
+        receivable: 95000,
+        sellingPrice: 95000,
+        totalCost: 62000,
+        margin: 33000,
+        deposits: 80000,
+        customerPaid: 80000,
+        customerBalance: 15000,
+        vendorPayable: 62000,
+        vendorSettled: 62000,
+        cashIn: 80000,
+        cashOut: 62000,
+        entryCount: 4,
+      },
+      nextAction: {
+        kind: "task",
+        title: "Request missing documents",
+        body: "Booking is confirmed — passports and trip docs are still missing.",
+        cta: "Open documents",
+        ctaTarget: "documents",
+      },
+      lifecycle: { mode: "reopen", readiness: 70 },
     },
     {
       id: "BK-2026-000001",
@@ -332,27 +1895,128 @@
       customer: "Jain Family",
       destination: "Tripura",
       queryId: "Q-1021",
+      proposalVersion: "v1",
       phase: "completed",
-      issues: [],
+      confirmed: true,
+      confirmations: { supplier: "confirmed", voucher: "issued", documents: "received" },
+      paymentOverdue: false,
       paymentsOpen: false,
       priority: 5,
       travelStart: "2026-08-01",
       travelEnd: "2026-08-04",
       pax: 2,
       owner: DEMO_OWNER,
+      team: [DEMO_STAFF.vrushabh],
       toCollect: 0,
       toPaySuppliers: 0,
       moneySettled: true,
       actionHint: "",
       linkedProposal: "Tripura Trip Proposal",
       tripLabel: "Tripura",
-      notes: "Converted from Q-1021 · Domestic short-haul · Guwahati transit.",
+      notesList: [{ author: "Vrushabh Jain", time: "4 Aug · 18:00", body: "Customer happy with Guwahati transit handling." }],
       itinerarySub: "Trip completed.",
-      itineraryNote: "Service lines on the Services & vendors tab remain the operational source of truth.",
+      itineraryNote: "Domestic short-haul · Guwahati transit.",
+      services: [
+        {
+          id: "svc-tripura",
+          type: "trip",
+          name: "Package",
+          vendor: "NE Holidays",
+          vendorContact: "+91 38xxx 11001",
+          vendorEmail: "ops@neholidays.in",
+          serviceDetail: "Guwahati transit + Tripura ground package",
+          cost: 28000,
+          confirmation: "confirmed",
+          deadline: "—",
+          status: "Delivered",
+          paymentTerms: { kind: "schedule", schedule: [{ id: "pt-tripura-1", label: "Full", percent: 100, trigger: "on_confirm" }] },
+          payables: [{ id: "pay-tripura-1", label: "Full", amount: 28000, dueLabel: "paid", dueDate: "2026-07-22", status: "paid" }],
+          vouchers: [{ id: "vh-tripura", name: "Trip voucher pack", attached: true, fileName: "ne-holidays.pdf" }],
+        },
+      ],
+      tasks: [{ id: "T-601", title: "No open fulfilment work", priority: "low", assignee: DEMO_STAFF.vrushabh, due: "—", dependency: "None", status: "done" }],
+      travellers: [
+        { name: "Vrushabh Jain", age: 34, type: "Adult", contact: "+91 98xxx 20001", passport: "Verified", visa: "Not required", special: "—" },
+        { name: "Guest Jain", age: 32, type: "Adult", contact: "+91 98xxx 20002", passport: "Verified", visa: "Not required", special: "—" },
+      ],
+      documents: [
+        {
+          id: "doc-tripura-pass-vj",
+          type: "Passport",
+          traveller: "Vrushabh Jain",
+          status: "Verified",
+          required: true,
+          requiredBy: "—",
+          fileName: "vrushabh-jain-passport.pdf",
+          fileSize: "980 KB",
+          fileKind: "pdf",
+          receivedAt: "21 Jul · 09:00",
+          receivedVia: "Email",
+          uploadedBy: "Vrushabh Jain",
+          verifiedAt: "21 Jul · 09:30",
+          verifiedBy: "Meera Iyer",
+          extracted: { passportNo: "A•••••4410", expiry: "4 May 2030", nationality: "Indian" },
+        },
+        {
+          id: "doc-tripura-pass-guest",
+          type: "Passport",
+          traveller: "Guest Jain",
+          status: "Verified",
+          required: true,
+          requiredBy: "—",
+          fileName: "guest-jain-passport.pdf",
+          fileSize: "960 KB",
+          fileKind: "pdf",
+          receivedAt: "21 Jul · 09:05",
+          receivedVia: "Email",
+          uploadedBy: "Vrushabh Jain",
+          verifiedAt: "21 Jul · 09:32",
+          verifiedBy: "Meera Iyer",
+          extracted: { passportNo: "A•••••4418", expiry: "14 Sep 2029", nationality: "Indian" },
+        },
+        {
+          id: "doc-tripura-arrival",
+          type: "Arrival flight details",
+          traveller: "",
+          status: "Verified",
+          required: false,
+          requiredBy: "—",
+          note: "Customer-uploaded reference for arrival",
+          fileName: "jain-guwahati-arrival.pdf",
+          fileSize: "160 KB",
+          fileKind: "pdf",
+          receivedAt: "22 Jul · 11:00",
+          receivedVia: "Email",
+          uploadedBy: "Vrushabh Jain",
+          verifiedAt: "22 Jul · 11:20",
+          verifiedBy: "Meera Iyer",
+        },
+      ],
+      vouchers: [
+        {
+          id: "tv-tripura",
+          serviceId: "svc-tripura",
+          name: "Trip voucher pack",
+          source: "agency",
+          status: "sent",
+          blockReason: "",
+          fileName: "ne-holidays-voucher.pdf",
+          sentAt: "1 Aug, 11:00 AM",
+        },
+      ],
+      threads: [
+        { party: "Customer", channel: "Email", with: "Jain Family", preview: "Thank you note received.", related: "Trip", assignee: "Vrushabh Jain", when: "5 Aug · 09:00" },
+      ],
+      activity: [
+        { time: "20 Jul · 10:00", body: "Booking created from Q-1021 · accepted Proposal v1." },
+        { time: "4 Aug · 21:00", body: "Trip marked completed · no open blockers." },
+      ],
       ledger: {
         receivable: 45000,
+        sellingPrice: 45000,
         totalCost: 28000,
         margin: 17000,
+        deposits: 45000,
         customerPaid: 45000,
         customerBalance: 0,
         vendorPayable: 28000,
@@ -368,18 +2032,193 @@
       },
       lifecycle: { mode: "reopen", readiness: 100 },
     },
+    {
+      id: "BK-2026-000007",
+      slug: "rao-jaipur",
+      title: "Rao Family · Jaipur",
+      customer: "Rao Family",
+      destination: "Jaipur",
+      queryId: "",
+      proposalVersion: "v1",
+      phase: "cancelled",
+      confirmed: false,
+      confirmations: { supplier: "pending", voucher: "pending", documents: "missing" },
+      paymentOverdue: false,
+      paymentsOpen: false,
+      priority: 9,
+      travelStart: "2026-09-01",
+      travelEnd: "2026-09-04",
+      pax: 2,
+      owner: DEMO_OWNER,
+      team: [DEMO_STAFF.vrushabh],
+      toCollect: 0,
+      toPaySuppliers: 0,
+      actionHint: "",
+      linkedProposal: "Jaipur Weekend",
+      tripLabel: "Jaipur",
+      notesList: [{ author: "Vrushabh Jain", time: "28 Jul · 13:00", body: "Customer cancelled due to visa delay — keep warm for next quarter." }],
+      itinerarySub: "Cancelled before supplier lock.",
+      itineraryNote: "No live services.",
+      services: [],
+      tasks: [],
+      travellers: [
+        { name: "Anil Rao", age: 41, type: "Adult", contact: "+91 98xxx 70001", passport: "Missing", visa: "Pending", special: "—" },
+        { name: "Sita Rao", age: 39, type: "Adult", contact: "+91 98xxx 70002", passport: "Missing", visa: "Pending", special: "—" },
+      ],
+      documents: [
+        { id: "doc-rao-pass-anil", type: "Passport", traveller: "Anil Rao", status: "Missing", required: true, requiredBy: "—" },
+        { id: "doc-rao-pass-sita", type: "Passport", traveller: "Sita Rao", status: "Missing", required: true, requiredBy: "—" },
+        { id: "doc-rao-visa-anil", type: "Visa copy", traveller: "Anil Rao", status: "Missing", required: true, requiredBy: "—" },
+        { id: "doc-rao-visa-sita", type: "Visa copy", traveller: "Sita Rao", status: "Missing", required: true, requiredBy: "—" },
+      ],
+      vouchers: [],
+      threads: [
+        { party: "Customer", channel: "Email", with: "Rao Family", preview: "Cancellation acknowledged.", related: "Lifecycle", assignee: "Vrushabh Jain", when: "28 Jul · 13:10" },
+      ],
+      activity: [
+        { time: "25 Jul · 16:00", body: "Booking created from Q-1030." },
+        { time: "28 Jul · 13:05", body: "Booking cancelled — visa delay." },
+      ],
+      ledger: {
+        receivable: 0,
+        sellingPrice: 0,
+        totalCost: 0,
+        margin: 0,
+        deposits: 0,
+        customerPaid: 0,
+        customerBalance: 0,
+        vendorPayable: 0,
+        vendorSettled: 0,
+        cashIn: 0,
+        cashOut: 0,
+        entryCount: 0,
+      },
+      nextAction: {
+        kind: "clear",
+        title: "Booking cancelled",
+        body: "No operational work remains on this booking.",
+      },
+      lifecycle: { mode: "reopen", readiness: 0 },
+    },
   ];
 
   const bookingsState = {
-    tab: "needs_action",
+    tab: "upcoming",
+    scope: "all",
+    scopeMember: "all",
     search: "",
     sort: "priority",
+    attentionFilter: "all",
+    issueFilter: "all",
+    ownerFilter: "all",
+    departWindow: "all",
+    destinationFilter: "all",
+    sourceFilter: "all",
+    archiveWindow: "all",
     page: 0,
     pageSize: 50,
     detailSlug: null,
     detailTab: "overview",
     filtersActive: false,
+    commThreadId: null,
+    commCompose: false,
+    docId: null,
+    docFocusTraveller: null,
+    docFocusType: null,
+    travellerFocusId: null,
+    travellerMenuId: null,
+    travellerIssuesOpen: null,
+    travellerFilter: "all",
   };
+
+  /**
+   * Master Inbox layer — Booking → Communication is a filtered view of the same threads.
+   * Channels (WhatsApp / Email) are how messages are delivered; Paryatech is the interface.
+   */
+  const INBOX_THREADS = [];
+
+  function partyRoleLabel(party) {
+    if (party === "Vendor") return "Vendor";
+    if (party === "Traveller") return "Traveller";
+    return "Traveller"; // Customer conversations surface as traveller-facing
+  }
+
+  function seedInboxThreadFromBooking(raw, booking, index) {
+    const id = raw.id || `IN-${booking.slug}-${index + 1}`;
+    const channel = raw.channel === "Email" ? "Email" : "WhatsApp";
+    const contactName = raw.with || booking.customer;
+    const related = raw.related || "Booking";
+    const messages =
+      Array.isArray(raw.messages) && raw.messages.length
+        ? raw.messages
+        : [
+            {
+              id: `${id}-m1`,
+              from: "contact",
+              body: raw.preview || "Conversation started.",
+              at: raw.when || "Earlier",
+              channel,
+            },
+            {
+              id: `${id}-m2`,
+              from: "staff",
+              body:
+                channel === "WhatsApp"
+                  ? `Noted — we'll update you on ${booking.id}.`
+                  : `Thanks — following up on ${booking.id} / ${related}.`,
+              at: "Just now",
+              channel,
+            },
+          ];
+    return {
+      id,
+      bookingSlug: booking.slug,
+      bookingId: booking.id,
+      party: raw.party === "Vendor" ? "Vendor" : "Customer",
+      roleLabel: partyRoleLabel(raw.party),
+      channel,
+      contactName,
+      related,
+      serviceId: raw.serviceId || "",
+      assignee: raw.assignee || booking.owner?.name || "",
+      when: raw.when || "Today",
+      preview: raw.preview || messages[messages.length - 1]?.body || "",
+      unread: !!raw.unread,
+      linkSource: raw.linkSource || "booking",
+      messages,
+    };
+  }
+
+  function buildInboxThreads() {
+    INBOX_THREADS.length = 0;
+    BOOKINGS.forEach((booking) => {
+      (booking.threads || []).forEach((thread, index) => {
+        INBOX_THREADS.push(seedInboxThreadFromBooking(thread, booking, index));
+      });
+    });
+    // Unlinked Inbox noise — visible in master Inbox later; not shown on a Booking until linked.
+    INBOX_THREADS.push({
+      id: "IN-unlinked-01",
+      bookingSlug: "",
+      bookingId: "",
+      party: "Customer",
+      roleLabel: "Traveller",
+      channel: "WhatsApp",
+      contactName: "Amit XYZ",
+      related: "",
+      serviceId: "",
+      assignee: "",
+      when: "Today · 12:05",
+      preview: "Can you call me?",
+      unread: true,
+      linkSource: "unlinked",
+      messages: [
+        { id: "IN-unlinked-01-m1", from: "contact", body: "Can you call me?", at: "Today · 12:05", channel: "WhatsApp" },
+      ],
+    });
+  }
+
+  buildInboxThreads();
 
   const paymentsState = {
     search: "",
@@ -544,7 +2383,6 @@
     },
   ];
 
-  let bookingNotesTimer = null;
 
   function formatINR(amount, { signed = true } = {}) {
     const abs = Math.abs(Math.round(amount));
@@ -575,10 +2413,16 @@
     return (Number(b.toCollect) || 0) + (Number(b.toPaySuppliers) || 0);
   }
 
+  function bookingNextOpenPayable(b) {
+    const openPayables = collectBookingPayables(b).filter((p) => p.status !== "paid" && (Number(p.amount) || 0) > 0);
+    if (!openPayables.length) return null;
+    return [...openPayables].sort((a, c) => String(a.dueDate || "9999").localeCompare(String(c.dueDate || "9999")))[0];
+  }
+
   /** Explicit money copy — never mixes signed amounts with “settled”. */
   function getBookingMoneyCopy(b) {
+    syncBookingSupplierTotals(b);
     const toCollect = Math.max(0, Number(b.toCollect) || 0);
-    const toPay = Math.max(0, Number(b.toPaySuppliers) || 0);
     const lines = [];
 
     if (toCollect > 0) {
@@ -588,17 +2432,31 @@
         tone: "is-collect",
       });
     }
-    if (toPay > 0) {
+    const supplier = getBookingSupplierMoneyCopy(b);
+    const nextPayable = bookingNextOpenPayable(b);
+    if (nextPayable) {
       lines.push({
-        amount: formatINR(toPay, { signed: false }),
-        label: "to pay suppliers",
+        amount: formatINR(nextPayable.amount, { signed: false }),
+        label: "to pay supplier",
         tone: "is-pay",
+      });
+    } else if ((Number(b.toPaySuppliers) || 0) > 0) {
+      lines.push({
+        amount: formatINR(b.toPaySuppliers, { signed: false }),
+        label: "to pay supplier",
+        tone: "is-pay",
+      });
+    } else if (supplier.title && /paid$/i.test(supplier.title)) {
+      lines.push({
+        amount: supplier.title.replace(/\s*paid$/i, ""),
+        label: "paid",
+        tone: "is-settled",
       });
     }
     if (lines.length) {
       return {
         lines,
-        title: lines.map((l) => `${l.amount} ${l.label}`).join(" · "),
+        title: lines.map((l) => `${l.amount}${l.label ? ` ${l.label}` : ""}`).join(" · "),
       };
     }
     if (b.moneySettled) {
@@ -608,8 +2466,8 @@
       };
     }
     return {
-      lines: [{ amount: "No balance", label: "", tone: "is-clear" }],
-      title: "No balance",
+      lines: [{ amount: "Settled", label: "", tone: "is-settled" }],
+      title: "Settled",
     };
   }
 
@@ -622,7 +2480,7 @@
 
   function formatVendorPayCopy(payable, settled) {
     const open = Math.max(0, Math.round(Number(payable) || 0) - Math.round(Number(settled) || 0));
-    if (open > 0) return `${formatINR(open, { signed: false })} to pay suppliers`;
+    if (open > 0) return `${formatINR(open, { signed: false })} to pay supplier`;
     if ((Number(payable) || 0) > 0) return "Settled";
     return "No balance";
   }
@@ -648,32 +2506,4129 @@
     return `${s.getDate()} ${months[s.getMonth()]} – ${e.getDate()} ${months[e.getMonth()]} ${e.getFullYear()}`;
   }
 
+  function formatListDatesShort(start, end) {
+    if (!start || !end) return "";
+    const s = new Date(`${start}T12:00:00`);
+    const e = new Date(`${end}T12:00:00`);
+    if (!Number.isFinite(s.getTime()) || !Number.isFinite(e.getTime())) return "";
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (start === end) return `${s.getDate()} ${months[s.getMonth()]}`;
+    if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
+      return `${s.getDate()}–${e.getDate()} ${months[s.getMonth()]}`;
+    }
+    return `${s.getDate()} ${months[s.getMonth()]} – ${e.getDate()} ${months[e.getMonth()]}`;
+  }
+
+  function bookingDepartsLabel(b) {
+    if (!b) return "";
+    if (b.phase === "travelling") return "Travelling";
+    if (b.phase === "completed") return "Ended";
+    if (b.phase === "cancelled") return "Cancelled";
+    const days = daysUntilTravel(b);
+    if (!Number.isFinite(days)) return "";
+    if (days < 0) return "Departed";
+    if (days === 0) return "Departs today";
+    if (days === 1) return "Departs in 1 day";
+    return `Departs in ${days} days`;
+  }
+
+  function bookingTripContextLine(b) {
+    const parts = [
+      formatListDatesShort(b.travelStart, b.travelEnd),
+      b.pax != null ? `${b.pax} traveller${Number(b.pax) === 1 ? "" : "s"}` : "",
+      bookingDepartsLabel(b),
+    ].filter(Boolean);
+    return parts.join(" · ");
+  }
+
+  function bookingTraceLine(b) {
+    const parts = [];
+    if (b?.id) parts.push(b.id);
+    if (b?.queryId) parts.push(b.queryId);
+    if (b?.proposalVersion) parts.push(`Proposal ${b.proposalVersion}`);
+    return parts.join(" · ");
+  }
+
+  function bookingProblemLabels(b, issues = getBookingOpenIssues(b)) {
+    const c = b?.confirmations || {};
+    const docs = bookingDocuments(b);
+    const missingDocs = docs.filter((d) => d.required !== false && !docStatusIsComplete(d.status)).length;
+    const vouchers = bookingVouchers(b);
+    const blockedVouchers = vouchers.filter((v) => v.status === "blocked").length;
+    const plural = (n, one, many) => (n === 1 ? one : many);
+
+    return issues.map((issue) => {
+      if (issue === "supplier") return "Supplier pending";
+      if (issue === "vouchers") {
+        const blocked =
+          blockedVouchers > 0 ? blockedVouchers : bookingHasVoucherBlocked(b) || c.voucher === "blocked" ? 1 : 0;
+        if (blocked > 0) {
+          return `${blocked} ${plural(blocked, "voucher", "vouchers")} blocked`;
+        }
+        return "Voucher pending";
+      }
+      if (issue === "documents") {
+        if (missingDocs > 0) return `${missingDocs} ${plural(missingDocs, "doc", "docs")} missing`;
+        if (bookingHasDocumentsExpiring(b)) return "Documents expiring";
+        return "Docs missing";
+      }
+      if (issue === "customer_payment") return b?.paymentOverdue ? "Payment overdue" : "Payment due";
+      if (issue === "supplier_payment") return "Supplier payment due";
+      return bookingIssueLabel(issue);
+    });
+  }
+
+  function bookingIssuePriorityRank(b, issue) {
+    if (issue === "customer_payment" && b?.paymentOverdue) return 0;
+    if (issue === "vouchers" && bookingHasVoucherBlocked(b)) return 1;
+    if (issue === "supplier") return 2;
+    if (issue === "documents") return 3;
+    if (issue === "customer_payment") return 4;
+    if (issue === "supplier_payment") return 5;
+    if (issue === "vouchers") return 6;
+    return 9;
+  }
+
+  function sortBookingIssuesByPriority(b, issues = getBookingOpenIssues(b)) {
+    return [...(issues || [])].sort((a, bIssue) => bookingIssuePriorityRank(b, a) - bookingIssuePriorityRank(b, bIssue));
+  }
+
+  function bookingActionItemPriorityRank(booking, item) {
+    if (item?.id === "payment" && booking?.paymentOverdue) return 0;
+    if (item?.id === "vouchers" && bookingHasVoucherBlocked(booking)) return 1;
+    if (item?.id === "vendor") return 2;
+    if (item?.id === "documents") return 3;
+    if (item?.id === "travellers") return 4;
+    if (item?.id === "payment") return 5;
+    if (item?.id === "vouchers") return 6;
+    return 9;
+  }
+
+  function sortBookingActionItemsByPriority(booking, items) {
+    return [...(items || [])].sort(
+      (a, b) => bookingActionItemPriorityRank(booking, a) - bookingActionItemPriorityRank(booking, b)
+    );
+  }
+
+  function bookingProblemsLine(b, issues = getBookingOpenIssues(b)) {
+    const sorted = sortBookingIssuesByPriority(b, issues);
+    const labels = bookingProblemLabels(b, sorted);
+    if (!labels.length) return "";
+    const shown = labels.slice(0, BOOKING_ISSUE_CHIP_LIMIT);
+    const extra = labels.length - shown.length;
+    return extra > 0 ? `${shown.join(" · ")} · +${extra} issues` : shown.join(" · ");
+  }
+
+  function bookingIssueChipsHtml(b, issues = getBookingOpenIssues(b), {
+    limit = BOOKING_ISSUE_CHIP_LIMIT,
+    wrapClass = "bookings-row-problems bookings-issue-row",
+    interactiveMore = true,
+  } = {}) {
+    if (!issues?.length) return "";
+    const sorted = sortBookingIssuesByPriority(b, issues);
+    const labels = bookingProblemLabels(b, sorted);
+    const shown = sorted.slice(0, limit);
+    const extra = sorted.length - shown.length;
+    const chips = shown
+      .map((issue, idx) => {
+        const label = labels[idx] || bookingIssueLabel(issue);
+        return `<span class="booking-issue-pill is-${escapeHtml(issue)}">${escapeHtml(label)}</span>`;
+      })
+      .join("");
+    let more = "";
+    if (extra > 0) {
+      const moreLabel = `+${extra} ${extra === 1 ? "issue" : "issues"}`;
+      if (interactiveMore && b?.slug) {
+        more = `<span role="button" tabindex="0" class="booking-issue-more is-action" data-booking-issues-more="${escapeHtml(
+          b.slug
+        )}" title="Open booking readiness">${escapeHtml(moreLabel)}</span>`;
+      } else {
+        more = `<span class="booking-issue-more">${escapeHtml(moreLabel)}</span>`;
+      }
+    }
+    return `<span class="${wrapClass}">${chips}${more}</span>`;
+  }
+
+  function openBookingFromList(slug, tab = "overview", { focusReadiness = false } = {}) {
+    const booking = getBookingBySlug(slug);
+    if (!booking) return;
+    let key = focusReadiness ? "overview" : BOOKING_DETAIL_TABS[tab] ? tab : "overview";
+    if (!canAccessBookingTab(key, booking)) {
+      if (tab === "finance") showToast("Finance needs Finance permission…");
+      else showToast("You don’t have access to that tab…");
+      key = firstAllowedBookingTab(booking, "overview");
+    }
+    openBookingDetail(slug, { tab: key, push: true, focusReadiness });
+  }
+
+  function bookingNextActionDueFragment(b) {
+    const action = b?.nextAction;
+    if (action?.due) return String(action.due);
+    if (action?.dueLabel) return String(action.dueLabel);
+    const services = typeof bookingServices === "function" ? bookingServices(b) : b?.services || [];
+    const withDeadline = (services || []).find((s) => s?.deadline && s.deadline !== "—" && s.confirmation !== "confirmed");
+    if (withDeadline?.deadline) {
+      const d = String(withDeadline.deadline);
+      return /^due\b/i.test(d) ? d : `due ${d}`;
+    }
+    const overdueTask = (b?.tasks || []).find((t) => t.status === "overdue" && t.due);
+    if (overdueTask?.due) return String(overdueTask.due);
+    const openTask = (b?.tasks || []).find((t) => (t.status === "open" || t.status === "blocked") && t.due && t.due !== "—");
+    if (openTask?.due) return /^due\b/i.test(String(openTask.due)) ? String(openTask.due) : `due ${openTask.due}`;
+    return "";
+  }
+
+  function bookingNextActionLine(b) {
+    if (!b) return "";
+    const title = (b.nextAction?.title || "").trim();
+    if (!title || /nothing is blocking|no open|clear/i.test(title)) return "";
+    const due = bookingNextActionDueFragment(b);
+    return due ? `${title} · ${due}` : title;
+  }
+
+  function formatShortDueDate(isoOrLabel) {
+    if (!isoOrLabel) return "";
+    const raw = String(isoOrLabel).trim();
+    if (!raw || raw === "—") return "";
+    if (/^due\b/i.test(raw) || /overdue|today/i.test(raw)) return raw.replace(/^due\s+/i, "Due ");
+    const parsed = Date.parse(raw.length <= 10 ? `${raw}T12:00:00` : raw);
+    if (!Number.isFinite(parsed)) return raw.startsWith("Due") ? raw : `Due ${raw}`;
+    const d = new Date(parsed);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `Due ${d.getDate()} ${months[d.getMonth()]}`;
+  }
+
+  function bookingRowMoneyLines(b) {
+    if (!canViewBookingFinance()) {
+      return {
+        lines: [{ text: "Finance restricted", tone: "is-clear" }],
+        title: "Finance restricted",
+      };
+    }
+    syncBookingSupplierTotals(b);
+    const toCollect = Math.max(0, Number(b.toCollect) || 0);
+    const nextPayable = bookingNextOpenPayable(b);
+    const toPay = nextPayable
+      ? Math.max(0, Number(nextPayable.amount) || 0)
+      : Math.max(0, Number(b.toPaySuppliers) || 0);
+    const lines = [];
+    let kind = "settled";
+
+    if (toCollect > 0) {
+      kind = "collect";
+      lines.push({
+        text: `${formatINR(toCollect, { signed: false })} to collect`,
+        tone: "is-collect",
+      });
+    } else if (toPay > 0) {
+      kind = "pay";
+      lines.push({
+        text: `${formatINR(toPay, { signed: false })} to pay supplier`,
+        tone: "is-pay",
+      });
+    } else {
+      lines.push({ text: "Settled", tone: "is-settled" });
+    }
+
+    if (kind === "collect") {
+      if (b.paymentOverdue) {
+        lines.push({ text: "Overdue", tone: "is-collect" });
+      } else if (b.collectDue) {
+        const due = formatShortDueDate(b.collectDue);
+        if (due) lines.push({ text: due, tone: "is-collect" });
+      } else {
+        const paid = Math.max(0, Number(b.ledger?.customerPaid ?? b.ledger?.cashIn) || 0);
+        if (paid > 0) {
+          lines.push({
+            text: `${formatINR(paid, { signed: false })} received`,
+            tone: "is-collect",
+          });
+        }
+      }
+    } else if (kind === "pay") {
+      if (b.paymentOverdue) {
+        lines.push({ text: "Overdue", tone: "is-pay" });
+      } else {
+        const due = formatShortDueDate(nextPayable?.dueDate || nextPayable?.dueLabel);
+        if (due) lines.push({ text: due, tone: "is-pay" });
+      }
+    }
+
+    return {
+      lines,
+      title: lines.map((l) => l.text).join(" · "),
+      launchFinance: kind === "collect" || kind === "pay",
+    };
+  }
+
+  function bookingOwnerSideLabel(booking) {
+    const owner = booking?.owner;
+    const initials = owner?.initials || "—";
+    const extras = bookingOwnerExtrasCount(booking);
+    return extras > 0 ? `${initials} +${extras}` : initials;
+  }
+
   function bookingInitial(title) {
     return (title || "B").trim().charAt(0).toUpperCase();
   }
 
   function phaseLabel(phase) {
-    if (phase === "needs_action") return "Needs action";
     if (phase === "upcoming") return "Upcoming";
     if (phase === "travelling") return "Travelling";
     if (phase === "completed") return "Completed";
+    if (phase === "cancelled") return "Cancelled";
     return phase;
+  }
+
+  function attentionLabel(attention) {
+    if (attention === "at_risk") return "At risk";
+    if (attention === "needs_action") return "Needs action";
+    return "Healthy";
+  }
+
+  function daysUntilTravel(booking) {
+    const start = new Date(`${booking.travelStart}T12:00:00`);
+    const today = new Date("2026-08-10T12:00:00");
+    return Math.ceil((start - today) / 86400000);
   }
 
   function bookingIssueLabel(issue) {
     return BOOKING_ISSUE_LABELS[issue] || issue;
   }
 
-  function bookingIssueChipsHtml(issues) {
-    if (!issues || !issues.length) return "";
-    return `<span class="bookings-issue-row">${issues
-      .map((issue) => `<span class="booking-issue-pill is-${escapeHtml(issue)}">${escapeHtml(bookingIssueLabel(issue))}</span>`)
-      .join("")}</span>`;
+  function getBookingOpenIssues(b) {
+    const issues = [];
+    const c = b.confirmations || {};
+    const services = bookingServices(b);
+    if (c.supplier === "pending" || services.some((s) => s.confirmation !== "confirmed")) {
+      issues.push("supplier");
+    }
+    const docs = bookingDocuments(b);
+    const requiredOpen = docs.filter((d) => d.required !== false && !docStatusIsComplete(d.status));
+    const docsExpiring = docs.some((d) => d.status === "Expiring");
+    if (requiredOpen.length || c.documents === "missing" || docsExpiring) {
+      issues.push("documents");
+    }
+    if (c.voucher === "blocked" || c.voucher === "pending") {
+      issues.push("vouchers");
+    } else if (bookingVouchers(b).some((v) => v.status === "blocked" || v.status === "ready")) {
+      issues.push("vouchers");
+    }
+    const toCollect = Math.max(0, Number(b.toCollect) || 0);
+    if (toCollect > 0 || b.paymentOverdue) issues.push("customer_payment");
+    const toPay = Math.max(0, Number(b.toPaySuppliers) || 0);
+    if (toPay > 0) issues.push("supplier_payment");
+    return issues;
   }
 
+  function getBookingOpsOpenIssues(booking) {
+    return getBookingOpenIssues(booking).filter((issue) => !BOOKING_MONEY_ISSUE_KEYS.has(issue));
+  }
+
+  function bookingHasVoucherBlocked(b) {
+    const c = b.confirmations || {};
+    if (c.voucher === "blocked") return true;
+    return bookingVouchers(b).some((v) => v.status === "blocked");
+  }
+
+  function bookingHasDocumentsExpiring(b) {
+    return bookingDocuments(b).some((d) => d.status === "Expiring");
+  }
+
+  function getBookingAttention(b) {
+    if (b.phase === "cancelled") return "healthy";
+    const issues = getBookingOpenIssues(b);
+    const days = daysUntilTravel(b);
+    const docs = bookingDocuments(b);
+    const tasks = b.tasks || [];
+    const missingRequired = docs.some((d) => d.required !== false && d.status === "Missing");
+    const atRisk =
+      bookingHasVoucherBlocked(b) ||
+      !!b.paymentOverdue ||
+      bookingHasDocumentsExpiring(b) ||
+      (issues.length > 0 && Number.isFinite(days) && days >= 0 && days <= 7) ||
+      (missingRequired && Number.isFinite(days) && days >= 0 && days <= 14);
+    if (atRisk) return "at_risk";
+    const needs =
+      !b.confirmed ||
+      issues.length > 0 ||
+      tasks.some((t) => t.status === "open" || t.status === "overdue" || t.status === "blocked");
+    if (needs) return "needs_action";
+    return "healthy";
+  }
+
+  function confirmationStatusLabel(key, value) {
+    if (key === "supplier") return value === "confirmed" ? "Done" : "Pending";
+    if (key === "voucher") {
+      if (value === "issued") return "Done";
+      if (value === "blocked") return "Blocked";
+      return "Pending";
+    }
+    if (key === "documents") return value === "received" ? "Done" : "Missing";
+    return value;
+  }
+
+  function confirmationIsOpen(key, value) {
+    if (key === "supplier") return value !== "confirmed";
+    if (key === "voucher") return value !== "issued" && value !== "sent";
+    if (key === "documents") return value !== "received";
+    return true;
+  }
+
+  function markConfirmationDone(booking, key) {
+    if (!booking.confirmations) booking.confirmations = {};
+    if (key === "supplier") {
+      const services = bookingServices(booking);
+      const blocked = services.find((s) => s.confirmation !== "confirmed");
+      if (blocked) {
+        showToast("Attach vouchers and confirm each vendor first…");
+        setBookingDetailTab("services", { updateHash: true });
+        return false;
+      }
+      booking.confirmations.supplier = "confirmed";
+    }
+    if (key === "voucher") {
+      const vouchers = bookingVouchers(booking);
+      const blocked = vouchers.find((v) => v.status === "blocked");
+      if (blocked) {
+        showToast("Confirm linked vendors before issuing traveller vouchers…");
+        setBookingDetailTab("services", { updateHash: true });
+        return false;
+      }
+      vouchers.forEach((v) => {
+        if (v.status === "ready") {
+          v.status = "issued";
+          v.fileName = v.fileName || `${(v.name || "voucher").toLowerCase().replace(/[^a-z0-9]+/g, "-")}.pdf`;
+        }
+      });
+      syncVoucherConfirmationState(booking);
+    }
+    if (key === "documents") {
+      // Completion is system-driven when every required document is Verified.
+      showToast("Documents complete when every required file is verified…");
+      setBookingDetailTab("documents", { updateHash: true });
+      return false;
+    }
+    const open = getBookingOpsOpenIssues(booking);
+    if (!open.length) {
+      booking.actionHint = booking.paymentOverdue
+        ? "Collect overdue balance"
+        : Number(booking.toCollect) || 0
+          ? "Collect balance"
+          : Number(booking.toPaySuppliers) || 0
+            ? "Pay suppliers"
+            : "";
+      if (!booking.paymentOverdue && !(Number(booking.toCollect) || 0) && !(Number(booking.toPaySuppliers) || 0)) {
+        booking.nextAction = {
+          kind: "clear",
+          title: "Confirmations complete",
+          body: "Supplier, voucher and documents are done.",
+        };
+      } else if (booking.paymentOverdue || Number(booking.toCollect) || 0) {
+        booking.nextAction = {
+          kind: "task",
+          title: "Collect customer balance",
+          body: "Confirmations are done — money still needs collection.",
+          cta: "Open finance",
+          ctaTarget: "finance",
+        };
+      } else if (Number(booking.toPaySuppliers) || 0) {
+        booking.nextAction = {
+          kind: "task",
+          title: "Pay suppliers",
+          body: "Confirmations are done — supplier payout still open.",
+          cta: "Open finance",
+          ctaTarget: "finance",
+        };
+      }
+    } else if (open.length === 1 && open[0] === "vouchers") {
+      booking.actionHint = "Issue travel vouchers";
+      booking.nextAction = {
+        kind: "task",
+        title: "Issue travel vouchers",
+        body: "Supplier and documents are done — voucher is still pending.",
+        cta: "Open vouchers",
+        ctaTarget: "vouchers",
+      };
+    }
+    return true;
+  }
+
+  function runBookingCtaTarget(target) {
+    if (!target) return;
+    if (target === "confirmations") {
+      setBookingDetailTab("overview", { updateHash: true, scrollTop: false });
+      scrollBookingOverviewReadiness();
+      showToast("Review open issues on Overview…");
+      return;
+    }
+    if (BOOKING_DETAIL_TABS[target]) {
+      const booking = bookingsState.detailSlug ? getBookingBySlug(bookingsState.detailSlug) : null;
+      if (booking && !canAccessBookingTab(target, booking)) {
+        showToast(target === "finance" ? "Finance needs Finance permission…" : "You don’t have access to that tab…");
+        return;
+      }
+      setBookingDetailTab(target, { updateHash: true });
+      const meta = Object.values(BOOKING_CONFIRM_META).find((item) => item.tab === target);
+      showToast(meta?.openToast || `Opening ${target}…`);
+    }
+  }
+
+  function getBookingsViewingAs() {
+    return viewBookings?.dataset.viewingAs || viewTeam?.dataset.viewingAs || "Owner";
+  }
+
+  function isBookingsOwnerAdmin() {
+    const role = getBookingsViewingAs();
+    return role === "Owner" || role === "Admin";
+  }
+
+  function isBookingsOwner() {
+    return getBookingsViewingAs() === "Owner";
+  }
+
+  function getBookingsViewerStaff() {
+    const role = getBookingsViewingAs();
+    if (role === "Member") return DEMO_STAFF.meera;
+    if (role === "Admin") return DEMO_STAFF.neha;
+    return DEMO_OWNER;
+  }
+
+  /** Demo persona permissions — Owner/Admin have Finance; Member is ops-only. */
+  function canViewBookingFinance() {
+    return isBookingsOwnerAdmin();
+  }
+
+  function canViewSupplierMoney() {
+    return canViewBookingFinance();
+  }
+
+  function canAccessBookingTab(tab, booking = null) {
+    if (!BOOKING_DETAIL_TABS[tab]) return false;
+    if (booking && !memberCanAccessBooking(booking)) return false;
+    if (tab === "finance") return canViewBookingFinance();
+    // Ops tabs: vouchers/communication/activity require booking access (already checked).
+    return true;
+  }
+
+  function firstAllowedBookingTab(booking, preferred = "overview") {
+    if (canAccessBookingTab(preferred, booking)) return preferred;
+    return "overview";
+  }
+
+  function applyBookingPersonaAccessFlags() {
+    if (viewBookings) {
+      viewBookings.dataset.financeAccess = canViewBookingFinance() ? "1" : "0";
+      viewBookings.dataset.supplierMoney = canViewSupplierMoney() ? "1" : "0";
+    }
+  }
+
+  function applyBookingsScopeForRole(role = getBookingsViewingAs()) {
+    const next = role === "Admin" || role === "Member" ? role : "Owner";
+    bookingsState.scope = next === "Member" ? "mine" : "all";
+    bookingsState.scopeMember = "all";
+    bookingsState.page = 0;
+    syncBookingsScopeControls();
+  }
+
+  function syncBookingsScopeControls() {
+    const role = getBookingsViewingAs();
+    const scope = role === "Member" && bookingsState.scope === "all" ? "mine" : bookingsState.scope;
+    if (scope !== bookingsState.scope) bookingsState.scope = scope;
+
+    document.querySelectorAll("[data-bookings-scope]").forEach((btn) => {
+      const active = btn.dataset.bookingsScope === scope;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    });
+
+    const showMemberFilter = role === "Owner";
+    ["bookings-scope-member", "bookings-archive-scope-member"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.hidden = !showMemberFilter;
+      if (el.value !== bookingsState.scopeMember) el.value = bookingsState.scopeMember || "all";
+    });
+  }
+
+  function applyBookingDetailTabAccess(booking) {
+    applyBookingPersonaAccessFlags();
+    document.querySelectorAll("[data-booking-tab]").forEach((btn) => {
+      const tab = btn.dataset.bookingTab;
+      const allowed = canAccessBookingTab(tab, booking);
+      btn.hidden = !allowed;
+      btn.disabled = !allowed;
+      btn.setAttribute("aria-hidden", String(!allowed));
+      if (!allowed) {
+        btn.classList.remove("is-active");
+        btn.setAttribute("aria-selected", "false");
+      }
+    });
+  }
+
+  function bookingAssigneeIds(booking) {
+    const ids = new Set();
+    if (booking?.owner?.id) ids.add(booking.owner.id);
+    bookingOpsAssigneeIds(booking).forEach((id) => ids.add(id));
+    return ids;
+  }
+
+  function bookingOpsAssigneeIds(booking) {
+    const ids = new Set();
+    (booking?.team || []).forEach((member) => {
+      if (member?.id) ids.add(member.id);
+    });
+    (booking?.tasks || []).forEach((task) => {
+      const assignee = task?.assignee;
+      if (assignee?.id) ids.add(assignee.id);
+      else if (typeof assignee === "string") {
+        const match = Object.values(DEMO_STAFF).find((person) => person.name === assignee);
+        if (match?.id) ids.add(match.id);
+      }
+    });
+    (booking?.threads || []).forEach((thread) => {
+      const match = Object.values(DEMO_STAFF).find((person) => person.name === thread?.assignee);
+      if (match?.id) ids.add(match.id);
+    });
+    return ids;
+  }
+
+  function bookingIsUnassigned(booking) {
+    return !(booking?.team && booking.team.length);
+  }
+
+  function bookingMatchesScope(booking, scope = bookingsState.scope, viewer = getBookingsViewerStaff(), scopeMember = bookingsState.scopeMember) {
+    const role = getBookingsViewingAs();
+    let effective = scope === "mine" || scope === "unassigned" || scope === "all" ? scope : "all";
+    if (role === "Member" && effective === "all") effective = "mine";
+
+    let matches = true;
+    if (effective === "mine") {
+      matches = bookingOpsAssigneeIds(booking).has(viewer?.id);
+    } else if (effective === "unassigned") {
+      matches = bookingIsUnassigned(booking);
+    }
+
+    if (matches && role === "Owner" && scopeMember && scopeMember !== "all") {
+      matches = bookingOpsAssigneeIds(booking).has(scopeMember);
+    }
+    return matches;
+  }
+
+  function memberCanAccessBooking(booking, staff = getBookingsViewerStaff()) {
+    if (!booking) return false;
+    if (isBookingsOwnerAdmin()) return true;
+    return bookingOpsAssigneeIds(booking).has(staff.id) || bookingIsUnassigned(booking);
+  }
+
+  function getBookingConfirmationOpens(booking) {
+    return getBookingOpsOpenIssues(booking);
+  }
+
+  function serviceTypeLabel(type) {
+    return SERVICE_TYPES[type] || SERVICE_TYPES.trip;
+  }
+
+  function inferServiceType(line) {
+    const raw = String(line?.type || line?.name || "").toLowerCase();
+    if (SERVICE_TYPE_KEYS.includes(raw)) return raw;
+    if (/flight|air/.test(raw)) return "flight";
+    if (/hotel|stay|room/.test(raw)) return "hotel";
+    if (/visa/.test(raw)) return "visa";
+    if (/cruise|houseboat|boat/.test(raw)) return "cruise";
+    if (/transport|transfer|cab|volvo|car/.test(raw)) return "transport";
+    if (/trip|package|ground/.test(raw)) return "trip";
+    return "trip";
+  }
+
+  function formatShortDueDate(iso) {
+    if (!iso) return "—";
+    const d = new Date(`${iso}T12:00:00`);
+    if (Number.isNaN(d.getTime())) return iso;
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${d.getDate()} ${months[d.getMonth()]}`;
+  }
+
+  function todayIsoDate() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function addDaysIso(iso, days) {
+    const d = new Date(`${iso}T12:00:00`);
+    d.setDate(d.getDate() + days);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function dueLabelForDate(iso, status) {
+    if (status === "paid") return "paid";
+    if (!iso) return "—";
+    const today = todayIsoDate();
+    if (iso === today) return "today";
+    if (iso < today) return `overdue ${formatShortDueDate(iso)}`;
+    return formatShortDueDate(iso);
+  }
+
+  function formatPayableCopy(payable) {
+    const amount = formatINR(payable?.amount || 0, { signed: false });
+    if (payable?.status === "paid") return `${amount} paid`;
+    const due = payable?.dueLabel || dueLabelForDate(payable?.dueDate, payable?.status);
+    if (due === "today") return `${amount} due today`;
+    if (String(due).startsWith("overdue")) return `${amount} ${due}`;
+    if (due && due !== "—") return `${amount} due ${due}`;
+    return `${amount} due`;
+  }
+
+  function servicePayablesCopy(service) {
+    if (service?.confirmation !== "confirmed") {
+      if (service?.paymentTerms?.kind === "unknown") return "Payment terms unknown — set on confirm";
+      if (service?.paymentTerms?.kind === "schedule") {
+        const schedule = service.paymentTerms.schedule || [];
+        if (schedule.length) {
+          const cost = formatINR(service.cost || 0, { signed: false });
+          const parts = schedule.map((row) => {
+            if (row.trigger === "on_confirm") return `${row.percent || 0}% on confirmation`;
+            if (row.trigger === "before_checkin") return `${row.percent || 0}% ${row.daysBefore || 7} days before check-in`;
+            return row.label || "Scheduled";
+          });
+          return `${cost} · ${parts.join(", ")}`;
+        }
+      }
+      return service?.cost ? `${formatINR(service.cost, { signed: false })} vendor cost` : "No payable yet";
+    }
+    const payables = service?.payables || [];
+    if (!payables.length) return "No payable yet";
+    return payables.map(formatPayableCopy).join(" · ");
+  }
+
+  function resolveScheduleDueDate(row, booking, activated) {
+    if (row.trigger === "on_confirm") return activated ? todayIsoDate() : "";
+    if (row.trigger === "before_checkin") {
+      const start = booking.travelStart || todayIsoDate();
+      return addDaysIso(start, -(Number(row.daysBefore) || 7));
+    }
+    return row.dueDate || "";
+  }
+
+  function buildPayablesFromTerms(service, booking, { activateOnConfirm = false } = {}) {
+    const cost = Math.round(Number(service.cost) || 0);
+    const terms = service.paymentTerms || { kind: "unknown" };
+    if (terms.kind !== "schedule" || !Array.isArray(terms.schedule) || !terms.schedule.length) {
+      return Array.isArray(service.payables) ? service.payables : [];
+    }
+    const existing = Array.isArray(service.payables) ? service.payables : [];
+    let allocated = 0;
+    return terms.schedule.map((row, index) => {
+      const prev = existing.find((p) => p.id === `pay-${service.id}-${row.id}` || p.id === row.payableId || p.label === row.label);
+      let amount = Math.round((cost * (Number(row.percent) || 0)) / 100);
+      if (index === terms.schedule.length - 1) amount = Math.max(0, cost - allocated);
+      else allocated += amount;
+      const dueDate = resolveScheduleDueDate(row, booking, activateOnConfirm || service.confirmation === "confirmed");
+      let status = prev?.status || "scheduled";
+      if (activateOnConfirm || service.confirmation === "confirmed") {
+        if (row.trigger === "on_confirm") status = prev?.status === "paid" ? "paid" : "due";
+        else if (dueDate && dueDate <= todayIsoDate()) status = prev?.status === "paid" ? "paid" : "due";
+        else status = prev?.status === "paid" ? "paid" : "scheduled";
+      }
+      return {
+        id: prev?.id || `pay-${service.id}-${row.id || index}`,
+        label: row.label || `Installment ${index + 1}`,
+        amount,
+        dueDate,
+        dueLabel: dueLabelForDate(dueDate, status),
+        status,
+      };
+    });
+  }
+
+  function ensureServicePayables(service, booking, { activateOnConfirm = false } = {}) {
+    if (service.paymentTerms?.kind === "schedule") {
+      service.payables = buildPayablesFromTerms(service, booking, { activateOnConfirm });
+    } else if (!Array.isArray(service.payables)) {
+      service.payables = [];
+    }
+    return service.payables;
+  }
+
+  function collectBookingPayables(booking) {
+    return bookingServices(booking).flatMap((service) =>
+      (service.payables || []).map((payable) => ({
+        ...payable,
+        serviceId: service.id,
+        serviceType: service.type,
+        serviceName: service.name,
+        vendor: service.vendor,
+      }))
+    );
+  }
+
+  function syncBookingSupplierTotals(booking) {
+    const payables = collectBookingPayables(booking);
+    const vendorPayable = payables.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const vendorSettled = payables.filter((p) => p.status === "paid").reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const openDue = payables
+      .filter((p) => p.status === "due" || (p.status === "scheduled" && p.dueDate && p.dueDate <= todayIsoDate()))
+      .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    booking.toPaySuppliers = openDue;
+    if (!booking.ledger) booking.ledger = {};
+    booking.ledger.vendorPayable = vendorPayable;
+    booking.ledger.vendorSettled = vendorSettled;
+    booking.ledger.totalCost = Math.max(Number(booking.ledger.totalCost) || 0, vendorPayable);
+    if (openDue > 0 && payables.some((p) => (p.status === "due" || p.status === "scheduled") && p.dueDate && p.dueDate < todayIsoDate())) {
+      booking.paymentOverdue = true;
+    }
+    return { vendorPayable, vendorSettled, openDue };
+  }
+
+  function getBookingSupplierMoneyCopy(booking) {
+    const payables = collectBookingPayables(booking).filter((p) => (Number(p.amount) || 0) > 0);
+    if (!payables.length) {
+      const toPay = Math.max(0, Number(booking.toPaySuppliers) || 0);
+      if (toPay > 0) return { title: `${formatINR(toPay, { signed: false })} to pay supplier`, tone: "is-open" };
+      return { title: "No supplier payables", tone: "is-done" };
+    }
+    const open = payables.filter((p) => p.status !== "paid");
+    if (!open.length) {
+      const paidTotal = payables.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      return { title: `${formatINR(paidTotal, { signed: false })} paid`, tone: "is-done" };
+    }
+    const sorted = [...open].sort((a, b) => String(a.dueDate || "9999").localeCompare(String(b.dueDate || "9999")));
+    const next = sorted[0];
+    return { title: formatPayableCopy(next), tone: "is-open" };
+  }
+
+  function getBookingPaymentReadinessCopy(booking) {
+    const toCollect = Math.max(0, Number(booking.toCollect) || 0);
+    const supplier = getBookingSupplierMoneyCopy(booking);
+    const parts = [];
+    if (toCollect > 0) parts.push(`${formatINR(toCollect, { signed: false })} to collect`);
+    if (supplier.title && supplier.title !== "No supplier payables") parts.push(supplier.title);
+    if (!parts.length) {
+      if (booking.moneySettled) return { className: "is-done", value: "Settled — no open money" };
+      return { className: "is-done", value: "No balance" };
+    }
+    return {
+      className: toCollect > 0 || supplier.tone === "is-open" ? "is-open" : "is-done",
+      value: parts.join(" · "),
+    };
+  }
+
+  function normalizeBookingService(line, index, booking) {
+    const confirmed = line?.confirmation === "confirmed";
+    const type = inferServiceType(line);
+    const vouchers =
+      Array.isArray(line?.vouchers) && line.vouchers.length
+        ? line.vouchers.map((v, vi) => ({
+            id: v.id || `vh-${index}-${vi}`,
+            name: v.name || `${line.name || "Service"} voucher`,
+            attached: !!v.attached || confirmed,
+            fileName: v.fileName || (v.attached || confirmed ? `${(line.vendor || "vendor").toLowerCase().replace(/\s+/g, "-")}.pdf` : ""),
+          }))
+        : [
+            {
+              id: `vh-${index}-0`,
+              name: `${line?.name || "Service"} voucher`,
+              attached: confirmed,
+              fileName: confirmed ? `${(line?.vendor || "vendor").toLowerCase().replace(/\s+/g, "-")}.pdf` : "",
+            },
+          ];
+    const paymentTerms =
+      line?.paymentTerms?.kind === "schedule" || line?.paymentTerms?.kind === "unknown"
+        ? line.paymentTerms
+        : confirmed
+          ? { kind: "schedule", schedule: [{ id: `pt-${index}-full`, label: "Full", percent: 100, trigger: "on_confirm" }] }
+          : { kind: "unknown" };
+    const normalized = {
+      id: line?.id || `svc-${booking.id}-${index}`,
+      type,
+      name: line?.name || serviceTypeLabel(type),
+      vendor: line?.vendor || `${booking.destination || "Trip"} partner`,
+      vendorContact: line?.vendorContact || "—",
+      vendorEmail: line?.vendorEmail || "—",
+      serviceDetail: line?.serviceDetail || `${line?.name || serviceTypeLabel(type)} for ${booking.customer || "this booking"}`,
+      cost: line?.cost || 0,
+      confirmation: confirmed ? "confirmed" : "pending",
+      deadline: line?.deadline || "—",
+      status: line?.status || (confirmed ? "Confirmed" : "Awaiting vouchers"),
+      addedAfterConfirmation: !!line?.addedAfterConfirmation,
+      source: line?.source || (line?.addedAfterConfirmation ? "post_confirmation" : "proposal"),
+      paymentTerms,
+      payables: Array.isArray(line?.payables) ? line.payables : [],
+      vouchers,
+    };
+    ensureServicePayables(normalized, booking, { activateOnConfirm: confirmed });
+    return normalized;
+  }
+
+  function bookingServices(booking) {
+    if (booking.services && booking.services.length) {
+      return booking.services.map((line, index) => {
+        const normalized = normalizeBookingService(line, index, booking);
+        booking.services[index] = { ...line, ...normalized };
+        return booking.services[index];
+      });
+    }
+    const pending = (booking.confirmations || {}).supplier !== "confirmed";
+    const fallback = [
+      normalizeBookingService(
+        {
+          type: "hotel",
+          name: "Stay",
+          vendor: `${booking.destination} hotel partner`,
+          cost: booking.ledger?.vendorPayable || 0,
+          confirmation: pending ? "pending" : "confirmed",
+          deadline: pending ? "Today" : "—",
+          status: pending ? "Awaiting vouchers" : "Confirmed",
+          paymentTerms: pending ? { kind: "unknown" } : { kind: "schedule", schedule: [{ id: "pt-fallback", label: "Full", percent: 100, trigger: "on_confirm" }] },
+        },
+        0,
+        booking
+      ),
+    ];
+    booking.services = fallback;
+    return fallback;
+  }
+
+  function serviceVouchersReady(service) {
+    const vouchers = service?.vouchers || [];
+    return vouchers.length > 0 && vouchers.every((v) => v.attached);
+  }
+
+  function syncSupplierConfirmationFromServices(booking) {
+    if (!booking.confirmations) booking.confirmations = {};
+    const services = bookingServices(booking);
+    if (!services.length) return;
+    const allConfirmed = services.every((s) => s.confirmation === "confirmed");
+    booking.confirmations.supplier = allConfirmed ? "confirmed" : "pending";
+  }
+
+  function attachServiceVoucher(booking, serviceId, voucherId) {
+    const service = bookingServices(booking).find((s) => s.id === serviceId);
+    if (!service || service.confirmation === "confirmed") return false;
+    const voucher = (service.vouchers || []).find((v) => v.id === voucherId);
+    if (!voucher || voucher.attached) return false;
+    voucher.attached = true;
+    voucher.fileName = voucher.fileName || `${voucher.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.pdf`;
+    service.status = serviceVouchersReady(service) ? "Vouchers attached — confirm vendor" : "Vouchers partially attached";
+    if (!booking.vouchers) booking.vouchers = [];
+    const global = booking.vouchers.find((v) => v.name === voucher.name);
+    if (global) {
+      global.status = "ready";
+      global.blockReason = "";
+    } else {
+      booking.vouchers.push({ name: voucher.name, status: "ready", blockReason: "" });
+    }
+    pushBookingActivity(booking, `${voucher.name} attached for ${service.vendor} · ${service.name}.`);
+    return true;
+  }
+
+  function confirmServiceVendor(booking, serviceId, manualPayable = null) {
+    const service = bookingServices(booking).find((s) => s.id === serviceId);
+    if (!service || service.confirmation === "confirmed") return false;
+    if (!serviceVouchersReady(service)) {
+      showToast("Attach all vouchers for this vendor first…");
+      return false;
+    }
+    if (service.paymentTerms?.kind === "unknown") {
+      if (canViewSupplierMoney()) {
+        const amount = Math.round(Number(manualPayable?.amount));
+        const dueDate = String(manualPayable?.dueDate || "").trim();
+        if (!amount || amount <= 0 || !dueDate) {
+          showToast("Set payable amount and due date for this vendor…");
+          return false;
+        }
+        service.cost = amount;
+        service.payables = [
+          {
+            id: `pay-${service.id}-manual`,
+            label: "Supplier payable",
+            amount,
+            dueDate,
+            dueLabel: dueLabelForDate(dueDate, "due"),
+            status: "due",
+          },
+        ];
+        pushBookingActivity(booking, `Payable ${formatPayableCopy(service.payables[0])} set for ${service.vendor}.`);
+      } else {
+        // Ops confirm without exposing supplier money — Finance sets payable later.
+        service.payables = service.payables || [];
+        pushBookingActivity(booking, `${service.vendor} confirmed · payable pending Finance.`);
+      }
+    } else {
+      ensureServicePayables(service, booking, { activateOnConfirm: true });
+      const created = (service.payables || []).filter((p) => p.status === "due");
+      if (created.length && canViewSupplierMoney()) {
+        pushBookingActivity(booking, `Payable ${formatPayableCopy(created[0])} created for ${service.vendor}.`);
+      } else if (created.length) {
+        pushBookingActivity(booking, `Supplier payable created for ${service.vendor}.`);
+      }
+    }
+    service.confirmation = "confirmed";
+    service.status = "Confirmed";
+    service.deadline = "—";
+    syncSupplierConfirmationFromServices(booking);
+    syncBookingSupplierTotals(booking);
+    syncTravellerVouchers(booking);
+    pushBookingActivity(booking, `${service.vendor} confirmed for ${serviceTypeLabel(service.type)} after vouchers attached.`);
+    if (booking.confirmations.supplier === "confirmed") {
+      const open = getBookingOpsOpenIssues(booking);
+      if (open.length === 1 && open[0] === "vouchers") {
+        booking.actionHint = "Issue travel vouchers";
+        booking.nextAction = {
+          kind: "task",
+          title: "Issue travel vouchers",
+          body: "All vendors confirmed — issue customer-facing vouchers when ready.",
+          cta: "Open vouchers",
+          ctaTarget: "vouchers",
+        };
+      } else if (!open.length && !booking.confirmed) {
+        booking.nextAction = {
+          kind: "info",
+          title: "Ops ready",
+          body: "Suppliers, vouchers and documents are clear for this booking.",
+          cta: "",
+          ctaTarget: "",
+        };
+      }
+    }
+    return true;
+  }
+
+  function markServicePayablePaid(booking, serviceId, payableId) {
+    const service = bookingServices(booking).find((s) => s.id === serviceId);
+    if (!service) return false;
+    const payable = (service.payables || []).find((p) => p.id === payableId);
+    if (!payable || payable.status === "paid") return false;
+    payable.status = "paid";
+    payable.dueLabel = "paid";
+    syncBookingSupplierTotals(booking);
+    pushBookingActivity(booking, `${formatPayableCopy(payable)} to ${service.vendor}.`);
+    return true;
+  }
+
+  function nextCatalogItemForBooking(booking) {
+    const existing = new Set(bookingServices(booking).map((s) => `${s.type}|${s.name}|${s.vendor}`));
+    return (
+      SERVICE_CATALOG.find((item) => !existing.has(`${item.type}|${item.name}|${item.vendor}`)) ||
+      SERVICE_CATALOG[bookingServices(booking).length % SERVICE_CATALOG.length]
+    );
+  }
+
+  function createBookingServiceLine(booking, seed = {}, { fromCatalog = false } = {}) {
+    bookingServices(booking);
+    const afterConfirm = !!booking.confirmed;
+    const index = booking.services.length;
+    const draft = {
+      id: seed.id || `svc-${booking.slug || "bk"}-${Date.now().toString(36)}`,
+      type: seed.type || "trip",
+      name: seed.name || "Custom service",
+      vendor: seed.vendor || "Vendor to assign",
+      vendorContact: seed.vendorContact || "—",
+      vendorEmail: seed.vendorEmail || "—",
+      serviceDetail: seed.serviceDetail || `${seed.name || "Custom service"} · ${booking.destination || "trip"}`,
+      cost: Math.round(Number(seed.cost) || 0),
+      confirmation: "pending",
+      deadline: afterConfirm ? "Tomorrow" : "Today",
+      status: "Awaiting vouchers",
+      addedAfterConfirmation: afterConfirm,
+      source: afterConfirm ? "post_confirmation" : fromCatalog ? "catalog" : "ops",
+      paymentTerms: seed.paymentTerms || { kind: "unknown" },
+      payables: [],
+      vouchers: (seed.vouchers || [{ name: `${seed.name || "Service"} voucher`, attached: false, fileName: "" }]).map((v, vi) => ({
+        id: v.id || `vh-new-${index}-${vi}`,
+        name: v.name,
+        attached: false,
+        fileName: "",
+      })),
+    };
+    booking.services.push(normalizeBookingService(draft, index, booking));
+    syncSupplierConfirmationFromServices(booking);
+    syncBookingSupplierTotals(booking);
+    const mark = afterConfirm ? " · marked Added after confirmation · customer selling price unchanged" : "";
+    pushBookingActivity(
+      booking,
+      `${fromCatalog ? "Catalog" : "Service"} line added: ${draft.name} · ${draft.vendor}${mark}.`
+    );
+    return booking.services[booking.services.length - 1];
+  }
+
+  function addBookingServiceFromCatalog(booking) {
+    const item = nextCatalogItemForBooking(booking);
+    return createBookingServiceLine(booking, { ...item, id: undefined }, { fromCatalog: true });
+  }
+
+  function nextVendorAlternate(service) {
+    const type = inferServiceType(service);
+    const options = VENDOR_ALTERNATES[type] || VENDOR_ALTERNATES.trip;
+    if (!options.length) return null;
+    const current = String(service.vendor || "").toLowerCase();
+    const idx = options.findIndex((opt) => String(opt.vendor || "").toLowerCase() === current);
+    return options[(idx + 1) % options.length];
+  }
+
+  function changeBookingServiceVendor(booking, serviceId) {
+    const service = bookingServices(booking).find((s) => s.id === serviceId);
+    if (!service) return null;
+    if (service.confirmation === "confirmed") {
+      showToast("Vendor already confirmed — can’t change…");
+      return null;
+    }
+    const next = nextVendorAlternate(service);
+    if (!next) {
+      showToast("No alternate vendors for this service…");
+      return null;
+    }
+    const previous = service.vendor;
+    service.vendor = next.vendor;
+    service.vendorContact = next.vendorContact || "—";
+    service.vendorEmail = next.vendorEmail || "—";
+    service.serviceDetail = next.serviceDetail || service.serviceDetail;
+    if (typeof next.cost === "number") service.cost = next.cost;
+    service.paymentTerms = next.paymentTerms || { kind: "unknown" };
+    service.payables = [];
+    service.confirmation = "pending";
+    service.status = "Awaiting vouchers";
+    service.deadline = service.deadline && service.deadline !== "—" ? service.deadline : "Today";
+    // Reset vouchers so the new vendor starts clean.
+    service.vouchers = (service.vouchers || [{ name: `${service.name} voucher` }]).map((v, vi) => ({
+      id: v.id || `vh-${service.id}-${vi}`,
+      name: v.name || `${service.name} voucher`,
+      attached: false,
+      fileName: "",
+    }));
+    ensureServicePayables(service, booking, { activateOnConfirm: false });
+    syncSupplierConfirmationFromServices(booking);
+    syncBookingSupplierTotals(booking);
+    pushBookingActivity(booking, `Vendor changed for ${serviceTypeLabel(service.type)}: ${previous} → ${service.vendor}.`);
+    return service;
+  }
+
+  function addBookingServiceLine(booking) {
+    return createBookingServiceLine(
+      booking,
+      {
+        type: "trip",
+        name: "Custom service line",
+        vendor: "Vendor to assign",
+        serviceDetail: `Manual line for ${booking.destination || "this trip"}`,
+        cost: 0,
+        paymentTerms: { kind: "unknown" },
+        vouchers: [{ name: "Service voucher", attached: false, fileName: "" }],
+      },
+      { fromCatalog: false }
+    );
+  }
+
+  function acceptedSellingPrice(booking) {
+    const L = booking.ledger || {};
+    return Math.round(Number(L.sellingPrice ?? L.receivable) || 0);
+  }
+
+  function startSellingPriceAmendment(booking, proposedPrice, reason) {
+    if (!isBookingsOwnerAdmin()) {
+      showToast("Only Owner or Admin can open a price amendment…");
+      return false;
+    }
+    const current = acceptedSellingPrice(booking);
+    const proposed = Math.round(Number(proposedPrice));
+    if (!proposed || proposed <= 0) {
+      showToast("Enter a valid proposed selling price…");
+      return false;
+    }
+    if (proposed === current) {
+      showToast("Proposed price matches the accepted selling price…");
+      return false;
+    }
+    booking.amendment = {
+      status: "draft",
+      field: "sellingPrice",
+      currentPrice: current,
+      proposedPrice: proposed,
+      reason: reason || "Customer-facing commercial change",
+      openedAt: "Just now",
+    };
+    pushBookingActivity(
+      booking,
+      `Selling-price amendment drafted: ${formatINR(current, { signed: false })} → ${formatINR(proposed, { signed: false })} (accepted proposal unchanged until accepted).`
+    );
+    return true;
+  }
+
+  function discardSellingPriceAmendment(booking) {
+    if (!booking.amendment || booking.amendment.status !== "draft") return false;
+    pushBookingActivity(booking, "Selling-price amendment discarded · accepted commercial terms unchanged.");
+    booking.amendment = null;
+    return true;
+  }
+
+  function acceptSellingPriceAmendment(booking) {
+    if (!isBookingsOwnerAdmin()) {
+      showToast("Only Owner or Admin can accept a price amendment…");
+      return false;
+    }
+    const draft = booking.amendment;
+    if (!draft || draft.status !== "draft" || draft.field !== "sellingPrice") return false;
+    if (!booking.ledger) booking.ledger = {};
+    const paid = Math.round(Number(booking.ledger.customerPaid) || 0);
+    const nextPrice = Math.round(Number(draft.proposedPrice) || 0);
+    const prev = acceptedSellingPrice(booking);
+    booking.ledger.sellingPrice = nextPrice;
+    booking.ledger.receivable = nextPrice;
+    booking.ledger.customerBalance = Math.max(0, nextPrice - paid);
+    booking.ledger.margin = nextPrice - Math.round(Number(booking.ledger.totalCost) || 0);
+    booking.toCollect = booking.ledger.customerBalance;
+    if (booking.ledger.customerBalance > 0) {
+      booking.paymentOverdue = booking.paymentOverdue || false;
+      booking.paymentsOpen = true;
+      booking.moneySettled = false;
+    }
+    booking.amendment = {
+      status: "accepted",
+      field: "sellingPrice",
+      currentPrice: nextPrice,
+      previousPrice: prev,
+      reason: draft.reason,
+      acceptedAt: "Just now",
+    };
+    pushBookingActivity(
+      booking,
+      `Amendment accepted · selling price ${formatINR(prev, { signed: false })} → ${formatINR(nextPrice, { signed: false })}.`
+    );
+    return true;
+  }
+
+  function bookingTasks(booking) {
+    if (booking.tasks && booking.tasks.length) return booking.tasks;
+    return [
+      {
+        id: "T-1",
+        title: booking.nextAction?.title || "Review booking",
+        priority: "medium",
+        assignee: booking.owner,
+        due: "—",
+        dependency: "None",
+        status: booking.nextAction?.kind === "task" ? "open" : "done",
+      },
+    ];
+  }
+
+  function destinationNeedsVisa(destination) {
+    const d = String(destination || "").toLowerCase();
+    return !/(goa|manali|ladakh|kerala|munnar|tripura|jaipur|rajasthan|delhi|mumbai|india|shimla|andaman)/.test(d);
+  }
+
+  function formatTravellerDob(iso) {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+    const [y, m, day] = iso.split("-").map(Number);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${day} ${months[m - 1]} ${y}`;
+  }
+
+  function ageFromDob(iso, onDate = "2026-08-08") {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+    const dob = new Date(`${iso}T12:00:00`);
+    const on = new Date(`${onDate}T12:00:00`);
+    let age = on.getFullYear() - dob.getFullYear();
+    const md = on.getMonth() - dob.getMonth();
+    if (md < 0 || (md === 0 && on.getDate() < dob.getDate())) age -= 1;
+    return age;
+  }
+
+  function specialFlagLabel(kind) {
+    const map = {
+      dietary: "Dietary",
+      accessibility: "Accessibility",
+      medical: "Medical assistance",
+      room: "Room preference",
+      pickup: "Pickup requirement",
+      other: "Other",
+    };
+    return map[kind] || kind || "Other";
+  }
+
+  function normalizeSpecialFlags(raw, legacySpecial) {
+    if (Array.isArray(raw) && raw.length) {
+      return raw
+        .map((item) => {
+          if (typeof item === "string") return { kind: "other", note: item };
+          return { kind: item.kind || "other", note: item.note || "" };
+        })
+        .filter((item) => item.note || item.kind);
+    }
+    const text = String(legacySpecial || "").trim();
+    if (!text || text === "—") return [];
+    const kind = /pickup|airport/i.test(text) ? "pickup" : /car seat|medical|diet|veg|access/i.test(text) ? "other" : "other";
+    if (/car seat/i.test(text)) return [{ kind: "pickup", note: text }];
+    if (/veg/i.test(text)) return [{ kind: "dietary", note: text }];
+    return [{ kind, note: text }];
+  }
+
+  function inferVisaStatusForTraveller(traveller, booking) {
+    const explicit = traveller.visaStatus || "";
+    if (
+      explicit === "Not required" ||
+      explicit === "Required" ||
+      explicit === "Documents pending" ||
+      explicit === "Applied" ||
+      explicit === "Approved" ||
+      explicit === "Rejected"
+    ) {
+      return explicit;
+    }
+    const legacy = String(traveller.visa || "").toLowerCase();
+    if (legacy.includes("not required")) return "Not required";
+    if (legacy.includes("approved")) return "Approved";
+    if (legacy.includes("applied")) return "Applied";
+    if (legacy.includes("reject")) return "Rejected";
+    if (legacy.includes("pending") || legacy.includes("document")) return "Documents pending";
+    const needsVisa = destinationNeedsVisa(booking.destination);
+    const indian = /india|indian/i.test(traveller.nationality || "");
+    if (!needsVisa) return "Not required";
+    if (indian || traveller.nationality) return legacy.includes("required") ? "Documents pending" : "Required";
+    return "Required";
+  }
+
+  function visaStatusTone(status) {
+    if (status === "Not required" || status === "Approved") return "is-ok";
+    if (status === "Rejected") return "is-severe";
+    if (status === "Applied") return "is-warn";
+    return "is-warn";
+  }
+
+  function passportReadinessTone(status) {
+    if (status === "Verified") return "is-ok";
+    if (status === "Expiring") return "is-severe";
+    if (status === "Uploaded") return "is-warn";
+    return "is-warn";
+  }
+
+  function normalizeBookingTraveller(raw, booking, index) {
+    const name = raw?.legalName || raw?.name || booking.customer || `Traveller ${index + 1}`;
+    const type = raw?.type || (Number(raw?.age) < 12 ? "Child" : Number(raw?.age) < 2 ? "Infant" : "Adult");
+    const dob = raw?.dob || "";
+    const age = dob ? ageFromDob(dob) : raw?.age != null && raw?.age !== "—" ? Number(raw.age) : null;
+    const specialFlags = normalizeSpecialFlags(raw?.specialFlags, raw?.special);
+    const visaStatus = inferVisaStatusForTraveller({ ...raw, nationality: raw?.nationality || "Indian" }, booking);
+    const needsGender = destinationNeedsVisa(booking.destination);
+    return {
+      id: raw?.id || `trv-${booking.slug || "bk"}-${index + 1}`,
+      legalName: name,
+      name,
+      type,
+      dob,
+      age,
+      gender: needsGender ? raw?.gender || "" : raw?.gender || "",
+      showGender: needsGender && !!raw?.gender,
+      nationality: raw?.nationality || "Indian",
+      contact: raw?.contact && raw.contact !== "—" ? raw.contact : "",
+      email: raw?.email || "",
+      lead: !!raw?.lead || index === 0,
+      role: raw?.role || (raw?.lead || index === 0 ? "Lead traveller" : type === "Child" || type === "Infant" ? "Child" : "Traveller"),
+      guardianId: raw?.guardianId || "",
+      guardianName: raw?.guardianName || "",
+      passport: raw?.passport || "Missing",
+      visaStatus,
+      specialFlags,
+      linkedServices: Array.isArray(raw?.linkedServices) ? raw.linkedServices : [],
+      source: raw?.source || "query",
+      queryTravellerId: raw?.queryTravellerId || "",
+    };
+  }
+
+  function bookingTravellers(booking) {
+    const list =
+      booking.travellers && booking.travellers.length
+        ? booking.travellers
+        : [
+            {
+              legalName: booking.customer,
+              name: booking.customer,
+              type: "Adult",
+              nationality: "Indian",
+              lead: true,
+              passport: "Missing",
+              source: "query",
+            },
+          ];
+    booking.travellers = list.map((row, index) => normalizeBookingTraveller(row, booking, index));
+    if (!booking.travellers.some((t) => t.lead) && booking.travellers.length) booking.travellers[0].lead = true;
+    return booking.travellers;
+  }
+
+  function travellerIssueList(traveller, booking) {
+    const issues = [];
+    if (!traveller.legalName) issues.push({ key: "name", severity: "severe", label: "Legal name missing" });
+    if (!traveller.dob) issues.push({ key: "dob", severity: "warn", label: "Date of birth missing" });
+    if (!traveller.nationality) issues.push({ key: "nationality", severity: "warn", label: "Nationality missing" });
+    if (traveller.type === "Adult" && !traveller.contact) {
+      issues.push({ key: "contact", severity: "warn", label: "Contact missing" });
+    }
+    if (traveller.passport === "Missing") {
+      issues.push({ key: "passport", severity: "severe", label: "Passport missing", docType: "Passport" });
+    } else if (traveller.passport === "Requested") {
+      issues.push({ key: "passport", severity: "warn", label: "Passport requested", docType: "Passport" });
+    } else if (traveller.passport === "Uploaded") {
+      issues.push({ key: "passport", severity: "warn", label: "Passport uploaded — needs verify", docType: "Passport" });
+    } else if (traveller.passport === "Expiring") {
+      issues.push({ key: "passport", severity: "severe", label: "Passport expiring", docType: "Passport" });
+    }
+    if (traveller.visaStatus === "Required" || traveller.visaStatus === "Documents pending") {
+      issues.push({
+        key: "visa",
+        severity: traveller.visaStatus === "Required" ? "severe" : "warn",
+        label: `Visa: ${traveller.visaStatus}`,
+        docType: "Visa copy",
+      });
+    } else if (traveller.visaStatus === "Rejected") {
+      issues.push({ key: "visa", severity: "severe", label: "Visa rejected", docType: "Visa copy" });
+    } else if (traveller.visaStatus === "Applied") {
+      issues.push({ key: "visa", severity: "warn", label: "Visa applied — awaiting approval", docType: "Visa copy" });
+    }
+    if ((traveller.type === "Child" || traveller.type === "Infant") && !traveller.guardianName) {
+      issues.push({ key: "guardian", severity: "warn", label: "Guardian not linked" });
+    }
+    return issues;
+  }
+
+  function travellerIsReady(traveller, booking) {
+    return travellerIssueList(traveller, booking).length === 0;
+  }
+
+  function bookingTravellerReadiness(booking) {
+    const travellers = bookingTravellers(booking);
+    bookingDocuments(booking);
+    const ready = travellers.filter((t) => travellerIsReady(t, booking)).length;
+    return { ready, total: travellers.length, travellers };
+  }
+
+  function bookingHasConfirmedLinkedServices(booking, traveller) {
+    const services = bookingServices(booking);
+    const linkedIds = new Set((traveller.linkedServices || []).map((s) => s.serviceId));
+    if (!linkedIds.size) return services.some((s) => s.confirmation === "confirmed");
+    return services.some((s) => linkedIds.has(s.id) && s.confirmation === "confirmed");
+  }
+
+  function openTravellerDocuments(booking, travellerName, docType = "Passport") {
+    bookingsState.docFocusTraveller = travellerName;
+    bookingsState.docFocusType = docType || "Passport";
+    const docs = bookingDocuments(booking);
+    const match =
+      docs.find((d) => d.traveller === travellerName && d.type === bookingsState.docFocusType) ||
+      docs.find((d) => d.traveller === travellerName && !docStatusIsComplete(d.status)) ||
+      docs.find((d) => d.traveller === travellerName);
+    if (match) bookingsState.docId = match.id;
+    else ensureBookingDocSelection(booking);
+    const person = bookingTravellers(booking).find((t) => t.name === travellerName || t.legalName === travellerName);
+    if (person) bookingsState.travellerFocusId = person.id;
+    setBookingDetailTab("documents", { updateHash: true });
+    renderBookingOpsTabs(booking);
+    showToast(`Opening ${travellerName} documents…`);
+  }
+
+  function travellerDocsNeedAction(traveller, booking) {
+    return travellerIssueList(traveller, booking).some((issue) => !!issue.docType);
+  }
+
+  function handleTravellerAction(booking, travellerId, action) {
+    const travellers = bookingTravellers(booking);
+    const traveller = travellers.find((t) => t.id === travellerId);
+    if (!traveller) return;
+    bookingsState.travellerMenuId = null;
+    const linked = bookingHasConfirmedLinkedServices(booking, traveller);
+    if (action === "edit") {
+      if (linked) {
+        showToast("This traveller is linked to confirmed services. Updating may require supplier changes…");
+      } else {
+        showToast(`Editing booking details for ${traveller.legalName}…`);
+      }
+      pushBookingActivity(booking, `${getBookingsViewingAs()} opened edit for traveller ${traveller.legalName}.`);
+      return;
+    }
+    if (action === "request-docs") {
+      if (!travellerDocsNeedAction(traveller, booking)) {
+        showToast("No missing documents for this traveller…");
+        return;
+      }
+      const firstDocIssue = travellerIssueList(traveller, booking).find((issue) => issue.docType);
+      openTravellerDocuments(booking, traveller.name, firstDocIssue?.docType || "Passport");
+      pushBookingActivity(booking, `Document request opened for ${traveller.legalName}.`);
+      return;
+    }
+    if (action === "replace") {
+      if (linked) {
+        showToast("Replace blocked until you confirm supplier impact — traveller is linked to flight/hotel/service records…");
+      } else {
+        showToast(`Replace traveller ${traveller.legalName}…`);
+      }
+      pushBookingActivity(booking, `Replace traveller started for ${traveller.legalName}.`);
+      return;
+    }
+    if (action === "remove") {
+      if (linked) {
+        const labels = (traveller.linkedServices || []).map((s) => s.label).join(", ") || "linked services";
+        showToast(`Cannot remove quietly — affects ${labels}. Confirm supplier changes first…`);
+        pushBookingActivity(booking, `Remove attempted for ${traveller.legalName} · linked services: ${labels}.`);
+        return;
+      }
+      booking.travellers = travellers.filter((t) => t.id !== travellerId);
+      pushBookingActivity(booking, `${traveller.legalName} removed from booking snapshot.`);
+      showToast(`${traveller.legalName} removed from booking…`);
+      renderBookingDetail(booking);
+      renderBookingsList();
+    }
+  }
+
+  function docStatusIsComplete(status) {
+    return status === "Verified";
+  }
+
+  function docStatusTone(status) {
+    if (status === "Verified") return "is-done";
+    if (status === "Uploaded") return "is-ready";
+    if (status === "Expiring") return "is-blocked";
+    if (status === "Requested") return "is-open";
+    return "is-open";
+  }
+
+  function docStatusLabel(status) {
+    if (status === "Missing") return "Missing";
+    if (status === "Requested") return "Requested";
+    if (status === "Uploaded") return "Uploaded";
+    if (status === "Verified") return "Verified";
+    if (status === "Expiring") return "Expiring";
+    return status || "Missing";
+  }
+
+  function documentRowTitle(doc) {
+    const type = doc.type || doc.name || "Document";
+    return doc.traveller ? `${type} — ${doc.traveller}` : type;
+  }
+
+  function demoDocumentFileName(doc) {
+    const who = String(doc.traveller || "booking")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const type = String(doc.type || "document")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    return `${who}-${type}.pdf`;
+  }
+
+  function documentHasFile(doc) {
+    return !!(doc && doc.fileName);
+  }
+
+  function clearDocumentFile(doc) {
+    if (!doc) return;
+    doc.fileName = "";
+    doc.fileSize = "";
+    doc.fileKind = "";
+    doc.receivedAt = "";
+    doc.receivedVia = "";
+    doc.uploadedBy = "";
+    doc.reviewHints = [];
+    doc.extracted = null;
+    doc.verifiedAt = "";
+    doc.verifiedBy = "";
+  }
+
+  function attachDemoDocumentFile(doc, { via = "WhatsApp", by = "Traveller" } = {}) {
+    if (!doc) return;
+    doc.fileName = demoDocumentFileName(doc);
+    doc.fileSize = doc.type === "Passport" ? "1.0 MB" : "240 KB";
+    doc.fileKind = "pdf";
+    doc.receivedAt = "Just now";
+    doc.receivedVia = via;
+    doc.uploadedBy = by || doc.traveller || "Traveller";
+    if (doc.type === "Passport") {
+      doc.extracted = doc.extracted || {
+        passportNo: "X•••••0000",
+        expiry: "1 Jan 2032",
+        nationality: "Indian",
+      };
+      doc.reviewHints = doc.reviewHints?.length
+        ? doc.reviewHints
+        : ["Name matches traveller", "Expiry after trip end", "Photo page readable"];
+    } else if (!doc.reviewHints?.length) {
+      doc.reviewHints = ["File readable", "Details match this booking"];
+    }
+  }
+
+  function normalizeDocumentRow(raw, booking, index) {
+    if (!raw) return null;
+    if (raw.type) {
+      const status = raw.status || "Missing";
+      const hasFile = !!(raw.fileName || status === "Uploaded" || status === "Verified" || status === "Expiring");
+      const fileName = raw.fileName || (hasFile && (status === "Uploaded" || status === "Verified" || status === "Expiring") ? demoDocumentFileName(raw) : "");
+      return {
+        id: raw.id || `doc-${booking.slug}-${index + 1}`,
+        type: raw.type,
+        traveller: raw.traveller || "",
+        status,
+        required: raw.required !== false,
+        requiredBy: raw.requiredBy || "—",
+        blocks: raw.blocks || "",
+        note: raw.note || "",
+        fileName,
+        fileSize: raw.fileSize || (fileName ? "240 KB" : ""),
+        fileKind: raw.fileKind || (fileName ? "pdf" : ""),
+        receivedAt: raw.receivedAt || "",
+        receivedVia: raw.receivedVia || "",
+        uploadedBy: raw.uploadedBy || "",
+        requestedAt: raw.requestedAt || "",
+        requestedVia: raw.requestedVia || "",
+        verifiedAt: raw.verifiedAt || "",
+        verifiedBy: raw.verifiedBy || "",
+        rejectReason: raw.rejectReason || "",
+        reviewHints: Array.isArray(raw.reviewHints) ? raw.reviewHints : [],
+        extracted: raw.extracted || null,
+      };
+    }
+    // Legacy aggregate rows → structured inputs from the traveller.
+    const name = String(raw.name || "Document");
+    const status = raw.status || "Missing";
+    const lower = name.toLowerCase();
+    if (lower.includes("passport")) {
+      const travellers = bookingTravellers(booking);
+      return travellers.map((t, ti) => ({
+        id: `doc-${booking.slug}-pass-${ti + 1}`,
+        type: "Passport",
+        traveller: t.name,
+        status: t.passport === "Verified" ? "Verified" : status,
+        required: true,
+        requiredBy: raw.requiredBy || "—",
+        blocks: raw.blocks || "",
+        note: "",
+      }));
+    }
+    if (lower.includes("visa")) {
+      const travellers = bookingTravellers(booking);
+      return travellers.map((t, ti) => ({
+        id: `doc-${booking.slug}-visa-${ti + 1}`,
+        type: "Visa copy",
+        traveller: t.name,
+        status,
+        required: true,
+        requiredBy: raw.requiredBy || "—",
+        blocks: "",
+        note: "",
+      }));
+    }
+    if (lower.includes("flight") || lower === "tickets" || lower.includes("ticket")) {
+      return {
+        id: raw.id || `doc-${booking.slug}-arrival`,
+        type: "Arrival flight details",
+        traveller: "",
+        status,
+        required: status !== "Verified",
+        requiredBy: raw.requiredBy || "—",
+        blocks: "",
+        note: "Customer upload for arrival logistics — not an agency-issued ticket",
+      };
+    }
+    return {
+      id: raw.id || `doc-${booking.slug}-${index + 1}`,
+      type: name,
+      traveller: raw.traveller || "",
+      status,
+      required: raw.required !== false,
+      requiredBy: raw.requiredBy || "—",
+      blocks: raw.blocks || "",
+      note: raw.note || "",
+    };
+  }
+
+  function syncTravellerPassportFromDocuments(booking) {
+    const docs = (booking.documents || []).filter((d) => d.type === "Passport");
+    if (!docs.length || !booking.travellers) return;
+    const rank = { Missing: 0, Requested: 1, Uploaded: 2, Expiring: 3, Verified: 4 };
+    booking.travellers.forEach((traveller) => {
+      const mine = docs.filter((d) => d.traveller === traveller.name || d.traveller === traveller.legalName);
+      if (!mine.length) return;
+      let worst = mine[0].status;
+      mine.forEach((d) => {
+        if ((rank[d.status] ?? 0) < (rank[worst] ?? 0)) worst = d.status;
+      });
+      traveller.passport =
+        worst === "Verified"
+          ? "Verified"
+          : worst === "Expiring"
+            ? "Expiring"
+            : worst === "Uploaded"
+              ? "Uploaded"
+              : worst === "Requested"
+                ? "Requested"
+                : "Missing";
+    });
+  }
+
+  function syncDocumentsConfirmationState(booking) {
+    if (!booking.confirmations) booking.confirmations = {};
+    const docs = booking.documents || [];
+    const required = docs.filter((d) => d.required !== false);
+    const complete = required.every((d) => docStatusIsComplete(d.status));
+    booking.confirmations.documents = complete ? "received" : "missing";
+    return booking.confirmations.documents;
+  }
+
+  function bookingDocuments(booking) {
+    const travellers = bookingTravellers(booking);
+    let rows = [];
+    if (booking.documents && booking.documents.length) {
+      booking.documents.forEach((raw, index) => {
+        const normalized = normalizeDocumentRow(raw, booking, index);
+        if (Array.isArray(normalized)) rows.push(...normalized);
+        else if (normalized) rows.push(normalized);
+      });
+    } else {
+      const missing = (booking.confirmations || {}).documents !== "received";
+      rows = travellers.map((t, ti) => ({
+        id: `doc-${booking.slug}-pass-${ti + 1}`,
+        type: "Passport",
+        traveller: t.name,
+        status: missing ? t.passport || "Missing" : "Verified",
+        required: true,
+        requiredBy: "—",
+        blocks: "",
+        note: "",
+      }));
+    }
+    // Dedupe by id after legacy expansion.
+    const seen = new Set();
+    rows = rows.filter((row) => {
+      if (seen.has(row.id)) return false;
+      seen.add(row.id);
+      return true;
+    });
+    booking.documents = rows;
+    syncTravellerPassportFromDocuments(booking);
+    syncDocumentsConfirmationState(booking);
+    return booking.documents;
+  }
+
+  function ensureBookingDocSelection(booking) {
+    const docs = bookingDocuments(booking);
+    if (bookingsState.docFocusTraveller) {
+      const focusType = bookingsState.docFocusType || "Passport";
+      const focused =
+        docs.find((d) => d.traveller === bookingsState.docFocusTraveller && d.type === focusType) ||
+        docs.find((d) => d.traveller === bookingsState.docFocusTraveller && !docStatusIsComplete(d.status)) ||
+        docs.find((d) => d.traveller === bookingsState.docFocusTraveller);
+      if (focused) {
+        bookingsState.docId = focused.id;
+        return;
+      }
+    }
+    if (bookingsState.docId && docs.some((d) => d.id === bookingsState.docId)) return;
+    const prefer =
+      docs.find((d) => d.status === "Uploaded") ||
+      docs.find((d) => d.status === "Expiring") ||
+      docs.find((d) => d.status === "Requested") ||
+      docs.find((d) => d.status === "Missing") ||
+      docs[0];
+    bookingsState.docId = prefer?.id || null;
+  }
+
+  function advanceBookingDocument(booking, docId, action, { skipComm = false, skipActivity = false } = {}) {
+    const docs = bookingDocuments(booking);
+    const doc = docs.find((d) => d.id === docId);
+    if (!doc) return false;
+    const staff = getBookingsViewerStaff()?.name || DEMO_OWNER.name;
+
+    if (action === "request" || action === "remind") {
+      if (action === "request" && doc.status !== "Missing" && doc.status !== "Expiring" && doc.status !== "Requested") {
+        showToast("Document already further along — open the file to verify…");
+        return false;
+      }
+      if (action === "remind" && doc.status !== "Requested") {
+        showToast("Remind only applies while waiting on the traveller…");
+        return false;
+      }
+      const wasExpiring = doc.status === "Expiring";
+      if (wasExpiring) clearDocumentFile(doc);
+      doc.status = "Requested";
+      doc.requestedAt = "Just now";
+      doc.requestedVia = "WhatsApp";
+      doc.rejectReason = "";
+      if (!skipActivity) {
+        pushBookingActivity(
+          booking,
+          action === "remind"
+            ? `${staff} sent reminder for ${documentRowTitle(doc)} via WhatsApp.`
+            : `${staff} requested ${documentRowTitle(doc)} via WhatsApp.`
+        );
+      }
+      if (!skipComm) postDocumentRequestToComm(booking, doc, { remind: action === "remind" });
+    } else if (action === "receive" || action === "staff-upload") {
+      if (doc.status === "Verified") {
+        showToast("Already verified — reject first if you need a new file…");
+        return false;
+      }
+      attachDemoDocumentFile(doc, {
+        via: action === "staff-upload" ? "Staff upload" : "WhatsApp",
+        by: action === "staff-upload" ? staff : doc.traveller || booking.customer || "Traveller",
+      });
+      doc.status = "Uploaded";
+      doc.rejectReason = "";
+      if (!skipActivity) {
+        pushBookingActivity(
+          booking,
+          action === "staff-upload"
+            ? `${staff} uploaded ${documentRowTitle(doc)} · ${doc.fileName}.`
+            : `${staff} recorded ${documentRowTitle(doc)} · ${doc.fileName}.`
+        );
+      }
+    } else if (action === "verify") {
+      if (!documentHasFile(doc)) {
+        showToast("No file on this document yet — receive or upload first…");
+        return false;
+      }
+      if (doc.status !== "Uploaded" && doc.status !== "Expiring") {
+        showToast(doc.status === "Verified" ? "Already verified…" : "Open the uploaded file, then verify…");
+        return false;
+      }
+      doc.status = "Verified";
+      doc.verifiedAt = "Just now";
+      doc.verifiedBy = staff;
+      doc.rejectReason = "";
+      if (!skipActivity) {
+        pushBookingActivity(booking, `${staff} verified ${documentRowTitle(doc)} · ${doc.fileName}.`);
+      }
+    } else if (action === "reject") {
+      if (!documentHasFile(doc) && doc.status !== "Uploaded" && doc.status !== "Expiring" && doc.status !== "Verified") {
+        showToast("Nothing to reject yet…");
+        return false;
+      }
+      const reason = "Unreadable or details don’t match — please re-upload.";
+      clearDocumentFile(doc);
+      doc.status = "Requested";
+      doc.rejectReason = reason;
+      doc.requestedAt = "Just now";
+      doc.requestedVia = "WhatsApp";
+      if (!skipActivity) {
+        pushBookingActivity(booking, `${staff} rejected ${documentRowTitle(doc)} · re-request sent via WhatsApp.`);
+      }
+      if (!skipComm) postDocumentRequestToComm(booking, doc, { remind: true });
+    } else {
+      return false;
+    }
+
+    bookingsState.docId = doc.id;
+    syncTravellerPassportFromDocuments(booking);
+    syncDocumentsConfirmationState(booking);
+    if (booking.confirmations.documents === "received") {
+      booking.actionHint = booking.actionHint?.includes("document") ? "" : booking.actionHint;
+    }
+    return true;
+  }
+
+  function voucherSourceLabel(source) {
+    if (source === "vendor") return "From vendor";
+    if (source === "agency") return "Generated by agency";
+    if (source === "integration") return "From integration";
+    if (source === "upload") return "Uploaded by staff";
+    return "Voucher";
+  }
+
+  function travellerVoucherNameForService(service) {
+    const type = inferServiceType(service);
+    if (type === "hotel") return "Hotel voucher";
+    if (type === "transport") return "Transfer voucher";
+    if (type === "flight") return "Flight ticket / e-ticket";
+    if (type === "cruise") return "Cruise voucher";
+    if (type === "visa") return "Visa voucher";
+    if (type === "trip") return "Activity / trip voucher";
+    return `${serviceTypeLabel(type)} voucher`;
+  }
+
+  function syncTravellerVouchers(booking) {
+    const services = bookingServices(booking);
+    if (!booking.vouchers) booking.vouchers = [];
+
+    services.forEach((service) => {
+      let voucher = booking.vouchers.find((v) => v.serviceId === service.id);
+      if (!voucher) {
+        // Migrate legacy rows without serviceId by name/index once.
+        voucher = booking.vouchers.find((v) => !v.serviceId && (v.name || "").toLowerCase().includes((service.name || "").toLowerCase()));
+      }
+      if (!voucher) {
+        voucher = {
+          id: `tv-${service.id}`,
+          serviceId: service.id,
+          name: travellerVoucherNameForService(service),
+          source: service.type === "hotel" ? "vendor" : "agency",
+          status: "blocked",
+          blockReason: "",
+          fileName: "",
+          sentAt: "",
+        };
+        booking.vouchers.push(voucher);
+      }
+      voucher.serviceId = service.id;
+      voucher.name = voucher.name || travellerVoucherNameForService(service);
+      voucher.source = voucher.source || "agency";
+
+      const serviceConfirmed = service.confirmation === "confirmed";
+      if (!serviceConfirmed) {
+        if (voucher.status !== "sent" && voucher.status !== "issued") {
+          voucher.status = "blocked";
+          voucher.blockReason = `${serviceTypeLabel(service.type)} confirmation pending`;
+          voucher.fileName = "";
+          voucher.sentAt = "";
+        }
+      } else if (voucher.status === "blocked") {
+        voucher.status = "ready";
+        voucher.blockReason = "";
+      }
+    });
+
+    // Drop orphaned empty blocked vouchers for removed services (keep sent history).
+    const serviceIds = new Set(services.map((s) => s.id));
+    booking.vouchers = booking.vouchers.filter((v) => !v.serviceId || serviceIds.has(v.serviceId) || v.status === "sent");
+
+    syncVoucherConfirmationState(booking);
+    return booking.vouchers;
+  }
+
+  function syncVoucherConfirmationState(booking) {
+    if (!booking.confirmations) booking.confirmations = {};
+    const vouchers = booking.vouchers || [];
+    if (!vouchers.length) {
+      booking.confirmations.voucher = "pending";
+      return;
+    }
+    if (vouchers.some((v) => v.status === "blocked")) booking.confirmations.voucher = "blocked";
+    else if (vouchers.every((v) => v.status === "sent")) booking.confirmations.voucher = "issued";
+    else booking.confirmations.voucher = "pending";
+  }
+
+  function bookingVouchers(booking) {
+    return syncTravellerVouchers(booking);
+  }
+
+  function advanceTravellerVoucher(booking, voucherId, action) {
+    const voucher = bookingVouchers(booking).find((v) => v.id === voucherId);
+    if (!voucher) return false;
+    const service = bookingServices(booking).find((s) => s.id === voucher.serviceId);
+
+    if (action === "attach" || action === "generate") {
+      if (voucher.status !== "ready") {
+        showToast(voucher.status === "blocked" ? "Confirm the linked vendor first…" : "Voucher already prepared…");
+        return false;
+      }
+      voucher.status = "issued";
+      voucher.blockReason = "";
+      voucher.source = action === "generate" ? "agency" : voucher.source === "agency" ? "upload" : voucher.source || "upload";
+      voucher.fileName =
+        voucher.fileName ||
+        `${(voucher.name || "voucher").toLowerCase().replace(/[^a-z0-9]+/g, "-")}.pdf`;
+      pushBookingActivity(
+        booking,
+        `${voucher.name} ${action === "generate" ? "generated" : "attached"} for ${service?.vendor || "service"} · ready to send.`
+      );
+      syncVoucherConfirmationState(booking);
+      return true;
+    }
+
+    if (action === "send") {
+      if (voucher.status !== "issued") {
+        showToast("Issue the voucher before sending…");
+        return false;
+      }
+      const now = new Date();
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, "0");
+      const ampm = h >= 12 ? "PM" : "AM";
+      const hour12 = h % 12 || 12;
+      voucher.status = "sent";
+      voucher.sentAt = `${now.getDate()} ${months[now.getMonth()]}, ${hour12}:${m} ${ampm}`;
+      pushBookingActivity(booking, `${voucher.name} sent to traveller · ${voucher.sentAt}.`);
+      syncVoucherConfirmationState(booking);
+      if (booking.confirmations.voucher === "issued") {
+        booking.actionHint = booking.actionHint === "Issue travel vouchers" ? "" : booking.actionHint;
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  function inboxThreadsForBooking(booking) {
+    if (!booking) return [];
+    return INBOX_THREADS.filter((thread) => thread.bookingSlug === booking.slug);
+  }
+
+  function getInboxThreadById(id) {
+    return INBOX_THREADS.find((thread) => thread.id === id) || null;
+  }
+
+  function unlinkedInboxCandidatesForBooking(booking) {
+    if (!booking) return [];
+    const known = new Set(
+      inboxThreadsForBooking(booking).map((thread) => String(thread.contactName || "").toLowerCase())
+    );
+    known.add(String(booking.customer || "").toLowerCase());
+    return INBOX_THREADS.filter(
+      (thread) => !thread.bookingSlug && known.has(String(thread.contactName || "").toLowerCase())
+    );
+  }
+
+  function threadContextMeta(thread) {
+    const parts = [
+      thread.bookingId || null,
+      thread.related && thread.related !== "Booking" ? thread.related : null,
+    ].filter(Boolean);
+    return parts.join(" · ");
+  }
+
+  function ensureBookingCommSelection(booking) {
+    const threads = inboxThreadsForBooking(booking);
+    if (bookingsState.commCompose) return;
+    if (bookingsState.commThreadId && threads.some((thread) => thread.id === bookingsState.commThreadId)) return;
+    const prefer =
+      threads.find((thread) => thread.related === "Documents") ||
+      threads.find((thread) => thread.party !== "Vendor") ||
+      threads[0];
+    bookingsState.commThreadId = prefer?.id || null;
+  }
+
+  function linkInboxThreadToBooking(threadId, booking) {
+    const thread = getInboxThreadById(threadId);
+    if (!thread || !booking) return false;
+    thread.bookingSlug = booking.slug;
+    thread.bookingId = booking.id;
+    thread.linkSource = "manual";
+    if (!thread.related) thread.related = "Booking";
+    if (!thread.assignee) thread.assignee = booking.owner?.name || "";
+    return true;
+  }
+
+  function contactMatchesTraveller(contactName, travellerName) {
+    const contact = String(contactName || "").toLowerCase().trim();
+    const traveller = String(travellerName || "").toLowerCase().trim();
+    if (!contact || !traveller) return false;
+    if (contact === traveller) return true;
+    const first = traveller.split(/\s+/)[0];
+    return first.length > 2 && contact.includes(first);
+  }
+
+  function findTravellerCommThread(booking, travellerName) {
+    const threads = inboxThreadsForBooking(booking).filter((thread) => thread.party !== "Vendor");
+    return (
+      threads.find((thread) => contactMatchesTraveller(thread.contactName, travellerName)) ||
+      threads.find((thread) => contactMatchesTraveller(thread.contactName, booking.customer)) ||
+      threads[0] ||
+      null
+    );
+  }
+
+  function shareableCommAttachments(booking, thread) {
+    if (!booking) return [];
+    const items = [];
+    const docs = bookingDocuments(booking);
+    const isVendor = thread?.party === "Vendor";
+
+    if (!isVendor) {
+      docs
+        .filter((doc) => !docStatusIsComplete(doc.status))
+        .forEach((doc) => {
+          const forContact =
+            !doc.traveller ||
+            contactMatchesTraveller(thread?.contactName, doc.traveller) ||
+            contactMatchesTraveller(thread?.contactName, booking.customer);
+          if (!forContact && doc.traveller) return;
+          items.push({
+            id: `req:${doc.id}`,
+            kind: "request",
+            label: `Request · ${documentRowTitle(doc)}`,
+            docId: doc.id,
+            fileName: "",
+          });
+        });
+    }
+
+    docs
+      .filter((doc) => documentHasFile(doc))
+      .forEach((doc) => {
+        items.push({
+          id: `doc:${doc.id}`,
+          kind: "document",
+          label: `Share · ${documentRowTitle(doc)}`,
+          docId: doc.id,
+          fileName: doc.fileName,
+        });
+      });
+
+    if (!isVendor) {
+      bookingVouchers(booking)
+        .filter((voucher) => voucher.status === "issued" || voucher.status === "sent")
+        .forEach((voucher) => {
+          items.push({
+            id: `voucher:${voucher.id}`,
+            kind: "voucher",
+            label: `Share · ${voucher.name}`,
+            voucherId: voucher.id,
+            fileName: voucher.fileName || `${voucher.name}.pdf`,
+          });
+        });
+    }
+
+    return items;
+  }
+
+  function resolveCommAttachment(booking, thread, attachmentId) {
+    if (!attachmentId || !booking) return null;
+    return shareableCommAttachments(booking, thread || { party: "Customer" }).find((item) => item.id === attachmentId) || null;
+  }
+
+  function postDocumentRequestToComm(booking, doc, { remind = false } = {}) {
+    if (!booking || !doc) return null;
+    let thread = findTravellerCommThread(booking, doc.traveller || booking.customer);
+    const body = remind
+      ? `Friendly reminder — please share ${documentRowTitle(doc)} for ${booking.id}.`
+      : `Please share ${documentRowTitle(doc)} for ${booking.id}. Upload here or reply on this chat.`;
+    if (!thread) {
+      thread = createBookingInboxThread(booking, {
+        channel: "WhatsApp",
+        party: "Customer",
+        contactName: doc.traveller || booking.customer,
+        related: "Documents",
+        body,
+        attachment: {
+          kind: "request",
+          label: documentRowTitle(doc),
+          docId: doc.id,
+          fileName: "",
+        },
+        skipActivity: true,
+      });
+      return thread;
+    }
+    thread.related = "Documents";
+    thread.messages.push({
+      id: `${thread.id}-m${thread.messages.length + 1}`,
+      from: "staff",
+      body,
+      at: "Just now",
+      channel: thread.channel,
+      attachments: [{ kind: "request", label: documentRowTitle(doc), docId: doc.id, fileName: "" }],
+    });
+    thread.preview = body;
+    thread.when = "Just now";
+    thread.unread = false;
+    bookingsState.commThreadId = thread.id;
+    return thread;
+  }
+
+  function appendStaffReply(thread, body, { booking = null, attachment = null } = {}) {
+    const text = String(body || "").trim();
+    if (!thread) return false;
+    const staff = getBookingsViewerStaff()?.name || DEMO_OWNER.name;
+    const attachments = [];
+    let finalBody = text;
+
+    if (attachment?.kind === "request" && booking) {
+      const docs = bookingDocuments(booking);
+      const doc = docs.find((row) => row.id === attachment.docId);
+      if (!doc) {
+        showToast("Document not found on this booking…");
+        return false;
+      }
+      const requestAction = doc.status === "Requested" ? "remind" : "request";
+      const ok = advanceBookingDocument(booking, doc.id, requestAction, {
+        skipComm: true,
+        skipActivity: true,
+      });
+      if (!ok) return false;
+      attachments.push({ kind: "request", label: documentRowTitle(doc), docId: doc.id, fileName: "" });
+      if (!finalBody) {
+        finalBody = `Please share ${documentRowTitle(doc)} for ${booking.id}.`;
+      }
+      thread.related = "Documents";
+      pushBookingActivity(
+        booking,
+        `${staff} ${requestAction === "remind" ? "reminded" : "requested"} ${documentRowTitle(doc)} via ${thread.channel} · ${booking.id}.`
+      );
+    } else if (attachment?.kind === "document" && booking) {
+      const doc = bookingDocuments(booking).find((row) => row.id === attachment.docId);
+      if (!doc || !documentHasFile(doc)) {
+        showToast("That document has no file to share yet…");
+        return false;
+      }
+      attachments.push({
+        kind: "file",
+        label: documentRowTitle(doc),
+        docId: doc.id,
+        fileName: doc.fileName,
+      });
+      if (!finalBody) finalBody = `Sharing ${doc.fileName} for ${booking.id}.`;
+      pushBookingActivity(booking, `${staff} shared ${doc.fileName} via ${thread.channel} · ${booking.id}.`);
+    } else if (attachment?.kind === "voucher" && booking) {
+      const voucher = bookingVouchers(booking).find((row) => row.id === attachment.voucherId);
+      if (!voucher || (voucher.status !== "issued" && voucher.status !== "sent")) {
+        showToast("Issue the voucher before sharing…");
+        return false;
+      }
+      const fileName = voucher.fileName || `${voucher.name}.pdf`;
+      attachments.push({
+        kind: "file",
+        label: voucher.name,
+        voucherId: voucher.id,
+        fileName,
+      });
+      if (!finalBody) finalBody = `Sharing ${voucher.name} for ${booking.id}.`;
+      if (voucher.status === "issued") {
+        voucher.status = "sent";
+        voucher.sentAt = "Just now";
+        syncVoucherConfirmationState(booking);
+      }
+      pushBookingActivity(booking, `${staff} shared ${fileName} via ${thread.channel} · ${booking.id}.`);
+    }
+
+    if (!finalBody && !attachments.length) return false;
+
+    thread.messages.push({
+      id: `${thread.id}-m${thread.messages.length + 1}`,
+      from: "staff",
+      body: finalBody || (attachments[0]?.fileName ? `Shared ${attachments[0].fileName}` : "Attachment sent"),
+      at: "Just now",
+      channel: thread.channel,
+      attachments,
+    });
+    thread.preview = attachments[0]?.fileName
+      ? `${finalBody || "Shared"} · ${attachments[0].fileName}`
+      : finalBody;
+    thread.when = "Just now";
+    thread.unread = false;
+    if (booking && !attachment) {
+      pushBookingActivity(booking, `${staff} replied on ${thread.channel} · ${booking.id}.`);
+    }
+    return true;
+  }
+
+  function saveCommIncomingToDocuments(booking, thread, messageId) {
+    if (!booking || !thread) return false;
+    const message = (thread.messages || []).find((row) => row.id === messageId);
+    const attachment = (message?.attachments || []).find((row) => row.kind === "incoming" && row.docId);
+    if (!attachment || attachment.saved) {
+      showToast(attachment?.saved ? "Already saved to Documents…" : "No incoming file to save…");
+      return false;
+    }
+    const ok = advanceBookingDocument(booking, attachment.docId, "receive", { skipComm: true, skipActivity: true });
+    if (!ok) return false;
+    const doc = bookingDocuments(booking).find((row) => row.id === attachment.docId);
+    if (doc) {
+      doc.receivedVia = thread.channel;
+      doc.uploadedBy = thread.contactName || doc.uploadedBy;
+      if (attachment.fileName) doc.fileName = attachment.fileName;
+    }
+    attachment.saved = true;
+    attachment.fileName = doc?.fileName || attachment.fileName;
+    const staff = getBookingsViewerStaff()?.name || DEMO_OWNER.name;
+    pushBookingActivity(
+      booking,
+      `${staff} saved ${attachment.fileName || "file"} from ${thread.channel} into Documents · ${documentRowTitle(doc)}.`
+    );
+    bookingsState.docId = attachment.docId;
+    return true;
+  }
+
+  function createBookingInboxThread(booking, { channel, party, contactName, related, body, attachment = null, skipActivity = false } = {}) {
+    if (!booking) return null;
+    const id = `IN-${booking.slug}-${Date.now()}`;
+    const channelSafe = channel === "Email" ? "Email" : "WhatsApp";
+    const partySafe = party === "Vendor" ? "Vendor" : "Customer";
+    const attachments = attachment
+      ? [
+          {
+            kind: attachment.kind,
+            label: attachment.label || "",
+            docId: attachment.docId || "",
+            voucherId: attachment.voucherId || "",
+            fileName: attachment.fileName || "",
+          },
+        ]
+      : [];
+    const thread = {
+      id,
+      bookingSlug: booking.slug,
+      bookingId: booking.id,
+      party: partySafe,
+      roleLabel: partyRoleLabel(partySafe),
+      channel: channelSafe,
+      contactName: contactName || booking.customer,
+      related: related || (attachment?.kind === "request" ? "Documents" : "Booking"),
+      serviceId: "",
+      assignee: getBookingsViewerStaff()?.name || booking.owner?.name || "",
+      when: "Just now",
+      preview: body,
+      unread: false,
+      linkSource: "booking",
+      messages: [
+        {
+          id: `${id}-m1`,
+          from: "staff",
+          body,
+          at: "Just now",
+          channel: channelSafe,
+          attachments,
+        },
+      ],
+    };
+    INBOX_THREADS.unshift(thread);
+    if (!skipActivity) {
+      const staff = getBookingsViewerStaff()?.name || DEMO_OWNER.name;
+      pushBookingActivity(booking, `${staff} started ${channelSafe} thread with ${thread.contactName} · ${booking.id}.`);
+    }
+    return thread;
+  }
+
+  function enrichDemoInboxDocumentFlows() {
+    const dubai = INBOX_THREADS.find((thread) => thread.bookingSlug === "xyz-dubai" && thread.contactName === "Amit XYZ");
+    if (!dubai) return;
+    dubai.related = "Documents";
+    dubai.messages = [
+      {
+        id: `${dubai.id}-m1`,
+        from: "staff",
+        body: "Please share passports for all travellers on BK-2026-000003.",
+        at: "Today · 10:15",
+        channel: "WhatsApp",
+        attachments: [{ kind: "request", label: "Passport — Amit XYZ", docId: "doc-dubai-pass-amit", fileName: "" }],
+      },
+      {
+        id: `${dubai.id}-m2`,
+        from: "contact",
+        body: "Sending Priya’s passport now.",
+        at: "Today · 11:18",
+        channel: "WhatsApp",
+        attachments: [
+          {
+            kind: "incoming",
+            label: "Passport — Priya XYZ",
+            docId: "doc-dubai-pass-priya",
+            fileName: "priya-xyz-passport.pdf",
+            saved: true,
+          },
+        ],
+      },
+      {
+        id: `${dubai.id}-m3`,
+        from: "contact",
+        body: "Amit passport scan attached.",
+        at: "Today · 11:42",
+        channel: "WhatsApp",
+        attachments: [
+          {
+            kind: "incoming",
+            label: "Passport — Amit XYZ",
+            docId: "doc-dubai-pass-amit",
+            fileName: "amit-xyz-passport.pdf",
+            saved: false,
+          },
+        ],
+      },
+    ];
+    dubai.preview = "Amit passport scan attached.";
+    dubai.when = "Today · 11:42";
+  }
+
+  enrichDemoInboxDocumentFlows();
+
+  function bookingActivityActor(person, type = "Member", avatarClass = "avatar-mint") {
+    return {
+      id: person?.id || "",
+      name: person?.name || "Team",
+      initials: person?.initials || "TM",
+      avatarClass: person?.avatarClass || avatarClass,
+      type,
+    };
+  }
+
+  function linkifyBookingActivityText(text, booking) {
+    const allowed = new Set(
+      [booking?.id, booking?.queryId, ...(booking?.tasks || []).map((task) => task.id)].filter(Boolean)
+    );
+    const safe = escapeHtml(text || "");
+    return safe.replace(/\b((?:Q|BK|T)-\d[\w-]*)\b/g, (id) => {
+      if (!allowed.has(id)) return id;
+      return `<button type="button" class="audit-record-link" data-toast="Opening ${id}…">${id}</button>`;
+    });
+  }
+
+  function inferBookingActivityActor(body, booking) {
+    const text = String(body || "");
+    if (/Neha Kapoor/i.test(text)) return bookingActivityActor(DEMO_STAFF.neha, "Member", "avatar-pink");
+    if (/Meera Iyer/i.test(text)) return bookingActivityActor(DEMO_STAFF.meera, "Member", "avatar-mint");
+    if (/Vrushabh Jain/i.test(text)) return bookingActivityActor(DEMO_STAFF.vrushabh || DEMO_OWNER, "Owner", "avatar-mint");
+    if (/Phase moved|Trip marked completed|System history/i.test(text)) {
+      return { name: "System", initials: "SY", avatarClass: "", type: "System", id: "system" };
+    }
+    if (/₹|receipt|balance due|payment|payout/i.test(text)) {
+      return { name: "Finance desk", initials: "FD", avatarClass: "avatar-pink", type: "Member", id: "finance" };
+    }
+    const viewer = getBookingsViewerStaff();
+    if (viewer?.name && text.includes(viewer.name)) {
+      return bookingActivityActor(viewer, getBookingsViewingAs() === "Member" ? "Member" : getBookingsViewingAs(), viewer.avatarClass);
+    }
+    return bookingActivityActor(booking.owner, "Owner", "avatar-mint");
+  }
+
+  function inferBookingActivityModule(body) {
+    const text = String(body || "");
+    if (/₹|receipt|balance|payment|payout|Finance/i.test(text)) {
+      return { module: "finance", moduleLabel: "Finance" };
+    }
+    if (/document|passport|visa copy|WhatsApp|Email thread|shared .*via|saved .*from/i.test(text)) {
+      return { module: "bookings", moduleLabel: "Bookings" };
+    }
+    return { module: "bookings", moduleLabel: "Bookings" };
+  }
+
+  function normalizeBookingActivityItem(item, booking, index) {
+    if (item && item.actor && item.eventHtml && item.module) {
+      return {
+        ...item,
+        bookingId: booking.id,
+        searchText:
+          item.searchText ||
+          `${item.time || ""} ${item.actor?.name || ""} ${item.moduleLabel || ""} ${booking.id}`.toLowerCase(),
+      };
+    }
+
+    const rawTime = String(item?.time || "—");
+    const parts = rawTime.split("·").map((part) => part.trim()).filter(Boolean);
+    const clock = parts.length > 1 ? parts[parts.length - 1] : parts[0] || "—";
+    const dayLabel = parts.length > 1 ? parts.slice(0, -1).join(" · ") : "Activity";
+    const groupKey = dayLabel.toLowerCase().replace(/\s+/g, "-") || `row-${index}`;
+    const { module, moduleLabel } = inferBookingActivityModule(item?.body);
+    const actor = inferBookingActivityActor(item?.body, booking);
+    const recordMatch = String(item?.body || "").match(/\b((?:Q|BK|T)-\d[\w-]*)\b/);
+    const recordId = [booking.id, booking.queryId, ...(booking.tasks || []).map((task) => task.id)].includes(
+      recordMatch?.[1]
+    )
+      ? recordMatch[1]
+      : booking.id;
+
+    return {
+      groupKey,
+      groupLabel: dayLabel,
+      time: clock,
+      actor,
+      module,
+      moduleLabel,
+      bookingId: booking.id,
+      recordId,
+      body: item?.body || "",
+      eventHtml: linkifyBookingActivityText(item?.body || "", booking),
+      searchText: `${clock} ${actor.name} ${item?.body || ""} ${moduleLabel} ${booking.id}`.toLowerCase(),
+    };
+  }
+
+  function bookingActivity(booking) {
+    const source =
+      booking.activity && booking.activity.length
+        ? booking.activity
+        : [
+            {
+              time: "Created · —",
+              body: `Booking ${booking.id} created${booking.queryId ? ` from ${booking.queryId}` : ""}.`,
+            },
+            { time: "Lifecycle · —", body: `Phase is ${phaseLabel(booking.phase)}.` },
+          ];
+
+    const viewer = getBookingsViewerStaff();
+    if (!memberCanAccessBooking(booking, viewer)) return [];
+
+    return source
+      .map((item, index) => normalizeBookingActivityItem(item, booking, index))
+      .filter((item) => item.bookingId === booking.id)
+      .filter((item) => {
+        // Keep only this booking’s ops/finance trail — never cross-booking audit noise.
+        return item.module === "bookings" || item.module === "finance";
+      });
+  }
+
+  function bookingReadiness(booking) {
+    const checks = [
+      (booking.confirmations || {}).supplier === "confirmed",
+      (booking.confirmations || {}).voucher === "issued" || (booking.confirmations || {}).voucher === "sent",
+      (booking.confirmations || {}).documents === "received",
+      !(booking.paymentOverdue || (Number(booking.toCollect) || 0) > 0),
+      !(Number(booking.toPaySuppliers) || 0),
+    ];
+    const done = checks.filter(Boolean).length;
+    return { done, total: checks.length, pct: Math.round((done / checks.length) * 100) };
+  }
+
+  function voucherStatusLabel(status) {
+    if (status === "blocked") return "Blocked";
+    if (status === "ready") return "Ready";
+    if (status === "issued") return "Issued";
+    if (status === "sent") return "Sent";
+    return status;
+  }
+
+  function voucherServiceShortLabel(service) {
+    if (!service) return "";
+    const detail = String(service.serviceDetail || service.name || "").trim();
+    return detail.split("·")[0].trim() || service.name || "";
+  }
+
+  function bookingOpenAreasBannerHtml(booking, currentTab) {
+    // Shortcut strip: other open work areas (not “confirmation” status for everything).
+    let open = getBookingActionItems(booking).filter(
+      (item) =>
+        item.open &&
+        !item.restricted &&
+        item.id !== "booking" &&
+        item.tab !== currentTab &&
+        canAccessBookingTab(item.tab, booking)
+    );
+    if (!open.length) return "";
+    open = sortBookingActionItemsByPriority(booking, open);
+    const shown = open.slice(0, BOOKING_ISSUE_CHIP_LIMIT);
+    const extra = open.length - shown.length;
+    const hintTitles = shown.map((item) => item.chipLabel || item.label);
+    const hint =
+      extra > 0 ? `${hintTitles.join(" · ")} · +${extra} ${extra === 1 ? "issue" : "issues"}` : hintTitles.join(" · ");
+    const moreChip =
+      extra > 0
+        ? `<button type="button" class="bookings-open-area-chip is-quiet" data-cta-target="confirmations" title="Open booking readiness">+${extra} ${
+            extra === 1 ? "issue" : "issues"
+          }</button>`
+        : `<button type="button" class="bookings-open-area-chip is-quiet" data-cta-target="confirmations" title="See all open work on Overview">All open work</button>`;
+    return `
+      <div class="bookings-open-areas team-assign-banner" role="navigation" aria-label="Other open work on this booking">
+        <div class="bookings-open-areas-copy">
+          <p class="bookings-open-areas-label team-assign-title">${open.length} other area${open.length === 1 ? "" : "s"} still open</p>
+          <p class="bookings-open-areas-hint team-assign-meta">${escapeHtml(hint)}</p>
+        </div>
+        <div class="bookings-open-areas-chips">
+          ${shown
+            .map(
+              (item) =>
+                `<button type="button" class="bookings-open-area-chip" data-cta-target="${escapeHtml(item.tab)}" title="${escapeHtml(item.detail)}">${escapeHtml(item.chipLabel || item.label)}</button>`
+            )
+            .join("")}
+          ${moreChip}
+        </div>
+      </div>`;
+  }
+
+  function bindBookingOpenAreaChips(root) {
+    root?.querySelectorAll("[data-cta-target]").forEach((btn) => {
+      btn.addEventListener("click", () => runBookingCtaTarget(btn.dataset.ctaTarget));
+    });
+  }
+
+  function docUiStatusTone(status) {
+    if (status === "Verified") return "is-done";
+    if (status === "Uploaded") return "is-ready";
+    if (status === "Expiring") return "is-blocked";
+    return "is-open";
+  }
+
+  function bookingDocumentDetailHtml(booking, active) {
+    if (!active) {
+      return `<div class="bookings-doc-detail bookings-doc-detail--empty empty-state">
+        <p class="empty-state-title">Select a document</p>
+        <p class="empty-state-desc">Pick a file from the list to open, verify, or request it.</p>
+      </div>`;
+    }
+    const due =
+      active.requiredBy && active.requiredBy !== "—"
+        ? `Required by ${active.requiredBy}`
+        : active.required === false
+          ? "Optional"
+          : "Required";
+    const hasFile = documentHasFile(active);
+    const statusTone = docUiStatusTone(active.status);
+    const kind = String(active.fileKind || (active.fileName || "").split(".").pop() || "file").toUpperCase();
+    const person = active.traveller || "Booking-wide";
+
+    let actions = "";
+    if (active.status === "Missing") {
+      actions = `
+        <button type="button" class="btn btn-primary btn-sm" data-doc-action="request" data-doc-id="${escapeHtml(active.id)}">Request from traveller</button>
+        <button type="button" class="btn btn-outline btn-sm" data-doc-action="staff-upload" data-doc-id="${escapeHtml(active.id)}">Upload file</button>`;
+    } else if (active.status === "Requested") {
+      actions = `
+        <button type="button" class="btn btn-outline btn-sm" data-doc-action="remind" data-doc-id="${escapeHtml(active.id)}">Remind</button>
+        <button type="button" class="btn btn-primary btn-sm" data-doc-action="staff-upload" data-doc-id="${escapeHtml(active.id)}">Upload file</button>`;
+    } else if (active.status === "Uploaded") {
+      actions = `
+        <button type="button" class="btn btn-primary btn-sm" data-doc-action="verify" data-doc-id="${escapeHtml(active.id)}">Mark verified</button>
+        <button type="button" class="btn btn-outline btn-sm" data-doc-action="reject" data-doc-id="${escapeHtml(active.id)}">Reject &amp; re-request</button>`;
+    } else if (active.status === "Expiring") {
+      actions = `
+        <button type="button" class="btn btn-primary btn-sm" data-doc-action="request" data-doc-id="${escapeHtml(active.id)}">Request updated file</button>
+        <button type="button" class="btn btn-outline btn-sm" data-doc-action="verify" data-doc-id="${escapeHtml(active.id)}">Accept file</button>`;
+    } else if (active.status === "Verified") {
+      actions = `
+        <button type="button" class="btn btn-outline btn-sm" data-doc-open-file="${escapeHtml(active.id)}">Open file</button>
+        <button type="button" class="btn btn-outline btn-sm" data-doc-action="reject" data-doc-id="${escapeHtml(active.id)}">Re-request</button>`;
+    }
+
+    const filePanel = hasFile
+      ? `<div class="bookings-doc-file-panel">
+          <div class="bookings-doc-file-icon" aria-hidden="true">${escapeHtml(kind === "PDF" ? "PDF" : kind.slice(0, 3))}</div>
+          <div class="bookings-doc-file-copy">
+            <p class="bookings-doc-file-name">${escapeHtml(active.fileName)}</p>
+            <p class="bookings-doc-file-meta">${escapeHtml(active.fileSize || "File")} · received ${escapeHtml(
+              active.receivedAt || "—"
+            )} via ${escapeHtml(active.receivedVia || "upload")}${
+              active.uploadedBy ? ` · ${escapeHtml(active.uploadedBy)}` : ""
+            }</p>
+            <p class="bookings-doc-file-hint">Open the file to review it — we don’t show document text here.</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" data-doc-open-file="${escapeHtml(active.id)}">Open file</button>
+        </div>`
+      : `<div class="bookings-doc-file-empty empty-state">
+          <p class="empty-state-title">No file yet</p>
+          <p class="empty-state-desc">Request it from the traveller, or upload the copy they already shared.</p>
+        </div>`;
+
+    return `
+      <div class="bookings-doc-detail">
+        <header class="bookings-doc-detail-head">
+          <div class="bookings-doc-detail-identity">
+            <p class="team-kicker">${escapeHtml(person)}</p>
+            <h3 class="bookings-doc-detail-title">${escapeHtml(active.type || documentRowTitle(active))}</h3>
+            <div class="bookings-doc-chip-row">
+              <span class="bookings-confirmation-status ${statusTone}">${escapeHtml(docStatusLabel(active.status))}</span>
+              <span class="tag-chip">${escapeHtml(due)}</span>
+              ${active.blocks ? `<span class="tag-chip tag-finance">For ${escapeHtml(active.blocks)}</span>` : ""}
+            </div>
+            ${active.note ? `<p class="bookings-ops-meta">${escapeHtml(active.note)}</p>` : ""}
+            ${
+              active.rejectReason
+                ? `<p class="bookings-doc-reject" role="status">Rejected: ${escapeHtml(active.rejectReason)}</p>`
+                : ""
+            }
+            ${
+              active.status === "Verified" && active.verifiedBy
+                ? `<p class="bookings-ops-meta">Verified by ${escapeHtml(active.verifiedBy)} · ${escapeHtml(active.verifiedAt || "—")}</p>`
+                : ""
+            }
+            ${
+              active.status === "Requested" && active.requestedAt
+                ? `<p class="bookings-ops-meta">Requested ${escapeHtml(active.requestedAt)} via ${escapeHtml(active.requestedVia || "WhatsApp")}</p>`
+                : ""
+            }
+          </div>
+        </header>
+        ${filePanel}
+        <div class="bookings-doc-actions">${actions}</div>
+      </div>`;
+  }
+
+  function bindBookingDocumentsPanel(el, booking) {
+    el.querySelectorAll("[data-doc-open]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        bookingsState.docId = btn.dataset.docOpen;
+        const doc = bookingDocuments(booking).find((d) => d.id === btn.dataset.docOpen);
+        bookingsState.docFocusTraveller = doc?.traveller || null;
+        bookingsState.docFocusType = doc?.type || null;
+        renderBookingOpsTabs(booking);
+      });
+    });
+    el.querySelectorAll("[data-doc-open-file]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const doc = bookingDocuments(booking).find((d) => d.id === btn.dataset.docOpenFile);
+        if (!doc?.fileName) {
+          showToast("No file attached yet…");
+          return;
+        }
+        showToast(`Opening ${doc.fileName}…`);
+      });
+    });
+    el.querySelectorAll("[data-doc-action]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const action = btn.dataset.docAction;
+        if (advanceBookingDocument(booking, btn.dataset.docId, action)) {
+          const toasts = {
+            request: "Request sent via WhatsApp…",
+            remind: "Reminder sent…",
+            receive: "File recorded…",
+            "staff-upload": "File uploaded…",
+            verify: "Document verified…",
+            reject: "Rejected — re-request sent…",
+          };
+          showToast(toasts[action] || "Document updated…");
+          renderBookingDetail(booking);
+          renderBookingsList();
+        }
+      });
+    });
+  }
+
+  function renderBookingTravellersPanel(booking, el) {
+    if (!el) return;
+    bookingDocuments(booking);
+    const readiness = bookingTravellerReadiness(booking);
+    const travellers = readiness.travellers;
+    const filter = bookingsState.travellerFilter || "all";
+    const withIssues = travellers.filter((t) => travellerIssueList(t, booking).length > 0);
+    const severeCount = travellers.filter((t) => travellerIssueList(t, booking).some((i) => i.severity === "severe")).length;
+    const filtered = travellers.filter((row) => {
+      const issues = travellerIssueList(row, booking);
+      if (filter === "ready") return issues.length === 0;
+      if (filter === "issues") return issues.length > 0;
+      if (filter === "severe") return issues.some((i) => i.severity === "severe");
+      return true;
+    });
+
+    el.innerHTML = `
+      ${bookingOpenAreasBannerHtml(booking, "travellers")}
+      <div class="team-section-bar bookings-ops-section-bar">
+        <p class="team-kicker">Travellers · Readiness</p>
+        <div class="period-pills" role="tablist" aria-label="Filter travellers">
+          <button type="button" class="period-pill${filter === "all" ? " is-active" : ""}" data-traveller-filter="all">All · ${readiness.total}</button>
+          <button type="button" class="period-pill${filter === "ready" ? " is-active" : ""}" data-traveller-filter="ready">Ready · ${readiness.ready}</button>
+          <button type="button" class="period-pill${filter === "issues" ? " is-active" : ""}" data-traveller-filter="issues">Issues · ${withIssues.length}</button>
+          ${severeCount ? `<button type="button" class="period-pill${filter === "severe" ? " is-active" : ""}" data-traveller-filter="severe">Severe · ${severeCount}</button>` : ""}
+        </div>
+      </div>
+      <article class="bookings-card">
+        <header class="bookings-card-head bookings-card-head--split">
+          <div>
+            <div class="card-title-row">
+              <h2 class="bookings-card-title">Travellers</h2>
+              <span class="team-count-pill">${readiness.ready}/${readiness.total} ready</span>
+            </div>
+            <p class="bookings-card-sub">Who is travelling and whether they are ready. Files live in Documents.</p>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" data-cta-target="documents">Open documents</button>
+        </header>
+        ${
+          withIssues.length
+            ? `<div class="bookings-traveller-readiness">
+                <div class="bookings-traveller-readiness-copy">
+                  <p class="bookings-traveller-readiness-score">
+                    <span class="roster-metric">${withIssues.length}</span>
+                    <span class="roster-metric-unit"> traveller${withIssues.length === 1 ? "" : "s"} need attention</span>
+                  </p>
+                  <p class="bookings-ops-meta">Jump to blockers, or open Documents for the file.</p>
+                </div>
+                <ul class="bookings-traveller-issue-summary">${withIssues
+                  .map((t) => {
+                    const n = travellerIssueList(t, booking).length;
+                    return `<li><button type="button" class="bookings-traveller-issue-jump" data-traveller-focus="${escapeHtml(t.id)}">${escapeHtml(
+                      t.legalName.split(" ")[0]
+                    )} · ${n}</button></li>`;
+                  })
+                  .join("")}</ul>
+              </div>`
+            : `<div class="bookings-traveller-readiness is-clear">
+                <p class="bookings-traveller-readiness-score">
+                  <span class="roster-metric">${readiness.ready}/${readiness.total}</span>
+                  <span class="roster-metric-unit"> travellers ready</span>
+                </p>
+              </div>`
+        }
+        <ul class="bookings-traveller-list">
+          ${
+            filtered.length
+              ? filtered
+                  .map((row) => {
+                    const issues = travellerIssueList(row, booking);
+                    const ready = issues.length === 0;
+                    const severe = issues.some((i) => i.severity === "severe");
+                    const docsMissing = travellerDocsNeedAction(row, booking);
+                    const dobLabel = formatTravellerDob(row.dob);
+                    const ageLabel = row.age != null && !Number.isNaN(row.age) ? `${row.age} yrs` : "";
+                    const metaBits = [row.type, row.nationality, row.contact || (row.type === "Adult" ? "Contact missing" : "")].filter(Boolean);
+                    const specialBits = (row.specialFlags || [])
+                      .map((flag) => `${specialFlagLabel(flag.kind)}${flag.note ? `: ${flag.note}` : ""}`)
+                      .join(" · ");
+                    const linked = (row.linkedServices || []).map((s) => s.label).join(" · ");
+                    const menuOpen = bookingsState.travellerMenuId === row.id;
+                    const issuesOpen = bookingsState.travellerIssuesOpen === row.id;
+                    const profileRows = [
+                      ["Legal name", row.legalName],
+                      ["Role", row.lead ? "Lead traveller" : row.role || "Traveller"],
+                      ["Type", row.type],
+                      ["Date of birth", dobLabel || "—"],
+                      ["Age", ageLabel || "—"],
+                      row.showGender || row.gender ? ["Gender", row.gender || "—"] : null,
+                      ["Nationality", row.nationality || "—"],
+                      row.type === "Child" || row.type === "Infant"
+                        ? ["Guardian", row.guardianName || "Not linked"]
+                        : ["Phone", row.contact || "—"],
+                      row.type === "Adult" ? ["Email", row.email || "—"] : null,
+                      ["Passport", row.passport === "Verified" ? "Verified" : row.passport],
+                      ["Visa", row.visaStatus],
+                      specialBits ? ["Special needs", specialBits] : null,
+                      linked ? ["Linked services", linked] : null,
+                      ["Source", row.source === "query" ? "Query snapshot" : "Booking edit"],
+                    ].filter(Boolean);
+                    return `
+            <li class="bookings-traveller-card${ready ? " is-ready" : severe ? " has-severe" : " has-issues"}" id="traveller-${escapeHtml(row.id)}" data-traveller-id="${escapeHtml(row.id)}">
+              <div class="bookings-traveller-card-top">
+                <div class="bookings-traveller-main member-cell">
+                  <span class="bookings-traveller-avatar avatar-mint" aria-hidden="true">${escapeHtml(bookingInitial(row.legalName))}</span>
+                  <div class="bookings-traveller-copy">
+                    <p class="member-name-row">
+                      <span class="member-name">${escapeHtml(row.legalName)}</span>
+                      ${row.lead ? `<span class="tag-chip">Lead</span>` : ""}
+                      ${!row.lead && row.role ? `<span class="tag-chip tag-support">${escapeHtml(row.role)}</span>` : ""}
+                    </p>
+                    <p class="member-role">${escapeHtml(metaBits.join(" · "))}</p>
+                    ${specialBits ? `<p class="bookings-traveller-extra">${escapeHtml(specialBits)}</p>` : ""}
+                  </div>
+                </div>
+                <div class="bookings-traveller-card-actions">
+                  <span class="bookings-traveller-ready-pill ${ready ? "is-ok" : severe ? "is-severe" : "is-warn"}">${
+                    ready ? "Ready" : `${issues.length} issue${issues.length === 1 ? "" : "s"}`
+                  }</span>
+                  <button type="button" class="btn btn-outline btn-xs bookings-traveller-edit-btn" data-traveller-action="edit" data-traveller-id="${escapeHtml(row.id)}" aria-label="Edit ${escapeHtml(row.legalName)}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  </button>
+                  <div class="bookings-traveller-menu">
+                    <button type="button" class="btn btn-outline btn-xs bookings-traveller-menu-btn" data-traveller-menu="${escapeHtml(row.id)}" aria-expanded="${menuOpen}" aria-label="Traveller actions">•••</button>
+                    ${
+                      menuOpen
+                        ? `<div class="bookings-traveller-menu-panel" role="menu">
+                            ${
+                              docsMissing
+                                ? `<button type="button" data-traveller-action="request-docs" data-traveller-id="${escapeHtml(row.id)}">Request documents</button>`
+                                : ""
+                            }
+                            <button type="button" data-traveller-action="replace" data-traveller-id="${escapeHtml(row.id)}">Replace traveller</button>
+                            <button type="button" class="is-danger" data-traveller-action="remove" data-traveller-id="${escapeHtml(row.id)}">Remove from booking</button>
+                          </div>`
+                        : ""
+                    }
+                  </div>
+                </div>
+              </div>
+              <dl class="bookings-traveller-profile">
+                ${profileRows
+                  .map(
+                    ([label, value]) => `
+                  <div class="bookings-traveller-profile-item">
+                    <dt>${escapeHtml(label)}</dt>
+                    <dd>${escapeHtml(value)}</dd>
+                  </div>`
+                  )
+                  .join("")}
+              </dl>
+              <div class="bookings-traveller-signals">
+                <button type="button" class="bookings-traveller-signal ${passportReadinessTone(row.passport)}" data-open-traveller-doc="${escapeHtml(row.name)}" data-doc-type="Passport">
+                  Passport · ${escapeHtml(row.passport === "Verified" ? "Verified" : row.passport)}
+                </button>
+                <button type="button" class="bookings-traveller-signal ${visaStatusTone(row.visaStatus)}" data-open-traveller-doc="${escapeHtml(row.name)}" data-doc-type="Visa copy">
+                  Visa · ${escapeHtml(row.visaStatus)}
+                </button>
+                ${
+                  issues.length
+                    ? `<button type="button" class="bookings-traveller-signal-toggle" data-traveller-issues="${escapeHtml(row.id)}" aria-expanded="${issuesOpen}">
+                        ${issuesOpen ? "Hide blockers" : "See blockers"}
+                      </button>`
+                    : ""
+                }
+              </div>
+              ${
+                issuesOpen && issues.length
+                  ? `<ul class="bookings-traveller-blockers">${issues
+                      .map(
+                        (issue) => `
+                    <li class="bookings-traveller-blocker is-${escapeHtml(issue.severity)}">
+                      <span>${escapeHtml(issue.label)}</span>
+                      ${
+                        issue.docType
+                          ? `<button type="button" class="text-link text-link-btn" data-open-traveller-doc="${escapeHtml(row.name)}" data-doc-type="${escapeHtml(issue.docType)}">Open documents</button>`
+                          : ""
+                      }
+                    </li>`
+                      )
+                      .join("")}</ul>`
+                  : ""
+              }
+            </li>`;
+                  })
+                  .join("")
+              : `<li class="bookings-ops-empty-wrap empty-state">
+                  <p class="empty-state-title">No travellers in this filter</p>
+                  <p class="empty-state-desc">Switch to All to see everyone on this booking.</p>
+                </li>`
+          }
+        </ul>
+      </article>`;
+
+    el.querySelectorAll("[data-cta-target]").forEach((btn) => {
+      btn.addEventListener("click", () => runBookingCtaTarget(btn.dataset.ctaTarget));
+    });
+    el.querySelectorAll("[data-traveller-filter]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        bookingsState.travellerFilter = btn.dataset.travellerFilter || "all";
+        bookingsState.travellerMenuId = null;
+        renderBookingOpsTabs(booking);
+      });
+    });
+    el.querySelectorAll("[data-traveller-focus]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.travellerFocus;
+        bookingsState.travellerFilter = "issues";
+        bookingsState.travellerIssuesOpen = id;
+        bookingsState.travellerMenuId = null;
+        renderBookingOpsTabs(booking);
+        window.requestAnimationFrame(() => {
+          document.getElementById(`traveller-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      });
+    });
+    el.querySelectorAll("[data-traveller-menu]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.travellerMenu;
+        bookingsState.travellerMenuId = bookingsState.travellerMenuId === id ? null : id;
+        renderBookingOpsTabs(booking);
+      });
+    });
+    el.querySelectorAll("[data-traveller-action]").forEach((btn) => {
+      btn.addEventListener("click", () => handleTravellerAction(booking, btn.dataset.travellerId, btn.dataset.travellerAction));
+    });
+    el.querySelectorAll("[data-traveller-issues]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.travellerIssues;
+        bookingsState.travellerIssuesOpen = bookingsState.travellerIssuesOpen === id ? null : id;
+        renderBookingOpsTabs(booking);
+      });
+    });
+    el.querySelectorAll("[data-open-traveller-doc]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        openTravellerDocuments(booking, btn.dataset.openTravellerDoc, btn.dataset.docType || "Passport");
+      });
+    });
+  }
+
+  function renderBookingDocumentsPanel(booking, el) {
+    if (!el) return;
+    ensureBookingDocSelection(booking);
+    const docs = bookingDocuments(booking);
+    const required = docs.filter((d) => d.required !== false);
+    const openCount = required.filter((d) => !docStatusIsComplete(d.status)).length;
+    const verifiedCount = required.filter((d) => docStatusIsComplete(d.status)).length;
+    const active = docs.find((d) => d.id === bookingsState.docId) || docs[0] || null;
+
+    const groups = [];
+    const groupMap = new Map();
+    docs.forEach((doc) => {
+      const key = doc.traveller || "__booking__";
+      if (!groupMap.has(key)) {
+        const group = { key, label: doc.traveller || "Booking-wide", items: [] };
+        groupMap.set(key, group);
+        groups.push(group);
+      }
+      groupMap.get(key).items.push(doc);
+    });
+
+    const listHtml = docs.length
+      ? groups
+          .map((group) => {
+            const items = group.items
+              .map((doc) => {
+                const selected = active && active.id === doc.id;
+                const fileBit = documentHasFile(doc) ? doc.fileName : "No file yet";
+                return `
+              <li>
+                <button type="button" class="bookings-doc-nav${selected ? " is-selected" : ""}" data-doc-open="${escapeHtml(doc.id)}">
+                  <span class="bookings-doc-nav-top">
+                    <span class="bookings-doc-nav-title">${escapeHtml(doc.type)}</span>
+                    <span class="bookings-confirmation-status ${docUiStatusTone(doc.status)}">${escapeHtml(docStatusLabel(doc.status))}</span>
+                  </span>
+                  <span class="bookings-doc-nav-meta">${escapeHtml(
+                    doc.requiredBy && doc.requiredBy !== "—" ? `Due ${doc.requiredBy}` : doc.required === false ? "Optional" : "Required"
+                  )} · ${escapeHtml(fileBit)}</span>
+                </button>
+              </li>`;
+              })
+              .join("");
+            return `<div class="bookings-doc-group">
+              <p class="team-kicker bookings-doc-group-label">${escapeHtml(group.label)}</p>
+              <ul class="bookings-doc-nav-list">${items}</ul>
+            </div>`;
+          })
+          .join("")
+      : `<div class="empty-state bookings-ops-empty-wrap">
+          <p class="empty-state-title">No documents required</p>
+          <p class="empty-state-desc">This booking has no traveller files to collect yet.</p>
+        </div>`;
+
+    el.innerHTML = `
+      ${bookingOpenAreasBannerHtml(booking, "documents")}
+      <div class="team-section-bar bookings-ops-section-bar">
+        <p class="team-kicker">Documents · Files</p>
+        <span class="team-count-pill">${verifiedCount}/${required.length || docs.length} verified</span>
+      </div>
+      <article class="bookings-card bookings-doc-card">
+        <header class="bookings-card-head">
+          <div>
+            <div class="card-title-row">
+              <h2 class="bookings-card-title">Documents</h2>
+              ${
+                openCount
+                  ? `<span class="bookings-confirmation-status is-open">${openCount} open</span>`
+                  : `<span class="bookings-confirmation-status is-done">All verified</span>`
+              }
+            </div>
+            <p class="bookings-card-sub">Collect the file, open it, then mark verified.</p>
+          </div>
+        </header>
+        <div class="bookings-doc-layout">
+          <div class="bookings-doc-list-pane">${listHtml}</div>
+          <div class="bookings-doc-detail-pane">${bookingDocumentDetailHtml(booking, active)}</div>
+        </div>
+      </article>`;
+
+    bindBookingOpenAreaChips(el);
+    bindBookingDocumentsPanel(el, booking);
+  }
+
+  function renderBookingOpsTabs(booking) {
+    const c = booking.confirmations || {};
+    const ownerAdmin = isBookingsOwnerAdmin();
+    const showSupplierMoney = canViewSupplierMoney();
+    const L = booking.ledger || {};
+
+    const servicesEl = document.getElementById("booking-panel-services");
+    if (servicesEl) {
+      const lines = bookingServices(booking);
+      syncBookingSupplierTotals(booking);
+      const pendingCount = lines.filter((line) => line.confirmation !== "confirmed").length;
+      const postConfirmCount = lines.filter((line) => line.addedAfterConfirmation).length;
+      const confirmedCount = Math.max(0, lines.length - pendingCount);
+      servicesEl.innerHTML = `
+        ${bookingOpenAreasBannerHtml(booking, "services")}
+        <div class="team-section-bar bookings-ops-section-bar">
+          <p class="team-kicker">Services · Vendors</p>
+          <div class="period-pills" role="group" aria-label="Vendor readiness">
+            <span class="period-pill is-active">All · ${lines.length}</span>
+            <span class="period-pill">Pending · ${pendingCount}</span>
+            <span class="period-pill">Confirmed · ${confirmedCount}</span>
+            ${postConfirmCount ? `<span class="period-pill">After confirm · ${postConfirmCount}</span>` : ""}
+          </div>
+        </div>
+        <article class="bookings-card">
+          <header class="bookings-card-head bookings-card-head--split">
+            <div>
+              <div class="card-title-row">
+                <h2 class="bookings-card-title">Services &amp; vendors</h2>
+                <span class="team-count-pill">${confirmedCount}/${lines.length || 0} confirmed</span>
+              </div>
+              <p class="bookings-card-sub">Attach vouchers, then confirm each vendor. Post-confirm adds stay ops-only until a price amendment.${
+                showSupplierMoney ? "" : " Supplier cost & payment hidden."
+              }</p>
+            </div>
+            <div class="bookings-ops-actions">
+              <button type="button" class="btn btn-outline btn-sm" data-add-service="catalog">Add from catalog</button>
+              <button type="button" class="btn btn-outline btn-sm" data-add-service="line">Add service line</button>
+            </div>
+          </header>
+          <ul class="bookings-ops-list bookings-vendor-list">
+            ${
+              lines.length
+                ? lines
+                    .map((line) => {
+                      const ready = serviceVouchersReady(line);
+                      const confirmed = line.confirmation === "confirmed";
+                      const unknownTerms = line.paymentTerms?.kind === "unknown";
+                      const attachedCount = (line.vouchers || []).filter((v) => v.attached).length;
+                      const totalVouchers = (line.vouchers || []).length;
+                      return `
+              <li class="bookings-vendor-row ${confirmed ? "is-confirmed" : "is-pending"}${line.addedAfterConfirmation ? " is-post-confirm" : ""}" data-service-id="${escapeHtml(line.id)}">
+                <div class="bookings-vendor-main">
+                  <div class="bookings-vendor-top">
+                    <div class="bookings-vendor-identity">
+                      <span class="tag-chip">${escapeHtml(serviceTypeLabel(line.type))}</span>
+                      <div>
+                        <p class="bookings-ops-title">${escapeHtml(line.vendor)}</p>
+                        <p class="bookings-ops-sub">${escapeHtml(line.serviceDetail)}</p>
+                        ${
+                          line.addedAfterConfirmation
+                            ? `<span class="tag-chip tag-finance">Added after confirmation</span>`
+                            : line.source === "proposal"
+                              ? `<p class="bookings-ops-meta">From accepted proposal</p>`
+                              : ""
+                        }
+                      </div>
+                    </div>
+                    <div class="bookings-vendor-side">
+                      <span class="bookings-confirmation-status ${confirmed ? "is-done" : "is-open"}">${confirmed ? "Confirmed" : "Needs vouchers"}</span>
+                      ${
+                        confirmed
+                          ? ""
+                          : `<button type="button" class="btn btn-outline btn-sm" data-change-vendor="${escapeHtml(line.id)}" title="Look for another vendor before this deal is confirmed">Change vendor</button>`
+                      }
+                    </div>
+                  </div>
+                  ${
+                    showSupplierMoney
+                      ? `<p class="bookings-payable-line">${escapeHtml(servicePayablesCopy(line))}</p>
+                         <p class="bookings-ops-meta">${escapeHtml(line.vendorContact)} · ${escapeHtml(line.vendorEmail)} · Cost ${escapeHtml(formatINR(line.cost || 0, { signed: false }))}</p>`
+                      : `<p class="bookings-ops-meta">${escapeHtml(line.vendorContact)} · ${escapeHtml(line.vendorEmail)}</p>`
+                  }
+                  ${
+                    confirmed
+                      ? ""
+                      : `<p class="bookings-ops-meta">Deal not confirmed — change vendor if you find a better option.</p>`
+                  }
+                  <div class="bookings-vendor-vouchers">
+                    <p class="team-kicker bookings-vendor-vouchers-label">Vouchers · ${attachedCount}/${totalVouchers}</p>
+                    <ul class="bookings-vendor-voucher-list">
+                      ${(line.vouchers || [])
+                        .map(
+                          (voucher) => `
+                        <li class="bookings-vendor-voucher ${voucher.attached ? "is-attached" : ""}">
+                          <div>
+                            <p class="bookings-ops-title">${escapeHtml(voucher.name)}</p>
+                            <p class="bookings-ops-meta">${voucher.attached ? `Attached · ${escapeHtml(voucher.fileName || "file.pdf")}` : "Not attached"}</p>
+                          </div>
+                          ${
+                            voucher.attached
+                              ? `<span class="bookings-ops-meta">Done</span>`
+                              : `<button type="button" class="btn btn-outline btn-sm" data-attach-voucher="${escapeHtml(voucher.id)}" data-service-id="${escapeHtml(line.id)}">Attach</button>`
+                          }
+                        </li>`
+                        )
+                        .join("")}
+                    </ul>
+                  </div>
+                  ${
+                    confirmed
+                      ? showSupplierMoney
+                        ? `<ul class="bookings-vendor-payable-list">${(line.payables || [])
+                            .map(
+                              (payable) => `
+                        <li class="bookings-vendor-payable-row">
+                          <span>${escapeHtml(formatPayableCopy(payable))}${payable.label ? ` · ${escapeHtml(payable.label)}` : ""}</span>
+                          ${
+                            payable.status !== "paid" && ownerAdmin
+                              ? `<button type="button" class="btn btn-outline btn-sm" data-mark-payable-paid="${escapeHtml(payable.id)}" data-service-id="${escapeHtml(line.id)}">Mark paid</button>`
+                              : ""
+                          }
+                        </li>`
+                            )
+                            .join("")}</ul>`
+                        : `<p class="bookings-ops-meta">Vendor confirmed · supplier payment managed in Finance.</p>`
+                      : `<div class="bookings-vendor-actions">
+                          ${
+                            showSupplierMoney && unknownTerms && ready
+                              ? `<div class="bookings-vendor-manual">
+                                   <label>Amount <input type="number" min="1" step="1" data-manual-amount data-service-id="${escapeHtml(line.id)}" placeholder="${escapeHtml(String(line.cost || ""))}" /></label>
+                                   <label>Due <input type="date" data-manual-due data-service-id="${escapeHtml(line.id)}" value="${escapeHtml(todayIsoDate())}" /></label>
+                                 </div>`
+                              : ""
+                          }
+                          <button type="button" class="btn btn-outline btn-sm" data-change-vendor="${escapeHtml(line.id)}">Change vendor</button>
+                          <button type="button" class="btn btn-primary btn-sm${ready ? "" : " is-gated"}" data-confirm-vendor="${escapeHtml(line.id)}" ${ready ? "" : "disabled aria-disabled=\"true\""} title="${
+                            ready ? "Confirm this vendor" : "Attach all vouchers first"
+                          }">Confirm vendor</button>
+                          <span class="bookings-ops-meta">${
+                            ready
+                              ? unknownTerms
+                                ? showSupplierMoney
+                                  ? "Set amount and due date, then confirm"
+                                  : "Confirm ops — Finance sets payable later"
+                                : showSupplierMoney
+                                  ? "Ready to confirm — payables create from terms"
+                                  : "Ready to confirm vendor"
+                              : "Attach vouchers to confirm · or change vendor"
+                          }</span>
+                        </div>`
+                  }
+                </div>
+              </li>`;
+                    })
+                    .join("")
+                : `<li class="bookings-ops-empty-wrap empty-state">
+                    <p class="empty-state-title">No services on this booking</p>
+                    <p class="empty-state-desc">Add from catalog or create a service line to start vendor work.</p>
+                  </li>`
+            }
+          </ul>
+        </article>`;
+
+      bindBookingOpenAreaChips(servicesEl);
+      servicesEl.querySelectorAll("[data-add-service]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const mode = btn.dataset.addService;
+          const added = mode === "catalog" ? addBookingServiceFromCatalog(booking) : addBookingServiceLine(booking);
+          showToast(
+            booking.confirmed
+              ? `${added.name} added · Added after confirmation · selling price unchanged`
+              : `${added.name} added…`
+          );
+          renderBookingDetail(booking);
+          renderBookingsList();
+        });
+      });
+      servicesEl.querySelectorAll("[data-attach-voucher]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (attachServiceVoucher(booking, btn.dataset.serviceId, btn.dataset.attachVoucher)) {
+            showToast("Voucher attached…");
+            renderBookingDetail(booking);
+            renderBookingsList();
+          }
+        });
+      });
+      servicesEl.querySelectorAll("[data-change-vendor]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const updated = changeBookingServiceVendor(booking, btn.dataset.changeVendor);
+          if (updated) {
+            showToast(`Vendor changed to ${updated.vendor}…`);
+            renderBookingDetail(booking);
+            renderBookingsList();
+          }
+        });
+      });
+      servicesEl.querySelectorAll("[data-confirm-vendor]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (btn.disabled || btn.getAttribute("aria-disabled") === "true") {
+            showToast("Attach all vouchers before confirming…");
+            return;
+          }
+          const serviceId = btn.dataset.confirmVendor;
+          const service = bookingServices(booking).find((s) => s.id === serviceId);
+          if (!service || !serviceVouchersReady(service)) {
+            showToast("Attach all vouchers before confirming…");
+            return;
+          }
+          const amountInput = servicesEl.querySelector(`[data-manual-amount][data-service-id="${serviceId}"]`);
+          const dueInput = servicesEl.querySelector(`[data-manual-due][data-service-id="${serviceId}"]`);
+          const manual =
+            amountInput || dueInput
+              ? { amount: amountInput?.value, dueDate: dueInput?.value }
+              : null;
+          if (confirmServiceVendor(booking, serviceId, manual)) {
+            showToast("Vendor confirmed…");
+            renderBookingDetail(booking);
+            renderBookingsList();
+          }
+        });
+      });
+      servicesEl.querySelectorAll("[data-mark-payable-paid]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (markServicePayablePaid(booking, btn.dataset.serviceId, btn.dataset.markPayablePaid)) {
+            showToast("Supplier payable marked paid…");
+            renderBookingDetail(booking);
+            renderBookingsList();
+          }
+        });
+      });
+    }
+
+    const travellersEl = document.getElementById("booking-panel-travellers");
+    if (travellersEl) {
+      renderBookingTravellersPanel(booking, travellersEl);
+    }
+
+    const documentsEl = document.getElementById("booking-panel-documents");
+    if (documentsEl) {
+      renderBookingDocumentsPanel(booking, documentsEl);
+    }
+
+    const vouchersEl = document.getElementById("booking-panel-vouchers");
+    if (vouchersEl) {
+      const lines = bookingVouchers(booking);
+      const services = bookingServices(booking);
+      const blockedCount = lines.filter((v) => v.status === "blocked").length;
+      const readyCount = lines.filter((v) => v.status === "ready").length;
+      const issuedCount = lines.filter((v) => v.status === "issued").length;
+      const sentCount = lines.filter((v) => v.status === "sent").length;
+      vouchersEl.innerHTML = `
+        ${bookingOpenAreasBannerHtml(booking, "vouchers")}
+        <div class="team-section-bar bookings-ops-section-bar">
+          <p class="team-kicker">Vouchers · Traveller outputs</p>
+          <div class="period-pills" role="group" aria-label="Voucher lifecycle">
+            <span class="period-pill">Blocked · ${blockedCount}</span>
+            <span class="period-pill">Ready · ${readyCount}</span>
+            <span class="period-pill">Issued · ${issuedCount}</span>
+            <span class="period-pill is-active">Sent · ${sentCount}</span>
+          </div>
+        </div>
+        <article class="bookings-card">
+          <header class="bookings-card-head">
+            <div>
+              <div class="card-title-row">
+                <h2 class="bookings-card-title">Vouchers</h2>
+                <span class="team-count-pill">${sentCount}/${lines.length || 0} sent</span>
+              </div>
+              <p class="bookings-card-sub">Hotel, transfer, activity vouchers and agency tickets — not passports or customer uploads.</p>
+            </div>
+          </header>
+          <ul class="bookings-traveller-voucher-list">
+            ${
+              lines.length
+                ? lines
+                    .map((line) => {
+                      const service = services.find((s) => s.id === line.serviceId);
+                      const tone =
+                        line.status === "blocked"
+                          ? "is-blocked"
+                          : line.status === "ready"
+                            ? "is-ready"
+                            : line.status === "issued"
+                              ? "is-issued"
+                              : "is-sent";
+                      const shortService = voucherServiceShortLabel(service);
+                      const title = shortService ? `${line.name} — ${shortService}` : line.name;
+                      const vendorLabel = service ? service.vendor : "—";
+                      const statusSub =
+                        line.status === "blocked"
+                          ? `${voucherStatusLabel(line.status)} · ${line.blockReason || "Linked service not confirmed"}`
+                          : line.status === "ready"
+                            ? `${voucherStatusLabel(line.status)} · Service confirmed — attach or generate`
+                            : line.status === "issued"
+                              ? `${voucherStatusLabel(line.status)} · ${line.fileName || "voucher.pdf"}`
+                              : `${voucherStatusLabel(line.status)} · ${line.sentAt || "—"}`;
+                      return `
+              <li class="bookings-traveller-voucher ${tone}" data-voucher-id="${escapeHtml(line.id)}">
+                <div class="bookings-traveller-voucher-top">
+                  <div>
+                    <p class="team-kicker">${escapeHtml(voucherSourceLabel(line.source))}</p>
+                    <p class="bookings-ops-title">${escapeHtml(title)}</p>
+                    <p class="bookings-ops-sub">${escapeHtml(statusSub)}</p>
+                    <p class="bookings-ops-meta">Vendor: ${escapeHtml(vendorLabel)}</p>
+                  </div>
+                  <span class="bookings-confirmation-status ${
+                    line.status === "blocked" ? "is-blocked" : line.status === "ready" ? "is-open" : "is-done"
+                  }">${escapeHtml(voucherStatusLabel(line.status))}</span>
+                </div>
+                ${
+                  line.status === "blocked"
+                    ? `<div class="bookings-vendor-actions">
+                         <button type="button" class="btn btn-outline btn-sm" data-cta-target="services">Resolve in Services &amp; vendors</button>
+                       </div>`
+                    : ""
+                }
+                ${
+                  line.status === "ready"
+                    ? `<p class="bookings-voucher-step">Service confirmed — attach or generate the traveller voucher.</p>
+                       <div class="bookings-vendor-actions">
+                         <button type="button" class="btn btn-outline btn-sm" data-voucher-action="attach" data-voucher-id="${escapeHtml(line.id)}">Attach voucher</button>
+                         <button type="button" class="btn btn-primary btn-sm" data-voucher-action="generate" data-voucher-id="${escapeHtml(line.id)}">Generate voucher</button>
+                       </div>`
+                    : ""
+                }
+                ${
+                  line.status === "issued"
+                    ? `<p class="bookings-voucher-step">Issued · ${escapeHtml(line.fileName || "voucher.pdf")} — preview, then send to traveller.</p>
+                       <div class="bookings-vendor-actions">
+                         <button type="button" class="btn btn-outline btn-sm" data-voucher-preview="${escapeHtml(line.id)}">Preview</button>
+                         <button type="button" class="btn btn-primary btn-sm" data-voucher-action="send" data-voucher-id="${escapeHtml(line.id)}">Send to traveller</button>
+                       </div>`
+                    : ""
+                }
+                ${
+                  line.status === "sent"
+                    ? `<p class="bookings-voucher-step">Sent to traveller · ${escapeHtml(line.sentAt || "—")}${
+                        line.fileName ? ` · ${escapeHtml(line.fileName)}` : ""
+                      }</p>`
+                    : ""
+                }
+              </li>`;
+                    })
+                    .join("")
+                : `<li class="bookings-ops-empty-wrap empty-state">
+                    <p class="empty-state-title">No traveller vouchers yet</p>
+                    <p class="empty-state-desc">They appear when services are on the booking and vendors are ready.</p>
+                  </li>`
+            }
+          </ul>
+        </article>`;
+      bindBookingOpenAreaChips(vouchersEl);
+      vouchersEl.querySelectorAll("[data-cta-target]").forEach((btn) => {
+        btn.addEventListener("click", () => runBookingCtaTarget(btn.dataset.ctaTarget));
+      });
+      vouchersEl.querySelectorAll("[data-voucher-action]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const action = btn.dataset.voucherAction;
+          if (advanceTravellerVoucher(booking, btn.dataset.voucherId, action)) {
+            showToast(
+              action === "send" ? "Voucher sent to traveller…" : action === "generate" ? "Voucher generated…" : "Voucher attached…"
+            );
+            renderBookingDetail(booking);
+            renderBookingsList();
+          }
+        });
+      });
+      vouchersEl.querySelectorAll("[data-voucher-preview]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const voucher = bookingVouchers(booking).find((v) => v.id === btn.dataset.voucherPreview);
+          showToast(`Previewing ${voucher?.fileName || "voucher"}…`);
+        });
+      });
+    }
+
+    const financeEl = document.getElementById("booking-panel-finance");
+    if (financeEl) {
+      if (!canAccessBookingTab("finance", booking)) {
+        financeEl.innerHTML = `
+          ${bookingOpenAreasBannerHtml(booking, "finance")}
+          <article class="bookings-card">
+            <header class="bookings-card-head">
+              <div>
+                <h2 class="bookings-card-title">Finance</h2>
+                <p class="bookings-card-sub">This tab needs Finance permission (Owner or Admin in this demo).</p>
+              </div>
+            </header>
+            <div class="empty-state bookings-ops-empty-wrap">
+              <p class="empty-state-title">Finance restricted</p>
+              <p class="empty-state-desc">Ask an Owner or Admin if you need payment details for this booking.</p>
+            </div>
+          </article>`;
+        bindBookingOpenAreaChips(financeEl);
+      } else {
+      syncBookingSupplierTotals(booking);
+      const payments = BOOKING_PAYMENTS.filter((p) => p.bookingSlug === booking.slug);
+      const supplierPayables = collectBookingPayables(booking);
+      const payoutLabel = ownerAdmin ? "Record supplier payout" : "Request supplier payout";
+      const collectLabel = ownerAdmin ? "Record customer receipt" : "Send payment reminder";
+      const acceptedPrice = acceptedSellingPrice(booking);
+      const draftAmend = booking.amendment?.status === "draft" ? booking.amendment : null;
+      const defaultPropose = acceptedPrice > 0 ? acceptedPrice + 5000 : 5000;
+      const collectOpen = Math.max(0, Number(L.customerBalance) || Number(booking.toCollect) || 0);
+      const payOpen = Math.max(0, Number(booking.toPaySuppliers) || 0);
+      financeEl.innerHTML = `
+        ${bookingOpenAreasBannerHtml(booking, "finance")}
+        <div class="team-section-bar bookings-ops-section-bar">
+          <p class="team-kicker">Finance · Ledger</p>
+          <span class="team-count-pill">${
+            collectOpen > 0 || payOpen > 0
+              ? [collectOpen > 0 ? "Collect open" : null, payOpen > 0 ? "Payables open" : null].filter(Boolean).join(" · ")
+              : "Settled"
+          }</span>
+        </div>
+        <article class="bookings-card">
+          <header class="bookings-card-head bookings-card-head--split">
+            <div>
+              <div class="card-title-row">
+                <h2 class="bookings-card-title">Finance</h2>
+                <span class="team-count-pill">Accepted price locked</span>
+              </div>
+              <p class="bookings-card-sub">Change selling price only through an amendment — not by editing the accepted agreement.</p>
+            </div>
+            <div class="bookings-ops-actions">
+              ${
+                (Number(booking.toCollect) || 0) > 0 || booking.paymentOverdue
+                  ? `<button type="button" class="btn btn-outline btn-sm" data-finance-action="collect">${escapeHtml(collectLabel)}</button>`
+                  : ""
+              }
+              ${
+                (Number(booking.toPaySuppliers) || 0) > 0
+                  ? `<button type="button" class="btn btn-outline btn-sm" data-finance-action="payout">${escapeHtml(payoutLabel)}</button>`
+                  : ""
+              }
+            </div>
+          </header>
+          ${
+            draftAmend
+              ? `<div class="bookings-amendment-banner team-assign-banner" role="status">
+                   <div>
+                     <p class="team-kicker">Amendment draft · selling price</p>
+                     <p class="team-assign-title">${escapeHtml(formatINR(draftAmend.currentPrice, { signed: false }))} → ${escapeHtml(formatINR(draftAmend.proposedPrice, { signed: false }))}</p>
+                     <p class="team-assign-meta">${escapeHtml(draftAmend.reason)} · accepted proposal stays ${escapeHtml(formatINR(draftAmend.currentPrice, { signed: false }))} until accepted</p>
+                   </div>
+                   <div class="bookings-ops-actions">
+                     ${
+                       ownerAdmin
+                         ? `<button type="button" class="btn btn-primary btn-sm" data-amendment-action="accept">Accept amendment</button>
+                            <button type="button" class="btn btn-outline btn-sm" data-amendment-action="discard">Discard</button>`
+                         : `<span class="bookings-ops-meta">Owner/Admin must accept</span>`
+                     }
+                   </div>
+                 </div>`
+              : ""
+          }
+          <div class="bookings-ledger-grid bookings-finance-echo">
+            <article class="bookings-ledger-cell"><p class="bookings-ledger-label">To collect</p><p class="bookings-ledger-value ${(L.customerBalance || 0) > 0 ? "is-collect" : ""}">${escapeHtml(formatCustomerBalanceCopy(L.customerBalance || 0))}</p></article>
+            <article class="bookings-ledger-cell"><p class="bookings-ledger-label">Received</p><p class="bookings-ledger-value is-positive">${escapeHtml(formatINR(L.customerPaid || 0, { signed: false }))}</p></article>
+            <article class="bookings-ledger-cell"><p class="bookings-ledger-label">Supplier due</p><p class="bookings-ledger-value ${Math.max(0, Number(booking.toPaySuppliers) || 0) > 0 ? "is-pay" : ""}">${escapeHtml(getBookingSupplierMoneyCopy(booking).title)}</p></article>
+            <article class="bookings-ledger-cell"><p class="bookings-ledger-label">Paid to suppliers</p><p class="bookings-ledger-value">${escapeHtml(formatINR(L.vendorSettled || 0, { signed: false }))}</p></article>
+            <article class="bookings-ledger-cell"><p class="bookings-ledger-label">Deposits</p><p class="bookings-ledger-value">${escapeHtml(formatINR(L.deposits || 0, { signed: false }))}</p></article>
+            <article class="bookings-ledger-cell bookings-ledger-cell--locked">
+              <p class="bookings-ledger-label">Selling price · accepted</p>
+              <p class="bookings-ledger-value">${escapeHtml(formatINR(acceptedPrice, { signed: false }))}</p>
+              <p class="bookings-ledger-sub">Locked to accepted proposal${booking.proposalVersion ? ` ${escapeHtml(booking.proposalVersion)}` : ""}</p>
+            </article>
+            <article class="bookings-ledger-cell"><p class="bookings-ledger-label">Cost</p><p class="bookings-ledger-value">${escapeHtml(formatINR(L.totalCost || 0, { signed: false }))}</p></article>
+            ${
+              isBookingsOwner()
+                ? `<article class="bookings-ledger-cell owner-only"><p class="bookings-ledger-label">Margin</p><p class="bookings-ledger-value is-positive">${escapeHtml(formatINR(L.margin || 0, { signed: false }))}</p></article>`
+                : ""
+            }
+          </div>
+          ${
+            !draftAmend
+              ? `<div class="bookings-amendment-form">
+                   <div>
+                     <h3 class="bookings-ops-section-title">Amend selling price</h3>
+                     <p class="bookings-ops-sub">Customer-facing price changes need an amendment — they do not edit the accepted agreement in place.</p>
+                   </div>
+                   <div class="bookings-amendment-controls">
+                     <label class="bookings-amendment-field">Proposed price
+                       <input type="number" min="1" step="1" id="booking-amend-price" value="${escapeHtml(String(defaultPropose))}" ${ownerAdmin ? "" : "disabled"} />
+                     </label>
+                     <label class="bookings-amendment-field">Reason
+                       <input type="text" id="booking-amend-reason" value="Customer requested paid upgrade" ${ownerAdmin ? "" : "disabled"} />
+                     </label>
+                     <button type="button" class="btn btn-outline btn-sm" data-amendment-action="draft" ${ownerAdmin ? "" : "disabled"}>Start amendment</button>
+                   </div>
+                 </div>`
+              : ""
+          }
+          <div class="team-section-bar bookings-ops-mini-bar">
+            <p class="team-kicker">Supplier payables</p>
+            <span class="team-count-pill">${supplierPayables.length}</span>
+          </div>
+          ${
+            supplierPayables.length
+              ? `<ul class="bookings-ops-list">${supplierPayables
+                  .map(
+                    (p) => `
+                <li class="bookings-ops-row">
+                  <div>
+                    <p class="bookings-ops-title">${escapeHtml(formatPayableCopy(p))}</p>
+                    <p class="bookings-ops-sub">${escapeHtml(serviceTypeLabel(p.serviceType))} · ${escapeHtml(p.vendor)}${p.label ? ` · ${escapeHtml(p.label)}` : ""}</p>
+                  </div>
+                  <span class="bookings-confirmation-status ${p.status === "paid" ? "is-done" : "is-open"}">${escapeHtml(p.status === "paid" ? "Paid" : p.status === "due" ? "Due" : "Scheduled")}</span>
+                </li>`
+                  )
+                  .join("")}</ul>`
+              : `<div class="empty-state bookings-ops-empty-wrap">
+                  <p class="empty-state-title">No supplier payables yet</p>
+                  <p class="empty-state-desc">They appear when a vendor is confirmed.</p>
+                </div>`
+          }
+          <div class="team-section-bar bookings-ops-mini-bar">
+            <p class="team-kicker">Payment activity</p>
+            <span class="team-count-pill">${payments.length}</span>
+          </div>
+          ${
+            payments.length
+              ? `<ul class="bookings-ops-list">${payments
+                  .map(
+                    (p) => `
+                <li class="bookings-ops-row">
+                  <div>
+                    <p class="bookings-ops-title">${escapeHtml(p.eventLabel)}</p>
+                    <p class="bookings-ops-sub">${escapeHtml(p.id)} · ${escapeHtml(p.method)} · ${escapeHtml(p.stage)}</p>
+                  </div>
+                  <span class="bookings-ops-amount">${escapeHtml(
+                    p.type === "vendor" || p.type === "refund"
+                      ? `${formatINR(p.amount, { signed: false })} out`
+                      : formatINR(p.amount, { signed: false })
+                  )}</span>
+                </li>`
+                  )
+                  .join("")}</ul>`
+              : `<div class="empty-state bookings-ops-empty-wrap">
+                  <p class="empty-state-title">No payment activity yet</p>
+                  <p class="empty-state-desc">Customer receipts and supplier payouts will show here.</p>
+                </div>`
+          }
+        </article>`;
+        bindBookingOpenAreaChips(financeEl);
+      }
+    }
+
+    const communicationEl = document.getElementById("booking-panel-communication");
+    if (communicationEl) {
+      ensureBookingCommSelection(booking);
+      const threads = inboxThreadsForBooking(booking);
+      const unlinked = unlinkedInboxCandidatesForBooking(booking);
+      const active = bookingsState.commCompose
+        ? null
+        : getInboxThreadById(bookingsState.commThreadId) || threads[0] || null;
+
+      const threadListHtml = threads.length
+        ? threads
+            .map((thread) => {
+              const selected = active && active.id === thread.id && !bookingsState.commCompose;
+              return `
+              <li>
+                <button type="button" class="bookings-comm-thread${selected ? " is-selected" : ""}" data-comm-open="${escapeHtml(thread.id)}">
+                  <span class="bookings-comm-thread-top">
+                    <span class="member-name">${escapeHtml(thread.contactName)}</span>
+                    <span class="bookings-comm-thread-when">${escapeHtml(thread.when)}</span>
+                  </span>
+                  <span class="bookings-comm-thread-meta">
+                    <span class="tag-chip">${escapeHtml(thread.channel)}</span>
+                    <span class="tag-chip ${String(thread.party || "").toLowerCase() === "vendor" ? "tag-finance" : "tag-support"}">${escapeHtml(thread.roleLabel)}</span>
+                  </span>
+                  <span class="member-role bookings-comm-thread-preview">${escapeHtml(thread.preview)}</span>
+                </button>
+              </li>`;
+            })
+            .join("")
+        : `<li class="bookings-ops-empty-wrap empty-state">
+            <p class="empty-state-title">No conversations yet</p>
+            <p class="empty-state-desc">Start a message on ${escapeHtml(booking.id)}, or link an Inbox thread.</p>
+          </li>`;
+
+      const unlinkedHtml = unlinked.length
+        ? `<div class="bookings-comm-unlinked team-assign-banner">
+            <p class="team-kicker">Unlinked in Inbox</p>
+            <p class="team-assign-title">Same contact — link to this booking</p>
+            <ul class="bookings-comm-unlinked-list">
+              ${unlinked
+                .map(
+                  (thread) => `
+                <li>
+                  <div>
+                    <p class="bookings-ops-title">${escapeHtml(thread.contactName)} · ${escapeHtml(thread.roleLabel)}</p>
+                    <p class="bookings-ops-sub">${escapeHtml(thread.channel)} · ${escapeHtml(thread.preview)}</p>
+                  </div>
+                  <button type="button" class="btn btn-outline btn-sm" data-comm-link="${escapeHtml(thread.id)}">Link to ${escapeHtml(booking.id)}</button>
+                </li>`
+                )
+                .join("")}
+            </ul>
+          </div>`
+        : "";
+
+      let detailHtml = "";
+      if (bookingsState.commCompose) {
+        const vendors = (booking.services || [])
+          .map((service) => service.vendor)
+          .filter(Boolean)
+          .filter((name, index, arr) => arr.indexOf(name) === index);
+        detailHtml = `
+          <div class="bookings-comm-detail">
+            <header class="bookings-comm-detail-head">
+              <div>
+                <h3 class="bookings-comm-detail-title">New message · ${escapeHtml(booking.id)}</h3>
+                <p class="bookings-comm-detail-meta">Starts a thread on this booking. Reply channel stays WhatsApp or Email for the whole conversation.</p>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" data-comm-cancel-compose>Cancel</button>
+            </header>
+            <form class="bookings-comm-compose" id="booking-comm-compose-form">
+              <div class="bookings-comm-compose-grid">
+                <label class="bookings-comm-field">
+                  <span class="bookings-comm-field-label">Channel</span>
+                  <select class="team-select bookings-comm-select" name="channel" required>
+                    <option value="WhatsApp">WhatsApp</option>
+                    <option value="Email">Email</option>
+                  </select>
+                </label>
+                <label class="bookings-comm-field">
+                  <span class="bookings-comm-field-label">To</span>
+                  <select class="team-select bookings-comm-select" name="party" required>
+                    <option value="Customer">Traveller / customer</option>
+                    <option value="Vendor">Vendor</option>
+                  </select>
+                </label>
+                <label class="bookings-comm-field bookings-comm-compose-span">
+                  <span class="bookings-comm-field-label">Contact</span>
+                  <input class="bookings-comm-input" name="contact" type="text" required value="${escapeHtml(booking.customer)}" list="booking-comm-contacts" />
+                  <datalist id="booking-comm-contacts">
+                    <option value="${escapeHtml(booking.customer)}"></option>
+                    ${vendors.map((name) => `<option value="${escapeHtml(name)}"></option>`).join("")}
+                  </datalist>
+                </label>
+                <label class="bookings-comm-field">
+                  <span class="bookings-comm-field-label">Related</span>
+                  <select class="team-select bookings-comm-select" name="related">
+                    <option value="Booking">Booking</option>
+                    <option value="Hotel">Hotel</option>
+                    <option value="Documents">Documents</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Trip">Trip</option>
+                  </select>
+                </label>
+                <label class="bookings-comm-field bookings-comm-compose-span">
+                  <span class="bookings-comm-field-label">Document</span>
+                  <select class="team-select bookings-comm-select" name="attachment">
+                    <option value="">No attachment</option>
+                    ${shareableCommAttachments(booking, { party: "Customer", contactName: booking.customer })
+                      .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}</option>`)
+                      .join("")}
+                  </select>
+                </label>
+              </div>
+              <label class="bookings-comm-field bookings-comm-compose-body">
+                <span class="bookings-comm-field-label">Message</span>
+                <textarea class="bookings-comm-textarea" name="body" rows="5" placeholder="Write the outgoing message (optional if attaching)…"></textarea>
+              </label>
+              <div class="bookings-comm-compose-actions">
+                <p class="bookings-comm-channel-note">Sent through the agency’s connected WhatsApp or email account. Members can attach document requests or share files.</p>
+                <button type="submit" class="btn btn-primary btn-sm">Send</button>
+              </div>
+            </form>
+          </div>`;
+      } else if (active) {
+        const shareOptions = shareableCommAttachments(booking, active);
+        const messagesHtml = (active.messages || [])
+          .map((msg) => {
+            const atts = (msg.attachments || [])
+              .map((att) => {
+                if (att.kind === "incoming") {
+                  return `<div class="bookings-comm-attach is-incoming">
+                    <div>
+                      <p class="bookings-comm-attach-title">${escapeHtml(att.label || "Incoming file")}</p>
+                      <p class="bookings-comm-attach-meta">${escapeHtml(att.fileName || "file")} · ${
+                        att.saved ? "Saved to Documents" : "Not saved to Documents yet"
+                      }</p>
+                    </div>
+                    ${
+                      att.saved
+                        ? `<button type="button" class="btn btn-outline btn-sm" data-comm-open-doc="${escapeHtml(att.docId || "")}">Open in Documents</button>`
+                        : `<button type="button" class="btn btn-primary btn-sm" data-comm-save-doc="${escapeHtml(msg.id)}">Save to Documents</button>`
+                    }
+                  </div>`;
+                }
+                if (att.kind === "request") {
+                  return `<div class="bookings-comm-attach is-request">
+                    <p class="bookings-comm-attach-title">Requested · ${escapeHtml(att.label || "Document")}</p>
+                    <p class="bookings-comm-attach-meta">Tracks in Documents until verified</p>
+                  </div>`;
+                }
+                return `<div class="bookings-comm-attach is-file">
+                  <div>
+                    <p class="bookings-comm-attach-title">${escapeHtml(att.label || "Shared file")}</p>
+                    <p class="bookings-comm-attach-meta">${escapeHtml(att.fileName || "file")}</p>
+                  </div>
+                  ${
+                    att.docId
+                      ? `<button type="button" class="btn btn-outline btn-sm" data-comm-open-doc="${escapeHtml(att.docId)}">Open in Documents</button>`
+                      : att.voucherId
+                        ? `<button type="button" class="btn btn-outline btn-sm" data-cta-target="vouchers">Open Vouchers</button>`
+                        : ""
+                  }
+                </div>`;
+              })
+              .join("");
+            return `
+            <div class="bookings-comm-msg is-${escapeHtml(msg.from)}">
+              ${msg.body ? `<p class="bookings-comm-msg-body">${escapeHtml(msg.body)}</p>` : ""}
+              ${atts}
+              <p class="bookings-comm-msg-meta">${escapeHtml(msg.from === "staff" ? "You" : active.contactName)} · ${escapeHtml(msg.channel)} · ${escapeHtml(msg.at)}</p>
+            </div>`;
+          })
+          .join("");
+        detailHtml = `
+          <div class="bookings-comm-detail">
+            <header class="bookings-comm-detail-head">
+              <div>
+                <p class="team-kicker">${escapeHtml(active.roleLabel)}</p>
+                <h3 class="bookings-comm-detail-title">${escapeHtml(active.contactName)}</h3>
+                <div class="bookings-doc-chip-row">
+                  <span class="tag-chip">${escapeHtml(active.channel)}</span>
+                  ${threadContextMeta(active) ? `<span class="tag-chip tag-support">${escapeHtml(threadContextMeta(active))}</span>` : ""}
+                </div>
+                <p class="bookings-ops-meta">Assigned: ${escapeHtml(active.assignee || "—")} · Members can request, share, and save documents here</p>
+              </div>
+            </header>
+            <div class="bookings-comm-messages" role="log" aria-live="polite">${messagesHtml}</div>
+            <form class="bookings-comm-reply" id="booking-comm-reply-form">
+              <div class="bookings-comm-reply-head">
+                <p class="team-kicker">Compose</p>
+                <span class="bookings-comm-channel ${active.channel === "Email" ? "is-email" : "is-whatsapp"}">${escapeHtml(active.channel)}</span>
+              </div>
+              <label class="bookings-comm-field" for="booking-comm-attach">
+                <span class="bookings-comm-field-label">Attach / request document</span>
+                <select class="team-select bookings-comm-select" id="booking-comm-attach" name="attachment">
+                  <option value="">No attachment</option>
+                  ${shareOptions
+                    .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}${item.fileName ? ` · ${escapeHtml(item.fileName)}` : ""}</option>`)
+                    .join("")}
+                </select>
+              </label>
+              <label class="bookings-comm-field" for="booking-comm-reply-body">
+                <span class="bookings-comm-field-label">Reply on ${escapeHtml(active.channel)}</span>
+                <textarea class="bookings-comm-textarea" id="booking-comm-reply-body" name="body" rows="3" placeholder="Message optional if you attach a request or file…"></textarea>
+              </label>
+              <div class="bookings-comm-reply-actions">
+                <p class="bookings-comm-channel-note">Share or request files on this thread. Incoming files can be saved into Documents for verification.</p>
+                <button type="submit" class="btn btn-primary btn-sm">Send via ${escapeHtml(active.channel)}</button>
+              </div>
+            </form>
+          </div>`;
+      } else {
+        detailHtml = `
+          <div class="bookings-comm-detail bookings-comm-detail--empty">
+            <div class="empty-state">
+              <p class="empty-state-title">No thread selected</p>
+              <p class="empty-state-desc">Start a message on ${escapeHtml(booking.id)}, or link an Inbox conversation.</p>
+            </div>
+          </div>`;
+      }
+
+      communicationEl.innerHTML = `
+        <div class="team-section-bar bookings-ops-section-bar">
+          <p class="team-kicker">Communication · Inbox</p>
+          <span class="team-count-pill">${threads.length} thread${threads.length === 1 ? "" : "s"}${unlinked.length ? ` · ${unlinked.length} unlinked` : ""}</span>
+        </div>
+        <article class="bookings-card bookings-comm-card">
+          <header class="bookings-card-head bookings-card-head--split">
+            <div>
+              <div class="card-title-row">
+                <h2 class="bookings-card-title">Communication</h2>
+                <span class="team-count-pill">${escapeHtml(booking.id)}</span>
+              </div>
+              <p class="bookings-card-sub">Reply, request docs, share files — same channel the conversation started on.</p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" data-comm-new>New message</button>
+          </header>
+          ${unlinkedHtml}
+          <div class="bookings-comm-layout">
+            <div class="bookings-comm-list-pane">
+              <ul class="bookings-comm-thread-list">${threadListHtml}</ul>
+            </div>
+            <div class="bookings-comm-detail-pane">${detailHtml}</div>
+          </div>
+        </article>`;
+
+      communicationEl.querySelectorAll("[data-comm-open]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          bookingsState.commCompose = false;
+          bookingsState.commThreadId = btn.dataset.commOpen;
+          renderBookingOpsTabs(booking);
+        });
+      });
+      communicationEl.querySelector("[data-comm-new]")?.addEventListener("click", () => {
+        bookingsState.commCompose = true;
+        renderBookingOpsTabs(booking);
+      });
+      communicationEl.querySelector("[data-comm-cancel-compose]")?.addEventListener("click", () => {
+        bookingsState.commCompose = false;
+        ensureBookingCommSelection(booking);
+        renderBookingOpsTabs(booking);
+      });
+      communicationEl.querySelectorAll("[data-comm-link]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (!linkInboxThreadToBooking(btn.dataset.commLink, booking)) return;
+          bookingsState.commCompose = false;
+          bookingsState.commThreadId = btn.dataset.commLink;
+          showToast(`Linked conversation to ${booking.id}…`);
+          renderBookingOpsTabs(booking);
+        });
+      });
+      communicationEl.querySelectorAll("[data-comm-save-doc]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (!active) return;
+          if (saveCommIncomingToDocuments(booking, active, btn.dataset.commSaveDoc)) {
+            showToast("Saved to Documents — open to verify…");
+            renderBookingDetail(booking);
+            renderBookingsList();
+          }
+        });
+      });
+      communicationEl.querySelectorAll("[data-comm-open-doc]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (!btn.dataset.commOpenDoc) return;
+          bookingsState.docId = btn.dataset.commOpenDoc;
+          setBookingDetailTab("documents", { updateHash: true });
+          showToast("Opening documents…");
+          renderBookingOpsTabs(booking);
+        });
+      });
+      communicationEl.querySelectorAll("[data-cta-target]").forEach((btn) => {
+        btn.addEventListener("click", () => runBookingCtaTarget(btn.dataset.ctaTarget));
+      });
+      communicationEl.querySelector("#booking-comm-reply-form")?.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        const body = String(data.get("body") || "");
+        const attachment = resolveCommAttachment(booking, active, String(data.get("attachment") || ""));
+        if (!active || !appendStaffReply(active, body, { booking, attachment })) {
+          if (!String(body).trim() && !attachment) showToast("Add a message or attach a document…");
+          return;
+        }
+        showToast(
+          attachment?.kind === "request"
+            ? `Document requested via ${active.channel}…`
+            : attachment
+              ? `File sent via ${active.channel}…`
+              : `Sent via ${active.channel}…`
+        );
+        form.reset();
+        renderBookingDetail(booking);
+        renderBookingsList();
+      });
+      communicationEl.querySelector("#booking-comm-compose-form")?.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const body = String(data.get("body") || "").trim();
+        const party = String(data.get("party") || "Customer");
+        const contactName = String(data.get("contact") || booking.customer).trim();
+        const draftThread = { party, contactName };
+        const attachment = resolveCommAttachment(booking, draftThread, String(data.get("attachment") || ""));
+        if (!body && !attachment) {
+          showToast("Add a message or attach a document…");
+          return;
+        }
+        const related =
+          attachment?.kind === "request" || attachment?.kind === "document"
+            ? "Documents"
+            : String(data.get("related") || "Booking");
+        const channel = String(data.get("channel") || "WhatsApp");
+        const thread = {
+          id: `IN-${booking.slug}-${Date.now()}`,
+          bookingSlug: booking.slug,
+          bookingId: booking.id,
+          party,
+          roleLabel: partyRoleLabel(party),
+          channel: channel === "Email" ? "Email" : "WhatsApp",
+          contactName,
+          related,
+          serviceId: "",
+          assignee: getBookingsViewerStaff()?.name || booking.owner?.name || "",
+          when: "Just now",
+          preview: "",
+          unread: false,
+          linkSource: "booking",
+          messages: [],
+        };
+        INBOX_THREADS.unshift(thread);
+        if (!appendStaffReply(thread, body, { booking, attachment })) {
+          INBOX_THREADS.splice(INBOX_THREADS.indexOf(thread), 1);
+          return;
+        }
+        bookingsState.commCompose = false;
+        bookingsState.commThreadId = thread.id;
+        showToast(`Sent via ${thread.channel} · linked to ${booking.id}…`);
+        renderBookingDetail(booking);
+        renderBookingsList();
+      });
+    }
+
+    const activityEl = document.getElementById("booking-panel-activity");
+    if (activityEl) {
+      const viewer = getBookingsViewerStaff();
+      const memberView = getBookingsViewingAs() === "Member";
+      const events = bookingActivity(booking);
+      let lastGroup = null;
+      const rowsHtml = events
+        .map((row) => {
+          const group =
+            row.groupKey !== lastGroup
+              ? `<tr class="audit-group"><td colspan="4">${escapeHtml(row.groupLabel)}</td></tr>`
+              : "";
+          lastGroup = row.groupKey;
+          return `${group}<tr class="audit-row" tabindex="0" data-search="${escapeHtml(row.searchText || "")}" data-module="${escapeHtml(row.module)}" data-group="${escapeHtml(row.groupKey)}">
+            <td><span class="roster-metric">${escapeHtml(row.time)}</span></td>
+            <td>
+              <div class="member-cell">
+                <span class="avatar ${escapeHtml(row.actor.avatarClass || "")}" aria-hidden="true">${escapeHtml(row.actor.initials)}</span>
+                <div>
+                  <p class="member-name">${escapeHtml(row.actor.name)}</p>
+                  <p class="member-role">${escapeHtml(row.actor.type || "Member")}</p>
+                </div>
+              </div>
+            </td>
+            <td class="audit-event-cell"><span class="audit-event-text">${row.eventHtml}</span></td>
+            <td><span class="audit-module-badge audit-module-${escapeHtml(String(row.module || "").toLowerCase())}">${escapeHtml(row.moduleLabel)}</span></td>
+          </tr>`;
+        })
+        .join("");
+
+      const accessCopy = memberView
+        ? `Activity for this booking only · visible because it’s assigned to ${escapeHtml(viewer.name)} · not editable.`
+        : `Activity for this booking only · not editable.`;
+
+      activityEl.innerHTML = `
+        <div class="team-section-bar bookings-ops-section-bar">
+          <p class="team-kicker">Activity · Audit</p>
+          <span class="team-count-pill">${events.length} event${events.length === 1 ? "" : "s"}</span>
+        </div>
+        <article class="bookings-card bookings-activity-card">
+          <header class="bookings-card-head">
+            <div>
+              <div class="card-title-row">
+                <h2 class="bookings-card-title">Activity</h2>
+                <span class="team-count-pill">Read only</span>
+              </div>
+              <p class="bookings-card-sub">${accessCopy}</p>
+            </div>
+          </header>
+          <div class="audit-toolbar bookings-activity-toolbar">
+            <label class="audit-search">
+              <img src="assets/search.svg" alt="" width="14" height="14" />
+              <input type="search" id="booking-activity-search" placeholder="Search action or record ID on this booking" autocomplete="off" />
+            </label>
+            <div class="bookings-activity-filters">
+              <select class="team-select audit-filter" id="booking-activity-module" aria-label="Module filter">
+                <option value="all">All on this booking</option>
+                <option value="bookings">Bookings</option>
+                <option value="finance">Finance</option>
+              </select>
+            </div>
+          </div>
+          <div class="card table-scroll bookings-activity-table-wrap">
+            <table class="team-table audit-table bookings-activity-table">
+              <thead>
+                <tr>
+                  <th scope="col">Time</th>
+                  <th scope="col">Member</th>
+                  <th scope="col">Event</th>
+                  <th scope="col">Module</th>
+                </tr>
+              </thead>
+              <tbody id="booking-activity-tbody">
+                ${rowsHtml || `<tr class="bookings-payments-empty-row"><td colspan="4">
+                  <div class="empty-state bookings-ops-empty-wrap">
+                    <p class="empty-state-title">No activity yet</p>
+                    <p class="empty-state-desc">Ops actions on this booking will appear here.</p>
+                  </div>
+                </td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </article>`;
+
+      const tbody = activityEl.querySelector("#booking-activity-tbody");
+      const searchInput = activityEl.querySelector("#booking-activity-search");
+      const moduleFilter = activityEl.querySelector("#booking-activity-module");
+
+      const applyBookingActivityFilters = () => {
+        if (!tbody) return;
+        const q = (searchInput?.value || "").trim().toLowerCase();
+        const module = moduleFilter?.value || "all";
+        let visibleInGroup = 0;
+        let lastGroupRow = null;
+
+        tbody.querySelectorAll("tr").forEach((tr) => {
+          if (tr.classList.contains("audit-group")) {
+            if (lastGroupRow) lastGroupRow.hidden = visibleInGroup === 0;
+            lastGroupRow = tr;
+            visibleInGroup = 0;
+            tr.hidden = false;
+            return;
+          }
+          const hay = `${tr.dataset.search || ""} ${tr.textContent || ""}`.toLowerCase();
+          const rowModule = tr.dataset.module || "";
+          const show = (!q || hay.includes(q)) && (module === "all" || rowModule === module);
+          tr.hidden = !show;
+          if (show) visibleInGroup += 1;
+        });
+        if (lastGroupRow) lastGroupRow.hidden = visibleInGroup === 0;
+      };
+
+      searchInput?.addEventListener("input", applyBookingActivityFilters);
+      moduleFilter?.addEventListener("change", applyBookingActivityFilters);
+    }
+
+    document.querySelectorAll("#booking-panel-finance [data-finance-action]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (!canViewBookingFinance()) {
+          showToast("Finance needs Finance permission…");
+          return;
+        }
+        const action = btn.dataset.financeAction;
+        if (!ownerAdmin) {
+          showToast(action === "payout" ? "Payout request sent to admin…" : "Reminder queued…");
+          return;
+        }
+        showToast(action === "payout" ? "Recording supplier payout…" : "Recording customer receipt…");
+      });
+    });
+    document.querySelectorAll("#booking-panel-finance [data-amendment-action]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (!canViewBookingFinance()) {
+          showToast("Finance needs Finance permission…");
+          return;
+        }
+        const action = btn.dataset.amendmentAction;
+        if (action === "draft") {
+          const priceEl = document.getElementById("booking-amend-price");
+          const reasonEl = document.getElementById("booking-amend-reason");
+          if (
+            startSellingPriceAmendment(booking, priceEl?.value, reasonEl?.value || "Customer-facing commercial change")
+          ) {
+            showToast("Amendment drafted — accepted selling price unchanged…");
+            renderBookingDetail(booking);
+            renderBookingsList();
+          }
+          return;
+        }
+        if (action === "accept") {
+          if (acceptSellingPriceAmendment(booking)) {
+            showToast("Amendment accepted — selling price updated…");
+            renderBookingDetail(booking);
+            renderBookingsList();
+          }
+          return;
+        }
+        if (action === "discard") {
+          if (discardSellingPriceAmendment(booking)) {
+            showToast("Amendment discarded…");
+            renderBookingDetail(booking);
+            renderBookingsList();
+          }
+        }
+      });
+    });
+  }
+
+
   function bookingRefLine(b) {
-    const query = b.queryId ? ` · from ${b.queryId}` : "";
-    return `${b.id}${query}`;
+    const parts = [b.id];
+    if (b.queryId) parts.push(`from ${b.queryId}`);
+    if (b.proposalVersion) parts.push(`accepted Proposal ${b.proposalVersion}`);
+    return parts.join(" · ");
+  }
+
+  function bookingCreatedLabel(b) {
+    if (b.createdAt) return b.createdAt;
+    const created = (b.activity || []).find((row) => /booking created|created from/i.test(String(row.body || "")));
+    return created?.time || "";
+  }
+
+  function bookingPersonKey(person) {
+    if (!person) return "";
+    return String(person.id || person.name || "").trim().toLowerCase();
+  }
+
+  function bookingWorkingPeople(booking) {
+    const byKey = new Map();
+    const add = (person) => {
+      const key = bookingPersonKey(person);
+      if (!key || byKey.has(key)) return;
+      byKey.set(key, person);
+    };
+    (booking?.team || []).forEach(add);
+    (booking?.tasks || []).forEach((task) => add(task?.assignee));
+    return Array.from(byKey.values());
+  }
+
+  function bookingOwnerExtrasCount(booking) {
+    const ownerKey = bookingPersonKey(booking?.owner);
+    return bookingWorkingPeople(booking).filter((person) => bookingPersonKey(person) !== ownerKey).length;
+  }
+
+  function bookingOwnerCompactLabel(booking) {
+    const owner = booking?.owner;
+    const extras = bookingOwnerExtrasCount(booking);
+    const initials = owner?.initials || "—";
+    return extras > 0 ? `${initials} +${extras}` : "";
+  }
+
+  function bookingOwnerPrimaryLabel(booking) {
+    const owner = booking?.owner;
+    const compact = bookingOwnerCompactLabel(booking);
+    if (compact) return compact;
+    return owner?.name || "—";
+  }
+
+  function bookingOwnerMetaFact(booking) {
+    const ownerName = booking?.owner?.name;
+    if (!ownerName) return null;
+    const compact = bookingOwnerCompactLabel(booking);
+    return compact ? `Owner · ${ownerName} · ${compact}` : `Owner · ${ownerName}`;
   }
 
   function getBookingBySlug(slug) {
@@ -696,53 +6651,329 @@
 
   function bookingTabCounts() {
     return {
-      needs_action: BOOKINGS.filter((b) => b.phase === "needs_action").length,
       upcoming: BOOKINGS.filter((b) => b.phase === "upcoming").length,
       travelling: BOOKINGS.filter((b) => b.phase === "travelling").length,
       completed: BOOKINGS.filter((b) => b.phase === "completed").length,
-      payments: BOOKING_PAYMENTS.filter(paymentIsOpen).length,
+      cancelled: BOOKINGS.filter((b) => b.phase === "cancelled").length,
     };
   }
 
   function bookingMatchesTab(b, tab) {
-    if (tab === "payments") return !!b.paymentsOpen;
-    if (tab === "needs_action" || tab === "upcoming" || tab === "travelling" || tab === "completed") {
+    if (tab === "upcoming" || tab === "travelling" || tab === "completed" || tab === "cancelled") {
       return b.phase === tab;
     }
     return true;
   }
 
+  function normalizeIssueFilter(value) {
+    const legacy = {
+      supplier_pending: "supplier",
+      voucher_pending: "vouchers",
+      voucher_blocked: "vouchers",
+      documents_missing: "documents",
+      documents_expiring: "documents",
+      payment_overdue: "customer_payment",
+    };
+    if (!value || value === "all") return "all";
+    if (value === "tasks") return "tasks";
+    if (BOOKING_ISSUE_LABELS[value]) return value;
+    return legacy[value] || "all";
+  }
+
+  function bookingHasOpenTasks(booking) {
+    return (booking?.tasks || []).some((t) => t.status === "open" || t.status === "overdue" || t.status === "blocked");
+  }
+
+  function bookingMatchesDepartWindow(booking, windowKey = bookingsState.departWindow) {
+    if (!windowKey || windowKey === "all") return true;
+    const days = daysUntilTravel(booking);
+    if (!Number.isFinite(days)) return false;
+    if (windowKey === "overdue") return days < 0 && (booking.phase === "upcoming" || booking.phase === "travelling");
+    const limit = Number(windowKey);
+    if (!Number.isFinite(limit)) return true;
+    return days >= 0 && days <= limit;
+  }
+
+  function bookingSourceKind(booking) {
+    return booking?.queryId ? "query" : "direct";
+  }
+
+  function bookingDestinationOptions() {
+    const set = new Set();
+    BOOKINGS.forEach((b) => {
+      const dest = String(b.destination || "").trim();
+      if (dest) set.add(dest);
+    });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }
+
+  function populateBookingsDestinationFilters() {
+    const destinations = bookingDestinationOptions();
+    ["bookings-destination", "bookings-archive-destination"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const current = el.value || bookingsState.destinationFilter || "all";
+      el.innerHTML = `<option value="all">All</option>${destinations
+        .map((dest) => `<option value="${escapeHtml(dest)}">${escapeHtml(dest)}</option>`)
+        .join("")}`;
+      el.value = destinations.includes(current) || current === "all" ? current : "all";
+    });
+  }
+
+  function bookingsHaveActiveFilters() {
+    const archiveMode = bookingsListIsArchiveTab();
+    const archiveDefaultWindow = bookingsState.tab === "travelling" ? "all" : "30";
+    return (
+      !!bookingsState.search.trim() ||
+      bookingsState.attentionFilter !== "all" ||
+      normalizeIssueFilter(bookingsState.issueFilter) !== "all" ||
+      bookingsState.ownerFilter !== "all" ||
+      bookingsState.departWindow !== "all" ||
+      bookingsState.destinationFilter !== "all" ||
+      bookingsState.sourceFilter !== "all" ||
+      (archiveMode && bookingsState.archiveWindow !== archiveDefaultWindow)
+    );
+  }
+
+  function syncBookingsFacetControls() {
+    const pairs = [
+      ["bookings-owner", "bookings-archive-owner", "ownerFilter"],
+      ["bookings-depart", "bookings-archive-depart", "departWindow"],
+      ["bookings-destination", "bookings-archive-destination", "destinationFilter"],
+      ["bookings-source", "bookings-archive-source", "sourceFilter"],
+    ];
+    pairs.forEach(([opsId, archiveId, key]) => {
+      const value = bookingsState[key] || "all";
+      const ops = document.getElementById(opsId);
+      const archive = document.getElementById(archiveId);
+      if (ops) ops.value = value;
+      if (archive) archive.value = value;
+    });
+  }
+
+  function normalizeBookingsListTab(tab) {
+    if (tab === "payments") {
+      return { tab: "upcoming", issueFilter: "customer_payment" };
+    }
+    if (tab === "upcoming" || tab === "travelling" || tab === "completed" || tab === "cancelled") {
+      return { tab, issueFilter: null };
+    }
+    return { tab: "upcoming", issueFilter: null };
+  }
+
+  function bookingsListIsArchiveTab(tab = bookingsState.tab) {
+    return tab === "travelling" || tab === "completed" || tab === "cancelled";
+  }
+
+  function bookingsQueueTitle(tab = bookingsState.tab) {
+    if (tab === "travelling") return "Travelling";
+    if (tab === "completed") return "Completed";
+    if (tab === "cancelled") return "Cancelled";
+    return "Ops queue";
+  }
+
+  function bookingWithinArchiveWindow(booking, windowDays) {
+    if (!windowDays || windowDays === "all") return true;
+    const days = Number(windowDays);
+    if (!Number.isFinite(days) || days <= 0) return true;
+    const end = booking.travelEnd || booking.travelStart;
+    if (!end) return true;
+    const endMs = Date.parse(end);
+    if (!Number.isFinite(endMs)) return true;
+    const now = Date.now();
+    const pastLimit = now - days * 86400000;
+    const futureLimit = now + days * 86400000;
+    // Keep trips that ended recently or are currently / soon travelling.
+    return endMs >= pastLimit && (booking.travelStart ? Date.parse(booking.travelStart) <= futureLimit : true);
+  }
+
+  function bookingSearchHaystack(b) {
+    const travellers = bookingTravellers(b)
+      .map((t) => `${t.legalName || ""} ${t.name || ""}`)
+      .join(" ");
+    const vendors = bookingServices(b)
+      .map((s) => `${s.vendor || ""} ${s.name || ""}`)
+      .join(" ");
+    const version = b.proposalVersion ? String(b.proposalVersion) : "";
+    const proposal = [
+      b.linkedProposal || "",
+      version,
+      version ? `Proposal ${version.replace(/^v/i, "v")}` : "",
+      version ? `Proposal ${version}` : "",
+    ].join(" ");
+    return [
+      b.title,
+      b.id,
+      b.queryId,
+      b.customer,
+      b.destination,
+      b.tripLabel,
+      travellers,
+      vendors,
+      proposal,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+  }
+
+  function bookingSearchMatches(b, q) {
+    if (!q) return true;
+    const hay = bookingSearchHaystack(b);
+    if (hay.includes(q)) return true;
+    const compactQ = q.replace(/[\s\-_/]+/g, "");
+    if (!compactQ || compactQ === q) return false;
+    const compactHay = hay.replace(/[\s\-_/]+/g, "");
+    return compactHay.includes(compactQ);
+  }
+
   function getFilteredBookings() {
     const q = bookingsState.search.trim().toLowerCase();
+    const viewer = getBookingsViewerStaff();
     let list = BOOKINGS.filter((b) => bookingMatchesTab(b, bookingsState.tab));
+    list = list.filter((b) => bookingMatchesScope(b, bookingsState.scope, viewer, bookingsState.scopeMember));
+    if (bookingsState.attentionFilter && bookingsState.attentionFilter !== "all") {
+      list = list.filter((b) => getBookingAttention(b) === bookingsState.attentionFilter);
+    }
+    bookingsState.issueFilter = normalizeIssueFilter(bookingsState.issueFilter);
+    if (bookingsState.issueFilter && bookingsState.issueFilter !== "all") {
+      if (bookingsState.issueFilter === "tasks") {
+        list = list.filter((b) => bookingHasOpenTasks(b));
+      } else {
+        list = list.filter((b) => getBookingOpenIssues(b).includes(bookingsState.issueFilter));
+      }
+    }
+    if (bookingsState.ownerFilter && bookingsState.ownerFilter !== "all") {
+      list = list.filter((b) => b.owner?.id === bookingsState.ownerFilter);
+    }
+    if (bookingsState.departWindow && bookingsState.departWindow !== "all") {
+      list = list.filter((b) => bookingMatchesDepartWindow(b, bookingsState.departWindow));
+    }
+    if (bookingsState.destinationFilter && bookingsState.destinationFilter !== "all") {
+      list = list.filter((b) => String(b.destination || "") === bookingsState.destinationFilter);
+    }
+    if (bookingsState.sourceFilter && bookingsState.sourceFilter !== "all") {
+      list = list.filter((b) => bookingSourceKind(b) === bookingsState.sourceFilter);
+    }
+    if (bookingsListIsArchiveTab() && bookingsState.archiveWindow && bookingsState.archiveWindow !== "all") {
+      list = list.filter((b) => bookingWithinArchiveWindow(b, bookingsState.archiveWindow));
+    }
     if (q) {
-      list = list.filter((b) => {
-        const hay = `${b.title} ${b.id} ${b.queryId || ""} ${b.customer} ${b.destination || ""} ${b.tripLabel}`.toLowerCase();
-        return hay.includes(q);
-      });
+      list = list.filter((b) => bookingSearchMatches(b, q));
     }
     const sort = bookingsState.sort;
     list = [...list].sort((a, b) => {
       if (sort === "travel") return a.travelStart.localeCompare(b.travelStart) || a.priority - b.priority;
       if (sort === "balance") return bookingMoneyDue(b) - bookingMoneyDue(a) || a.priority - b.priority;
-      const phaseDelta = (BOOKING_PHASE_RANK[a.phase] ?? 9) - (BOOKING_PHASE_RANK[b.phase] ?? 9);
-      return phaseDelta || a.priority - b.priority;
+      const attnRank = { at_risk: 0, needs_action: 1, healthy: 2 };
+      const attnDelta = (attnRank[getBookingAttention(a)] ?? 9) - (attnRank[getBookingAttention(b)] ?? 9);
+      const issueDelta = getBookingOpenIssues(b).length - getBookingOpenIssues(a).length;
+      return attnDelta || issueDelta || a.priority - b.priority;
     });
     return list;
   }
 
-  function bookingsSummaryLine() {
-    const needs = BOOKINGS.filter((b) => b.phase === "needs_action").length;
-    const travelling = BOOKINGS.filter((b) => b.phase === "travelling").length;
-    const toCollect = BOOKINGS.reduce((sum, b) => sum + (Number(b.toCollect) || 0), 0);
-    const toPay = BOOKINGS.reduce((sum, b) => sum + (Number(b.toPaySuppliers) || 0), 0);
-    const needsLabel = needs === 1 ? "1 booking needs action" : `${needs} bookings need action`;
-    const travelLabel = travelling === 1 ? "1 travelling now" : `${travelling} travelling now`;
-    const moneyParts = [];
-    if (toCollect > 0) moneyParts.push(`${formatINRCompact(toCollect)} to collect`);
-    if (toPay > 0) moneyParts.push(`${formatINR(toPay, { signed: false })} to pay suppliers`);
-    if (!moneyParts.length) moneyParts.push("No balance");
-    return `${needsLabel} · ${travelLabel} · ${moneyParts.join(" · ")}`;
+  function syncBookingsArchiveControls() {
+    const archiveSearch = document.getElementById("bookings-archive-search");
+    const archiveAttention = document.getElementById("bookings-archive-attention");
+    const archiveSort = document.getElementById("bookings-archive-sort");
+    const archiveWindow = document.getElementById("bookings-archive-window");
+    const archiveIssue = document.getElementById("bookings-archive-issue");
+    if (archiveSearch && archiveSearch.value !== bookingsState.search) archiveSearch.value = bookingsState.search;
+    if (archiveAttention) archiveAttention.value = bookingsState.attentionFilter || "all";
+    if (archiveSort) archiveSort.value = bookingsState.sort || "travel";
+    if (archiveWindow) archiveWindow.value = bookingsState.archiveWindow || "30";
+    if (archiveIssue) archiveIssue.value = bookingsState.issueFilter || "all";
+    syncBookingsFacetControls();
+  }
+
+  function bookingArchiveMoneyCell(booking) {
+    if (!canViewBookingFinance()) {
+      return `<span class="bookings-row-settle">Restricted</span>`;
+    }
+    const money = bookingRowMoneyLines(booking);
+    const [primary, secondary] = money.lines;
+    if (!primary) return `<span class="roster-metric">—</span>`;
+    const body = `<span class="roster-metric">${escapeHtml(primary.text)}</span>${
+      secondary ? `<span class="member-role">${escapeHtml(secondary.text)}</span>` : ""
+    }`;
+    if (!money.launchFinance) return body;
+    return `<button type="button" class="bookings-archive-money-launch" data-booking-open-tab="finance" title="Open finance">${body}</button>`;
+  }
+
+  function renderBookingsArchiveTable(pageItems) {
+    if (!pageItems.length) {
+      return `
+        <div class="bookings-empty" role="status">
+          <div class="bookings-empty-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h5"/></svg>
+          </div>
+          <p class="empty-state-title">No bookings match</p>
+          <p class="empty-state-desc">Try a different filter, date range, or search.</p>
+          <button type="button" class="btn btn-outline btn-sm" id="bookings-empty-clear">Clear filters</button>
+        </div>`;
+    }
+    const rows = pageItems
+      .map((b) => {
+        const attention = getBookingAttention(b);
+        const openIssues = getBookingOpenIssues(b);
+        return `
+        <tr class="bookings-archive-row" tabindex="0" data-booking-slug="${escapeHtml(b.slug)}">
+          <td>
+            <div class="member-cell">
+              <span class="avatar avatar-mint" aria-hidden="true">${escapeHtml(bookingInitial(b.destination || b.title))}</span>
+              <div>
+                <p class="member-name">${escapeHtml(b.title)}</p>
+                <p class="member-role">${escapeHtml(bookingRefLine(b))}</p>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="roster-metric">${escapeHtml(formatListDates(b.travelStart, b.travelEnd))}</span>
+            <span class="member-role">${escapeHtml(String(b.pax))} pax</span>
+          </td>
+          <td>
+            <div class="booking-status-pills">
+              <span class="booking-attention-pill is-${escapeHtml(attention)}">${escapeHtml(attentionLabel(attention))}</span>
+              ${
+                openIssues.length
+                  ? bookingIssueChipsHtml(b, openIssues, {
+                      limit: BOOKING_ISSUE_CHIP_LIMIT,
+                      wrapClass: "bookings-issue-row is-inline",
+                      interactiveMore: false,
+                    })
+                  : `<span class="member-role">No open blockers</span>`
+              }
+            </div>
+          </td>
+          <td class="bookings-archive-money">${bookingArchiveMoneyCell(b)}</td>
+          <td>
+            <div class="member-cell">
+              <span class="avatar avatar-pink" aria-hidden="true">${escapeHtml(b.owner.initials)}</span>
+              <div>
+                <p class="bookings-row-owner-label">Owner</p>
+                <p class="member-name">${escapeHtml(bookingOwnerPrimaryLabel(b))}</p>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+      })
+      .join("");
+    return `
+      <div class="table-scroll bookings-archive-table-wrap">
+        <table class="team-table bookings-archive-table">
+          <thead>
+            <tr>
+              <th scope="col">Booking</th>
+              <th scope="col">Travel</th>
+              <th scope="col">Status</th>
+              <th scope="col">Money</th>
+              <th scope="col">Owner</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
   }
 
   function escapeHtml(str) {
@@ -793,8 +7024,12 @@
         html.push(`<tr class="audit-group"><td colspan="5">${escapeHtml(p.groupLabel)}</td></tr>`);
         lastGroup = p.groupKey;
       }
-      const amountPrefix = p.type === "vendor" || p.type === "refund" ? "−" : "";
+      const amountPrefix = "";
       const amountClass = p.type === "customer" && p.stage === "completed" ? "is-in" : p.type === "vendor" || p.type === "refund" ? "is-out" : "";
+      const amountLabel =
+        p.type === "vendor" || p.type === "refund"
+          ? `${formatINR(p.amount, { signed: false })} out`
+          : formatINR(p.amount, { signed: false });
       const stageChange =
         p.previousStage && p.previousStage !== "—"
           ? `Status changed: ${escapeHtml(p.previousStage)} → ${escapeHtml(paymentStageLabel(p.stage))}`
@@ -816,7 +7051,7 @@
             <span class="audit-event-text">${stageChange}</span>
             <span class="audit-event-reference">${escapeHtml(p.bookingTitle)} · ${escapeHtml(p.method)} · ${escapeHtml(p.type === "customer" ? "Customer in" : p.type === "vendor" ? "Vendor out" : "Refund")}</span>
           </td>
-          <td><span class="bookings-payment-amount ${amountClass}">${amountPrefix}${escapeHtml(formatINR(p.amount, { signed: false }))}</span></td>
+          <td><span class="bookings-payment-amount ${amountClass}">${escapeHtml(amountLabel)}</span></td>
           <td><span class="payment-stage-pill is-${escapeHtml(p.stage)}">${escapeHtml(paymentStageLabel(p.stage))}</span></td>
         </tr>`);
     });
@@ -853,14 +7088,13 @@
 
   function renderBookingsList() {
     const body = document.getElementById("bookings-list-body");
-    const sub = document.getElementById("bookings-page-sub");
     const clearBtn = document.getElementById("bookings-clear");
     const meta = document.getElementById("bookings-pagination-meta");
     const prevBtn = document.getElementById("bookings-prev");
     const nextBtn = document.getElementById("bookings-next");
     if (!body) return;
-
-    if (sub) sub.textContent = bookingsSummaryLine();
+    applyBookingPersonaAccessFlags();
+    syncBookingsScopeControls();
 
     const counts = bookingTabCounts();
     document.querySelectorAll("[data-count]").forEach((el) => {
@@ -875,89 +7109,164 @@
     });
 
     if (bookingsState.tab === "payments") {
-      setBookingsPaymentsMode(true);
-      return;
+      const routed = normalizeBookingsListTab("payments");
+      bookingsState.tab = routed.tab;
+      if (routed.issueFilter) bookingsState.issueFilter = routed.issueFilter;
     }
 
     setBookingsPaymentsMode(false);
+
+    const listCard = document.getElementById("bookings-list-card");
+    const archiveToolbar = document.getElementById("bookings-archive-toolbar");
+    const opsFilters = document.getElementById("bookings-ops-filters");
+    const queueTitle = document.getElementById("bookings-queue-title");
+    const queueCount = document.getElementById("bookings-queue-count");
+    const archiveMode = bookingsListIsArchiveTab();
+
+    if (listCard) listCard.dataset.listMode = archiveMode ? "archive" : "ops";
+    if (archiveToolbar) archiveToolbar.hidden = !archiveMode;
+    if (opsFilters) opsFilters.hidden = archiveMode;
+    if (queueTitle) queueTitle.textContent = bookingsQueueTitle();
+
+    // Archive tabs default to travel sort; ops queue defaults to priority.
+    if (archiveMode && !["travel", "priority", "balance"].includes(bookingsState.sort)) {
+      bookingsState.sort = "travel";
+    }
+    if (!archiveMode && bookingsState.sort === "travel" && !bookingsState.filtersActive) {
+      /* keep user choice */
+    }
+    syncBookingsArchiveControls();
+    syncBookingsFacetControls();
+    const opsSearch = document.getElementById("bookings-search");
+    if (opsSearch && !archiveMode && opsSearch.value !== bookingsState.search) opsSearch.value = bookingsState.search;
+    const opsSort = document.getElementById("bookings-sort");
+    if (opsSort && !archiveMode) opsSort.value = bookingsState.sort || "priority";
+    const opsAttention = document.getElementById("bookings-attention");
+    if (opsAttention && !archiveMode) opsAttention.value = bookingsState.attentionFilter || "all";
+    const opsIssue = document.getElementById("bookings-issue");
+    if (opsIssue && !archiveMode) opsIssue.value = bookingsState.issueFilter || "all";
 
     const filtered = getFilteredBookings();
     const total = filtered.length;
     const start = bookingsState.page * bookingsState.pageSize;
     const pageItems = filtered.slice(start, start + bookingsState.pageSize);
     const end = start + pageItems.length;
-      const hasFilters =
-      bookingsState.tab !== "needs_action" ||
-      !!bookingsState.search.trim() ||
-      bookingsState.sort !== "priority" ||
-      bookingsState.filtersActive;
-    if (clearBtn) clearBtn.hidden = !hasFilters;
+    if (queueCount) {
+      queueCount.hidden = !archiveMode;
+      queueCount.textContent = total === 1 ? "1 booking" : `${total} bookings`;
+    }
+    const hasFilters = bookingsHaveActiveFilters();
+    if (clearBtn) clearBtn.hidden = !hasFilters || archiveMode;
+    const archiveClear = document.getElementById("bookings-archive-clear");
+    if (archiveClear) archiveClear.hidden = !hasFilters || !archiveMode;
 
-    if (!pageItems.length) {
-      const emptyCopy =
-        bookingsState.tab === "needs_action"
-          ? {
-              title: "Nothing needs action",
-              desc: "Upcoming trips and completed history live in their own views.",
-            }
-          : {
-              title: "No bookings match",
-              desc: "Try a different view, search or filter.",
-            };
+    const bindBookingRowOpen = (root) => {
+      root.querySelectorAll("[data-booking-slug]").forEach((el) => {
+        const openOverview = () => openBookingFromList(el.dataset.bookingSlug, "overview");
+        el.addEventListener("click", (e) => {
+          if (e.target.closest("[data-booking-open-tab], [data-booking-issues-more]")) return;
+          openOverview();
+        });
+        el.addEventListener("keydown", (e) => {
+          if (e.target.closest("[data-booking-open-tab], [data-booking-issues-more]")) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openOverview();
+          }
+        });
+      });
+      root.querySelectorAll("[data-booking-open-tab]").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const row = btn.closest("[data-booking-slug]");
+          const slug = row?.dataset.bookingSlug;
+          if (!slug) return;
+          openBookingFromList(slug, btn.dataset.bookingOpenTab || "overview");
+        });
+      });
+      const openIssuesMore = (slug) => {
+        if (!slug) return;
+        openBookingFromList(slug, "overview", { focusReadiness: true });
+      };
+      root.querySelectorAll("[data-booking-issues-more]").forEach((ctrl) => {
+        ctrl.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openIssuesMore(ctrl.dataset.bookingIssuesMore);
+        });
+        ctrl.addEventListener("keydown", (e) => {
+          if (e.key !== "Enter" && e.key !== " ") return;
+          e.preventDefault();
+          e.stopPropagation();
+          openIssuesMore(ctrl.dataset.bookingIssuesMore);
+        });
+      });
+      root.querySelector("#bookings-empty-clear")?.addEventListener("click", clearBookingsFilters);
+    };
+
+    if (archiveMode) {
+      body.innerHTML = renderBookingsArchiveTable(pageItems);
+      bindBookingRowOpen(body);
+    } else if (!pageItems.length) {
       body.innerHTML = `
         <div class="bookings-empty" role="status">
           <div class="bookings-empty-icon" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M8 7h8M8 11h5"/></svg>
           </div>
-          <p class="empty-state-title">${emptyCopy.title}</p>
-          <p class="empty-state-desc">${emptyCopy.desc}</p>
+          <p class="empty-state-title">No bookings match</p>
+          <p class="empty-state-desc">Try a different lifecycle view, attention filter or search.</p>
           <button type="button" class="btn btn-outline btn-sm" id="bookings-empty-clear">Clear filters</button>
         </div>`;
-      body.querySelector("#bookings-empty-clear")?.addEventListener("click", clearBookingsFilters);
+      bindBookingRowOpen(body);
     } else {
       body.innerHTML = `<ul class="bookings-rows" aria-label="Bookings">${pageItems
         .map((b) => {
-          const hint = b.actionHint
-            ? `<p class="bookings-row-hint"><svg class="bookings-row-hint-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>${escapeHtml(b.actionHint)}</p>`
-            : "";
+          const openIssues = getBookingOpenIssues(b);
+          const attention = getBookingAttention(b);
+          const showPhasePill = bookingsState.tab === "all" || b.phase !== bookingsState.tab;
+          const tripLine = bookingTripContextLine(b);
+          const traceLine = bookingTraceLine(b);
+          const problemsHtml = bookingIssueChipsHtml(b, openIssues);
+          const nextLine = bookingNextActionLine(b);
+          const money = bookingRowMoneyLines(b);
+          const ownerLabel = bookingOwnerSideLabel(b);
+          const [moneyPrimary, moneySecondary] = money.lines;
+          const moneyInner = `
+                  <span class="bookings-row-money ${escapeHtml(moneyPrimary?.tone || "is-clear")}">
+                    <span class="bookings-row-amount">${escapeHtml(moneyPrimary?.text || "Settled")}</span>
+                    ${moneySecondary ? `<span class="bookings-row-settle">${escapeHtml(moneySecondary.text)}</span>` : ""}
+                  </span>`;
+          const moneyBlock = money.launchFinance
+            ? `<button type="button" class="bookings-row-finance is-launch" data-booking-open-tab="finance" title="${escapeHtml(money.title || "Open finance")}">${moneyInner}</button>`
+            : `<span class="bookings-row-finance" title="${escapeHtml(money.title)}">${moneyInner}</span>`;
           return `
           <li>
-            <button type="button" class="bookings-row is-phase-${escapeHtml(b.phase)}" data-booking-slug="${escapeHtml(b.slug)}">
-              <span class="bookings-initial" aria-hidden="true">${escapeHtml(bookingInitial(b.destination || b.title))}</span>
+            <div class="bookings-row" role="link" tabindex="0" data-booking-slug="${escapeHtml(b.slug)}" data-attention="${escapeHtml(attention)}" aria-label="${escapeHtml(`Open ${b.title}`)}">
               <span class="bookings-row-main">
                 <span class="bookings-row-title-line">
                   <span class="bookings-row-title">${escapeHtml(b.title)}</span>
-                  <span class="booking-status-pill is-${escapeHtml(b.phase)}">${escapeHtml(phaseLabel(b.phase))}</span>
+                  ${
+                    showPhasePill
+                      ? `<span class="bookings-row-phase">${escapeHtml(phaseLabel(b.phase))}</span>`
+                      : ""
+                  }
+                  <span class="bookings-row-attention is-${escapeHtml(attention)}">${escapeHtml(attentionLabel(attention))}</span>
                 </span>
-                <span class="bookings-row-meta">${escapeHtml(bookingRefLine(b))} · ${escapeHtml(formatListDates(b.travelStart, b.travelEnd))} · ${b.pax} pax</span>
-                ${bookingIssueChipsHtml(b.issues)}
-                ${hint}
+                ${tripLine ? `<span class="bookings-row-trip">${escapeHtml(tripLine)}</span>` : ""}
+                ${traceLine ? `<span class="bookings-row-trace">${escapeHtml(traceLine)}</span>` : ""}
+                ${problemsHtml || ""}
+                ${nextLine ? `<span class="bookings-row-next"><span class="bookings-row-next-mark" aria-hidden="true">→</span><span class="bookings-row-next-text">${escapeHtml(nextLine)}</span></span>` : ""}
               </span>
               <span class="bookings-row-side">
-                <span class="bookings-row-finance" title="${escapeHtml(getBookingMoneyCopy(b).title)}">
-                  ${getBookingMoneyCopy(b)
-                    .lines.map(
-                      (line) => `
-                    <span class="bookings-row-money ${escapeHtml(line.tone)}">
-                      <span class="bookings-row-amount">${escapeHtml(line.amount)}</span>
-                      ${line.label ? `<span class="bookings-row-settle">${escapeHtml(line.label)}</span>` : ""}
-                    </span>`
-                    )
-                    .join("")}
-                </span>
-                <span class="bookings-row-owner member-cell">
-                  <span class="avatar avatar-pink" aria-hidden="true">${escapeHtml(b.owner.initials)}</span>
-                  <span class="member-name">${escapeHtml(b.owner.name)}</span>
-                </span>
-                <svg class="bookings-row-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                ${moneyBlock}
+                <span class="bookings-row-owner" title="${escapeHtml(b.owner?.name || "Owner")}" aria-label="${escapeHtml(`Owner ${b.owner?.name || ownerLabel}`)}">${escapeHtml(ownerLabel)}</span>
               </span>
-            </button>
+            </div>
           </li>`;
         })
         .join("")}</ul>`;
-      body.querySelectorAll("[data-booking-slug]").forEach((btn) => {
-        btn.addEventListener("click", () => openBookingDetail(btn.dataset.bookingSlug, { push: true }));
-      });
+      bindBookingRowOpen(body);
     }
 
     if (meta) {
@@ -970,16 +7279,465 @@
   }
 
   function clearBookingsFilters() {
-    bookingsState.tab = "needs_action";
+    const stayOnArchive = bookingsListIsArchiveTab();
+    if (!stayOnArchive) bookingsState.tab = "upcoming";
     bookingsState.search = "";
-    bookingsState.sort = "priority";
+    bookingsState.sort = stayOnArchive ? "travel" : "priority";
+    bookingsState.attentionFilter = "all";
+    bookingsState.issueFilter = "all";
+    bookingsState.ownerFilter = "all";
+    bookingsState.departWindow = "all";
+    bookingsState.destinationFilter = "all";
+    bookingsState.sourceFilter = "all";
+    bookingsState.archiveWindow = stayOnArchive && bookingsState.tab === "travelling" ? "all" : stayOnArchive ? "30" : "all";
     bookingsState.page = 0;
     bookingsState.filtersActive = false;
     const search = document.getElementById("bookings-search");
     const sort = document.getElementById("bookings-sort");
+    const attention = document.getElementById("bookings-attention");
+    const issue = document.getElementById("bookings-issue");
+    const archiveSearch = document.getElementById("bookings-archive-search");
     if (search) search.value = "";
-    if (sort) sort.value = "priority";
+    if (archiveSearch) archiveSearch.value = "";
+    if (sort) sort.value = bookingsState.sort;
+    if (attention) attention.value = "all";
+    if (issue) issue.value = "all";
+    syncBookingsFacetControls();
+    syncBookingsArchiveControls();
+    const more = document.getElementById("bookings-archive-more");
+    if (more) more.open = false;
+    const opsMore = document.getElementById("bookings-ops-more");
+    if (opsMore) opsMore.open = false;
     renderBookingsList();
+  }
+
+  function isBookingRecordConfirmed(booking) {
+    if (!booking) return false;
+    if (booking.phase === "cancelled") return false;
+    if (booking.confirmed) return true;
+    return !!(booking.id && booking.proposalVersion);
+  }
+
+  function bookingStatusLabel(booking) {
+    if (booking.phase === "cancelled") return "Cancelled";
+    return isBookingRecordConfirmed(booking) ? "Confirmed" : "Draft";
+  }
+
+  function bookingReadinessRows(booking) {
+    const services = bookingServices(booking);
+    const confirmedVendors = services.filter((s) => s.confirmation === "confirmed").length;
+    const travellers = bookingTravellerReadiness(booking);
+    const docs = bookingDocuments(booking);
+    const requiredDocs = docs.filter((d) => d.required !== false);
+    const verifiedDocs = requiredDocs.filter((d) => docStatusIsComplete(d.status)).length;
+    const vouchers = bookingVouchers(booking);
+    const voucherBlocked = vouchers.filter((v) => v.status === "blocked").length;
+    const voucherSent = vouchers.filter((v) => v.status === "sent").length;
+    const voucherReady = vouchers.filter((v) => v.status === "ready" || v.status === "issued").length;
+
+    const supplierOpen = confirmedVendors < services.length;
+    const travellersOpen = travellers.ready < travellers.total;
+    const docsOpen = verifiedDocs < requiredDocs.length;
+    const vouchersOpen = voucherBlocked > 0 || voucherReady > 0 || voucherSent < vouchers.length;
+
+    return [
+      {
+        id: "suppliers",
+        label: "Suppliers",
+        value: services.length ? `${confirmedVendors}/${services.length} confirmed` : "No services",
+        tab: "services",
+        tone: !services.length ? "is-done" : supplierOpen ? "is-open" : "is-done",
+      },
+      {
+        id: "travellers",
+        label: "Travellers",
+        value: travellers.total ? `${travellers.ready}/${travellers.total} ready` : "No travellers",
+        tab: "travellers",
+        tone: !travellers.total ? "is-done" : travellersOpen ? "is-open" : "is-done",
+      },
+      {
+        id: "documents",
+        label: "Documents",
+        value: requiredDocs.length ? `${verifiedDocs}/${requiredDocs.length} verified` : "No documents",
+        tab: "documents",
+        tone: !requiredDocs.length ? "is-done" : docsOpen ? "is-open" : "is-done",
+      },
+      {
+        id: "vouchers",
+        label: "Vouchers",
+        value: !vouchers.length
+          ? "None yet"
+          : voucherBlocked
+            ? `${voucherBlocked} blocked`
+            : `${voucherSent}/${vouchers.length} sent`,
+        tab: "vouchers",
+        tone: !vouchers.length ? "is-done" : voucherBlocked ? "is-blocked" : vouchersOpen ? "is-open" : "is-done",
+      },
+    ];
+  }
+
+  function bindBookingLifecycleActions(root, booking) {
+    if (!root) return;
+    root.querySelector("[data-lifecycle='cancel']")?.addEventListener("click", () => {
+      if (!isBookingsOwnerAdmin()) return;
+      booking.phase = "cancelled";
+      booking.lifecycle = { mode: "reopen", readiness: 0 };
+      booking.actionHint = "Cancelled — reopen to resume ops";
+      booking.nextAction = {
+        kind: "info",
+        title: "Booking cancelled",
+        body: "Reopen if the customer wants to continue.",
+        cta: "",
+        ctaTarget: "",
+      };
+      pushBookingActivity(booking, "Booking cancelled.");
+      showToast("Booking cancelled…");
+      renderBookingDetail(booking);
+      renderBookingsList();
+    });
+    root.querySelector("[data-lifecycle='reopen']")?.addEventListener("click", () => {
+      if (!isBookingsOwnerAdmin()) return;
+      booking.phase = "upcoming";
+      booking.confirmed = true;
+      booking.actionHint = "Resume supplier, voucher and document work";
+      booking.lifecycle = { mode: "reopen" };
+      booking.nextAction = {
+        kind: "task",
+        title: "Resume operational readiness",
+        body: "Booking reopened — suppliers, travellers, documents and vouchers still drive ops.",
+        cta: "Open services",
+        ctaTarget: "services",
+      };
+      pushBookingActivity(booking, "Booking reopened · commercial status remains Confirmed.");
+      showToast("Booking reopened…");
+      renderBookingDetail(booking);
+      renderBookingsList();
+    });
+  }
+
+  function bookingLifecyclePanelHtml(booking) {
+    const ownerAdmin = isBookingsOwnerAdmin();
+    const cancelled = booking.phase === "cancelled";
+    const rows = bookingReadinessRows(booking);
+    const openCount = rows.filter((row) => row.tone !== "is-done").length;
+    const title = cancelled
+      ? "Booking cancelled"
+      : openCount
+        ? `${openCount} area${openCount === 1 ? "" : "s"} still open`
+        : "Ready for departure";
+
+    const footAction = ownerAdmin
+      ? cancelled
+        ? `<button type="button" class="btn btn-outline btn-sm owner-admin-only" data-lifecycle="reopen">Reopen booking</button>`
+        : `<button type="button" class="btn btn-destructive-soft btn-sm owner-admin-only" data-lifecycle="cancel">Cancel booking</button>`
+      : `<p class="bookings-lifecycle-member">Cancel / reopen needs Admin or Owner.</p>`;
+
+    return `
+      <div class="bookings-lifecycle bookings-overview-lifecycle">
+        <header class="bookings-card-head">
+          <div>
+            <p class="team-kicker">Booking readiness</p>
+            <div class="card-title-row">
+              <h2 class="bookings-card-title">${escapeHtml(title)}</h2>
+              <span class="team-count-pill">${openCount ? `${openCount} open` : "Clear"}</span>
+            </div>
+            <p class="bookings-card-sub">Suppliers, travellers, documents and vouchers.</p>
+          </div>
+        </header>
+        <ul class="bookings-overview-readiness">
+          ${rows
+            .map((row) => {
+              const chip =
+                row.tone === "is-done" ? "Clear" : row.tone === "is-blocked" ? "Blocked" : "Open";
+              return `
+            <li>
+              <button type="button" class="bookings-overview-ready-row ${escapeHtml(row.tone)}" data-cta-target="${escapeHtml(
+                row.tab
+              )}" aria-label="${escapeHtml(row.label)} ${escapeHtml(row.value)} — open ${escapeHtml(row.tab)}">
+                <span class="bookings-overview-ready-copy">
+                  <span class="bookings-overview-ready-kicker">${escapeHtml(row.label)}</span>
+                  <span class="bookings-overview-ready-label">${escapeHtml(row.value)}</span>
+                </span>
+                <span class="bookings-overview-ready-aside">
+                  <span class="bookings-confirmation-status ${escapeHtml(row.tone)}">${escapeHtml(chip)}</span>
+                  <span class="bookings-overview-ready-go" aria-hidden="true">→</span>
+                </span>
+              </button>
+            </li>`;
+            })
+            .join("")}
+        </ul>
+        <div class="bookings-overview-card-foot">
+          <div class="bookings-lifecycle-actions">${footAction}</div>
+        </div>
+      </div>`;
+  }
+
+  function renderBookingOverview(booking) {
+    const el = document.getElementById("booking-panel-overview-body");
+    if (!el) return;
+    bookingDocuments(booking);
+    bookingVouchers(booking);
+    syncBookingSupplierTotals(booking);
+
+    const notes = booking.notesList || [];
+    const services = bookingServices(booking);
+    const travellers = bookingTravellers(booking);
+    const readiness = bookingTravellerReadiness(booking);
+    const lead = travellers.find((t) => t.lead) || travellers[0];
+    const days = daysUntilTravel(booking);
+    const canFinance = canViewBookingFinance();
+    const ownerOnly = isBookingsOwner();
+    const L = booking.ledger || {};
+    const selling = acceptedSellingPrice(booking) || Number(L.sellingPrice) || 0;
+    const toCollect = Math.max(0, Number(booking.toCollect) || 0);
+    const toPay = Math.max(0, Number(booking.toPaySuppliers) || 0);
+    const margin = Number(L.margin);
+    const na = booking.nextAction || {};
+
+    const servicesHtml = services.length
+      ? `<ul class="bookings-overview-services">${services
+          .map((service) => {
+            const type = serviceTypeLabel(service.type);
+            const dates =
+              booking.travelStart && booking.travelEnd
+                ? formatListDates(booking.travelStart, booking.travelEnd)
+                : "—";
+            return `<li class="bookings-overview-service">
+              <span class="tag-chip">${escapeHtml(type)}</span>
+              <div class="bookings-overview-service-copy">
+                <p class="bookings-overview-service-title">${escapeHtml(service.name || type)}</p>
+                <p class="bookings-overview-service-meta">${escapeHtml(service.vendor || "—")} · ${escapeHtml(
+                  service.serviceDetail || dates
+                )}</p>
+              </div>
+              <span class="bookings-confirmation-status ${
+                service.confirmation === "confirmed" ? "is-done" : "is-open"
+              }">${escapeHtml(service.confirmation === "confirmed" ? "Confirmed" : "Pending")}</span>
+            </li>`;
+          })
+          .join("")}</ul>`
+      : `<div class="empty-state bookings-ops-empty-wrap">
+          <p class="empty-state-title">No services yet</p>
+          <p class="empty-state-desc">Add services on the Services &amp; vendors tab.</p>
+        </div>`;
+
+    let moneyHtml = "";
+    if (canFinance) {
+      moneyHtml = `
+        <div class="bookings-overview-money-grid">
+          <article class="bookings-overview-stat">
+            <p class="team-kicker">Booking value</p>
+            <p class="bookings-overview-stat-value">${escapeHtml(formatINR(selling, { signed: false }))}</p>
+          </article>
+          <article class="bookings-overview-stat">
+            <p class="team-kicker">To collect</p>
+            <p class="bookings-overview-stat-value">${escapeHtml(formatINR(toCollect, { signed: false }))}</p>
+          </article>
+          <article class="bookings-overview-stat">
+            <p class="team-kicker">To pay suppliers</p>
+            <p class="bookings-overview-stat-value">${escapeHtml(formatINR(toPay, { signed: false }))}</p>
+          </article>
+          ${
+            ownerOnly
+              ? `<article class="bookings-overview-stat owner-only">
+                   <p class="team-kicker">Margin</p>
+                   <p class="bookings-overview-stat-value">${escapeHtml(formatINR(margin, { signed: true }))}</p>
+                 </article>`
+              : ""
+          }
+        </div>`;
+    } else {
+      moneyHtml = `<p class="bookings-ops-empty">Finance details need Finance permission (Owner or Admin).</p>`;
+    }
+
+    const departCopy =
+      Number.isFinite(days) && days >= 0
+        ? days === 0
+          ? "Departs today"
+          : `Departs in ${days} day${days === 1 ? "" : "s"}`
+        : "";
+    const travellerChips = travellers.length
+      ? travellers
+          .slice(0, 5)
+          .map((t) => {
+            const issues = travellerIssueList(t, booking).length;
+            return `<span class="tag-chip ${issues ? "tag-finance" : "tag-support"}">${escapeHtml(
+              t.name || t.legalName || "Traveller"
+            )}${t.lead ? " · Lead" : ""}${issues ? ` · ${issues}` : ""}</span>`;
+          })
+          .join("")
+      : "";
+
+    el.innerHTML = `
+      <div class="bookings-overview-hero-row">
+        <article class="bookings-card bookings-overview-card bookings-overview-next">
+          <header class="bookings-card-head">
+            <div>
+              <p class="team-kicker">Next action</p>
+              <h2 class="bookings-card-title">${escapeHtml(na.title || "No urgent action")}</h2>
+              <p class="bookings-card-sub">${escapeHtml(
+                [na.body, departCopy].filter(Boolean).join(" · ") || "Nothing blocking right now."
+              )}</p>
+            </div>
+          </header>
+          ${
+            na.kind === "task" && na.cta
+              ? `<div class="bookings-overview-card-foot"><button type="button" class="btn btn-primary btn-sm" data-cta-target="${escapeHtml(
+                  na.ctaTarget || "overview"
+                )}">${escapeHtml(na.cta)}</button></div>`
+              : ""
+          }
+        </article>
+        <article class="bookings-card bookings-overview-card" id="booking-overview-readiness">
+          ${bookingLifecyclePanelHtml(booking)}
+        </article>
+      </div>
+
+      <div class="bookings-overview-split">
+        <article class="bookings-card bookings-overview-card">
+          <header class="bookings-card-head bookings-card-head--split">
+            <div>
+              <div class="card-title-row">
+                <h2 class="bookings-card-title">Services</h2>
+                <span class="team-count-pill">${services.filter((s) => s.confirmation === "confirmed").length}/${
+                  services.length
+                }</span>
+              </div>
+              <p class="bookings-card-sub">Supplier confirmations for this itinerary.</p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" data-cta-target="services">Open</button>
+          </header>
+          ${servicesHtml}
+        </article>
+
+        <article class="bookings-card bookings-overview-card">
+          <header class="bookings-card-head bookings-card-head--split">
+            <div>
+              <h2 class="bookings-card-title">Money</h2>
+              <p class="bookings-card-sub">Commercial snapshot for this booking.</p>
+            </div>
+            ${
+              canFinance
+                ? `<button type="button" class="btn btn-outline btn-sm" data-cta-target="finance">Open</button>`
+                : ""
+            }
+          </header>
+          ${moneyHtml}
+        </article>
+      </div>
+
+      <article class="bookings-card bookings-overview-card bookings-overview-travellers">
+        <header class="bookings-card-head bookings-card-head--split">
+          <div>
+            <div class="card-title-row">
+              <h2 class="bookings-card-title">Travellers</h2>
+              <span class="team-count-pill">${escapeHtml(String(readiness.ready))}/${escapeHtml(
+                String(readiness.total)
+              )} ready</span>
+            </div>
+            <p class="bookings-card-sub">Lead · ${escapeHtml(lead?.legalName || lead?.name || "—")}</p>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" data-cta-target="travellers">Open</button>
+        </header>
+        ${
+          travellerChips
+            ? `<div class="bookings-overview-traveller-chips">${travellerChips}</div>`
+            : `<p class="bookings-ops-empty">No travellers on this booking yet.</p>`
+        }
+      </article>
+
+      <article class="bookings-card bookings-overview-card">
+        <header class="bookings-card-head bookings-card-head--split">
+          <div>
+            <h2 class="bookings-card-title">Ops notes</h2>
+            <p class="bookings-card-sub">Human notes only · system events stay in Activity.</p>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" data-add-note>Add note</button>
+        </header>
+        ${
+          notes.length
+            ? `<ul class="bookings-note-list">${notes
+                .map(
+                  (note) => `
+              <li class="bookings-note-item">
+                <p class="bookings-note-meta">${escapeHtml(note.author)} · ${escapeHtml(note.time)}</p>
+                <p class="bookings-note-body">${escapeHtml(note.body)}</p>
+              </li>`
+                )
+                .join("")}</ul>`
+            : `<div class="empty-state bookings-ops-empty-wrap">
+                <p class="empty-state-title">No ops notes yet</p>
+                <p class="empty-state-desc">Add a short human note when something should stick with the booking.</p>
+              </div>`
+        }
+      </article>`;
+
+    el.querySelectorAll("[data-cta-target]").forEach((btn) => {
+      btn.addEventListener("click", () => runBookingCtaTarget(btn.dataset.ctaTarget));
+    });
+    bindBookingLifecycleActions(el, booking);
+    el.querySelector("[data-add-note]")?.addEventListener("click", () => {
+      if (!booking.notesList) booking.notesList = [];
+      booking.notesList.unshift({
+        author: getBookingsViewingAs() === "Member" ? "Meera Iyer" : DEMO_OWNER.name,
+        time: "Just now",
+        body: "Followed up with customer on outstanding items.",
+      });
+      showToast("Note added");
+      renderBookingOverview(booking);
+    });
+  }
+
+  function renderBookingDetail(booking) {
+    if (booking.phase !== "cancelled" && booking.id && booking.proposalVersion) {
+      booking.confirmed = true;
+    }
+    const destinationEl = document.getElementById("booking-detail-destination");
+    const title = document.getElementById("booking-detail-title");
+    const meta = document.getElementById("booking-detail-meta");
+    const status = document.getElementById("booking-detail-status");
+    const attention = getBookingAttention(booking);
+    const days = daysUntilTravel(booking);
+    const departCopy =
+      Number.isFinite(days) && days >= 0
+        ? days === 0
+          ? "Departs today"
+          : `Departs in ${days} days`
+        : "";
+
+    if (destinationEl) {
+      destinationEl.textContent = booking.destination || booking.tripLabel || "Trip";
+    }
+    if (title) title.textContent = booking.title;
+
+    const facts = [
+      booking.id,
+      booking.queryId || null,
+      booking.proposalVersion ? `Proposal v${String(booking.proposalVersion).replace(/^v/i, "")}` : null,
+      formatListDates(booking.travelStart, booking.travelEnd),
+      `${booking.pax || 0} pax`,
+      bookingOwnerMetaFact(booking),
+    ].filter(Boolean);
+    if (meta) meta.textContent = facts.join(" · ");
+
+    if (status) {
+      const commercial = bookingStatusLabel(booking);
+      const commercialTone =
+        commercial === "Cancelled" ? "is-cancelled" : commercial === "Confirmed" ? "is-confirmed" : "is-draft";
+      status.innerHTML = `
+        <span class="booking-status-pill ${commercialTone}">${escapeHtml(commercial)}</span>
+        <span class="booking-status-pill is-${escapeHtml(booking.phase)}">${escapeHtml(phaseLabel(booking.phase))}</span>
+        <span class="booking-attention-pill is-${escapeHtml(attention)}">${escapeHtml(attentionLabel(attention))}</span>
+        ${departCopy ? `<span class="bookings-detail-depart">${escapeHtml(departCopy)}</span>` : ""}`;
+    }
+
+    applyBookingDetailTabAccess(booking);
+    renderBookingOverview(booking);
+    renderBookingOpsTabs(booking);
+    if (bookingsState.detailTab && !canAccessBookingTab(bookingsState.detailTab, booking)) {
+      setBookingDetailTab(firstAllowedBookingTab(booking), { updateHash: true });
+    }
   }
 
   function setBreadcrumb({ root, mid = null, current }) {
@@ -996,6 +7754,9 @@
   function setBookingsListMode({ updateHash = true, push = false } = {}) {
     bookingsState.detailSlug = null;
     bookingsState.detailTab = "overview";
+    bookingsState.commThreadId = null;
+    bookingsState.commCompose = false;
+    bookingsState.docId = null;
     if (bookingsListEl) bookingsListEl.hidden = false;
     if (bookingsDetailEl) bookingsDetailEl.hidden = true;
     setActiveNav("Bookings");
@@ -1011,11 +7772,27 @@
     }
   }
 
-  function setBookingDetailTab(tab, { updateHash = true } = {}) {
-    const key = BOOKING_DETAIL_TABS[tab] ? tab : "overview";
+  function scrollBookingDetailBodyToTop() {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
+  function setBookingDetailTab(tab, { updateHash = true, scrollTop = true } = {}) {
+    const booking = bookingsState.detailSlug ? getBookingBySlug(bookingsState.detailSlug) : null;
+    // Fulfilment tab removed — route old links to overview needs-action.
+    if (tab === "fulfilment") tab = "overview";
+    let key = BOOKING_DETAIL_TABS[tab] ? tab : "overview";
+    if (booking) {
+      applyBookingDetailTabAccess(booking);
+      if (!canAccessBookingTab(key, booking)) {
+        if (tab === "finance") showToast("Finance needs Finance permission…");
+        key = firstAllowedBookingTab(booking, "overview");
+      }
+    }
+    const tabChanged = bookingsState.detailTab !== key;
     bookingsState.detailTab = key;
     document.querySelectorAll("[data-booking-tab]").forEach((btn) => {
-      const active = btn.dataset.bookingTab === key;
+      const allowed = !booking || canAccessBookingTab(btn.dataset.bookingTab, booking);
+      const active = allowed && btn.dataset.bookingTab === key;
       btn.classList.toggle("is-active", active);
       btn.setAttribute("aria-selected", String(active));
     });
@@ -1028,172 +7805,141 @@
       const next = key === "overview" ? `#bookings/${bookingsState.detailSlug}` : `#bookings/${bookingsState.detailSlug}/${key}`;
       if (window.location.hash !== next) history.replaceState(null, "", next);
     }
+    if (scrollTop && tabChanged) scrollBookingDetailBodyToTop();
   }
 
-  function renderBookingDetail(booking) {
-    const initial = document.getElementById("booking-detail-initial");
-    const title = document.getElementById("booking-detail-title");
-    const meta = document.getElementById("booking-detail-meta");
-    const status = document.getElementById("booking-detail-status");
-    const summary = document.getElementById("booking-summary-grid");
-    const actionBar = document.getElementById("booking-action-bar");
-    const notes = document.getElementById("booking-notes");
-    const notesStatus = document.getElementById("booking-notes-status");
-    const itinerarySub = document.getElementById("booking-itinerary-sub");
-    const itineraryNote = document.getElementById("booking-itinerary-note");
-    const ledgerGrid = document.getElementById("booking-ledger-grid");
-
-    if (initial) initial.textContent = bookingInitial(booking.destination || booking.title);
-    if (title) title.textContent = booking.title;
-    if (meta) {
-      const queryBit = booking.queryId
-        ? `<span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>from ${escapeHtml(booking.queryId)}</span>`
-        : "";
-      meta.innerHTML = `
-        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>${escapeHtml(booking.id)}</span>
-        ${queryBit}
-        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${escapeHtml(formatBookingDates(booking.travelStart, booking.travelEnd))}</span>
-        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${escapeHtml(booking.customer)}</span>`;
-    }
-    if (status) {
-      status.textContent = phaseLabel(booking.phase);
-      status.className = `booking-status-pill is-${booking.phase}`;
-    }
-
-    if (summary) {
-      const paxLabel = booking.pax === 1 ? "1" : String(booking.pax);
-      const paxSub = booking.pax === 1 ? "traveller" : "travellers";
-      const issuesCopy = booking.issues?.length
-        ? booking.issues.map(bookingIssueLabel).join(" · ")
-        : "None";
-      summary.innerHTML = `
-        <article class="bookings-summary-card"><p class="bookings-summary-label">Customer</p><p class="bookings-summary-value">${escapeHtml(booking.customer)}</p></article>
-        <article class="bookings-summary-card"><p class="bookings-summary-label">Travel dates</p><p class="bookings-summary-value">${escapeHtml(formatBookingDates(booking.travelStart, booking.travelEnd))}</p></article>
-        <article class="bookings-summary-card"><p class="bookings-summary-label">Pax</p><p class="bookings-summary-value">${escapeHtml(paxLabel)}</p><p class="bookings-summary-sub">${escapeHtml(paxSub)}</p></article>
-        <article class="bookings-summary-card"><p class="bookings-summary-label">Owner</p><p class="bookings-summary-value">${escapeHtml(booking.owner.name)}</p></article>
-        <article class="bookings-summary-card"><p class="bookings-summary-label">Open issues</p><p class="bookings-summary-value">${escapeHtml(issuesCopy)}</p>${booking.queryId ? `<p class="bookings-summary-sub">from ${escapeHtml(booking.queryId)}</p>` : ""}</article>`;
-    }
-
-    if (actionBar) {
-      const na = booking.nextAction;
-      const lc = booking.lifecycle;
-      const icon =
-        na.kind === "task"
-          ? `<span class="bookings-next-icon is-alert" aria-hidden="true">!</span>`
-          : `<span class="bookings-next-icon is-ready" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></span>`;
-      const cta =
-        na.kind === "task" && na.cta
-          ? `<button type="button" class="btn btn-outline btn-sm" data-toast="Opening task…">${escapeHtml(na.cta)}</button>`
-          : "";
-      const lifecycleBtns =
-        lc.mode === "confirm-cancel"
-          ? `<button type="button" class="btn btn-primary btn-sm" data-lifecycle="confirm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Confirm booking</button>
-             <button type="button" class="btn btn-destructive-soft btn-sm" data-lifecycle="cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>Cancel booking</button>`
-          : `<button type="button" class="btn btn-outline btn-sm" data-lifecycle="reopen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><polyline points="21 3 21 9 15 9"/></svg>Reopen</button>`;
-      actionBar.innerHTML = `
-        <div class="bookings-next-action">
-          ${icon}
-          <div class="bookings-next-copy">
-            <p class="bookings-next-kicker">${na.kind === "task" ? "NEXT ACTION · OPENS TASK" : "NEXT ACTION"}</p>
-            <p class="bookings-next-title">${escapeHtml(na.title)}</p>
-            <p class="bookings-next-body">${escapeHtml(na.body)}</p>
-            ${cta}
-          </div>
-        </div>
-        <div class="bookings-lifecycle">
-          <p class="bookings-lifecycle-label">Guarded lifecycle</p>
-          <div class="bookings-lifecycle-actions">${lifecycleBtns}</div>
-        </div>`;
-      actionBar.querySelectorAll("[data-toast]").forEach((btn) => {
-        btn.addEventListener("click", () => showToast(btn.dataset.toast));
-      });
-      actionBar.querySelector("[data-lifecycle='confirm']")?.addEventListener("click", () => {
-        booking.phase = "upcoming";
-        booking.issues = [];
-        booking.actionHint = "";
-        booking.lifecycle = { mode: "reopen", readiness: 60 };
-        booking.nextAction = {
-          kind: "clear",
-          title: "Ready for travel",
-          body: "Confirmed — no open blockers before departure.",
-        };
-        showToast("Booking confirmed…");
-        renderBookingDetail(booking);
-        renderBookingsList();
-      });
-      actionBar.querySelector("[data-lifecycle='cancel']")?.addEventListener("click", () => {
-        showToast("Booking cancelled…");
-      });
-      actionBar.querySelector("[data-lifecycle='reopen']")?.addEventListener("click", () => {
-        booking.phase = "needs_action";
-        booking.issues = ["supplier_pending"];
-        booking.actionHint = "Confirm supplier services";
-        booking.lifecycle = { mode: "confirm-cancel" };
-        booking.nextAction = {
-          kind: "task",
-          title: "Confirm supplier services",
-          body: "Reopened — confirm services before travel.",
-          cta: "Confirm supplier services",
-        };
-        showToast("Booking reopened…");
-        renderBookingDetail(booking);
-        renderBookingsList();
-      });
-    }
-
-    if (notes && notes.dataset.slug !== booking.slug) {
-      notes.value = booking.notes || "";
-      notes.dataset.slug = booking.slug;
-    }
-    if (notesStatus) notesStatus.textContent = "All changes saved";
-    if (itinerarySub) itinerarySub.textContent = booking.itinerarySub;
-    if (itineraryNote) itineraryNote.textContent = booking.itineraryNote;
-
-    if (ledgerGrid) {
-      const L = booking.ledger;
-      const customerBalanceCopy = formatCustomerBalanceCopy(L.customerBalance);
-      const vendorPayCopy = formatVendorPayCopy(L.vendorPayable, L.vendorSettled);
-      const cells = [
-        { label: "Booking receivable", value: formatINR(L.receivable, { signed: false }), tone: "" },
-        { label: "Total cost", value: formatINR(L.totalCost, { signed: false }), tone: "" },
-        { label: "Margin", value: formatINR(L.margin, { signed: false }), tone: "is-positive" },
-        { label: "Customer paid", value: formatINR(L.customerPaid, { signed: false }), tone: "is-positive" },
-        {
-          label: "Customer balance",
-          value: customerBalanceCopy,
-          tone: L.customerBalance > 0 ? "is-collect" : L.customerBalance < 0 ? "is-credit" : "",
-        },
-        { label: "Vendor payable", value: formatINR(L.vendorPayable, { signed: false }), tone: "" },
-        {
-          label: "Supplier payouts",
-          value: vendorPayCopy,
-          tone: Math.max(0, L.vendorPayable - L.vendorSettled) > 0 ? "is-pay" : "",
-        },
-        {
-          label: "Cash movement summary",
-          value: `${formatINR(L.cashIn, { signed: false })} in / ${formatINR(L.cashOut, { signed: false })} out`,
-          tone: "",
-          sub: `${L.entryCount} ledger entries`,
-        },
-      ];
-      ledgerGrid.innerHTML = cells
-        .map(
-          (c) => `
-        <article class="bookings-ledger-cell">
-          <p class="bookings-ledger-label">${escapeHtml(c.label)}</p>
-          <p class="bookings-ledger-value ${c.tone}">${escapeHtml(c.value)}</p>
-          ${c.sub ? `<p class="bookings-ledger-sub">${escapeHtml(c.sub)}</p>` : ""}
-        </article>`
-        )
-        .join("");
-    }
+  function bookingLifecycleMode(booking) {
+    if (booking.phase === "cancelled" || booking.phase === "completed") return "reopen";
+    if (!booking.confirmed) return "confirm-cancel";
+    return booking.lifecycle?.mode || "reopen";
   }
 
-  function openBookingDetail(slug, { tab = "overview", updateHash = true, push = false } = {}) {
+  function pushBookingActivity(booking, body) {
+    if (!booking.activity) booking.activity = [];
+    booking.activity.unshift({ time: "Just now", body });
+  }
+
+  function getBookingActionItems(booking) {
+    const c = booking.confirmations || {};
+    const services = bookingServices(booking);
+    const pendingVendors = services.filter((s) => s.confirmation !== "confirmed");
+    const travellers = bookingTravellers(booking);
+    const docs = bookingDocuments(booking);
+    const requiredDocsOpen = docs.filter((d) => d.required !== false && !docStatusIsComplete(d.status));
+    const docsMissing = requiredDocsOpen.length;
+    const travellerNotReady = travellers.filter((t) => !travellerIsReady(t, booking)).length;
+    const docsOpen = confirmationIsOpen("documents", c.documents || "missing") || docsMissing > 0;
+    const voucherOpen = confirmationIsOpen("voucher", c.voucher || "pending");
+    const canFinance = canViewBookingFinance();
+    const supplierCopy = getBookingSupplierMoneyCopy(booking);
+    const toCollect = Math.max(0, Number(booking.toCollect) || 0);
+    const paymentOpen = canFinance && (toCollect > 0 || supplierCopy.tone === "is-open" || booking.paymentOverdue);
+
+    const tvs = bookingVouchers(booking);
+    const voucherBlocked = tvs.filter((v) => v.status === "blocked").length;
+    const voucherReady = tvs.filter((v) => v.status === "ready").length;
+    const voucherIssued = tvs.filter((v) => v.status === "issued").length;
+
+    const items = [
+      {
+        id: "vendor",
+        label: "Vendors",
+        tab: "services",
+        open: pendingVendors.length > 0 || confirmationIsOpen("supplier", c.supplier || "pending"),
+        detail:
+          pendingVendors.length > 0
+            ? `${pendingVendors.length} vendor${pendingVendors.length === 1 ? "" : "s"} not confirmed · ${pendingVendors.map((s) => s.vendor).slice(0, 2).join(", ")}${pendingVendors.length > 2 ? "…" : ""}`
+            : "All vendors confirmed",
+        statusLabel: pendingVendors.length ? "Not confirmed" : "Done",
+        chipLabel: pendingVendors.length ? `Vendors · ${pendingVendors.length}` : "Vendors",
+        cta: "Open vendors",
+      },
+      {
+        id: "travellers",
+        label: "Travellers",
+        tab: "travellers",
+        open: travellerNotReady > 0,
+        detail:
+          travellerNotReady > 0
+            ? `${travellerNotReady}/${travellers.length} travellers not ready`
+            : "All travellers ready",
+        statusLabel: travellerNotReady > 0 ? "Incomplete" : "Done",
+        chipLabel: travellerNotReady ? `Travellers · ${travellerNotReady}` : "Travellers",
+        cta: "Open travellers",
+      },
+      {
+        id: "documents",
+        label: "Documents",
+        tab: "documents",
+        open: docsOpen,
+        detail: docsOpen
+          ? docsMissing
+            ? `${docsMissing} required document${docsMissing === 1 ? "" : "s"} still open`
+            : "Documents still open"
+          : "All required documents verified",
+        statusLabel: docsOpen ? "Incomplete" : "Done",
+        chipLabel: docsMissing ? `Documents · ${docsMissing}` : "Documents",
+        cta: "Open documents",
+      },
+      {
+        id: "vouchers",
+        label: "Vouchers",
+        tab: "vouchers",
+        open: voucherOpen,
+        detail: !voucherOpen
+          ? "All traveller vouchers sent"
+          : voucherBlocked
+            ? `${voucherBlocked} blocked until vendor confirmed`
+            : voucherReady
+              ? `${voucherReady} ready to attach/generate`
+              : voucherIssued
+                ? `${voucherIssued} issued — send to traveller`
+                : "Traveller vouchers still open",
+        statusLabel: !voucherOpen ? "Done" : voucherBlocked ? "Blocked" : voucherReady ? "Ready" : voucherIssued ? "Issued" : "Open",
+        chipLabel: voucherBlocked ? `Vouchers · ${voucherBlocked} blocked` : voucherIssued ? `Vouchers · ${voucherIssued}` : "Vouchers",
+        cta: "Open vouchers",
+      },
+      {
+        id: "payment",
+        label: "Payment",
+        tab: canFinance ? "finance" : "services",
+        open: paymentOpen,
+        detail: canFinance
+          ? paymentOpen
+            ? [toCollect > 0 ? `${formatINR(toCollect, { signed: false })} to collect` : null, supplierCopy.tone === "is-open" ? supplierCopy.title : null].filter(Boolean).join(" · ") || "Payment open"
+            : "No open payment"
+          : "Finance restricted — ask Owner/Admin",
+        statusLabel: !canFinance ? "Restricted" : paymentOpen ? "Due" : "Done",
+        chipLabel: "Payment",
+        cta: canFinance ? "Open finance" : "View vendors",
+        restricted: !canFinance,
+      },
+    ];
+
+    return items;
+  }
+
+  function scrollBookingOverviewReadiness() {
+    requestAnimationFrame(() => {
+      document.getElementById("booking-overview-readiness")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function openBookingDetail(slug, { tab = "overview", updateHash = true, push = false, focusReadiness = false } = {}) {
     const booking = getBookingBySlug(slug);
     if (!booking) {
       setBookingsListMode({ updateHash: true });
       return;
+    }
+    if (!memberCanAccessBooking(booking)) {
+      showToast("This booking isn’t assigned to you…");
+      setBookingsListMode({ updateHash: true });
+      return;
+    }
+    if (bookingsState.detailSlug !== slug) {
+      bookingsState.commThreadId = null;
+      bookingsState.commCompose = false;
+      bookingsState.docId = null;
     }
     bookingsState.detailSlug = slug;
     if (bookingsListEl) bookingsListEl.hidden = true;
@@ -1206,16 +7952,27 @@
     setActiveNav("Bookings");
     setBreadcrumb({ root: "Operations", mid: "Bookings", current: booking.title });
     document.title = `Paryatech — ${booking.title}`;
+    const requestedTab = focusReadiness ? "overview" : tab;
+    const allowedTab = firstAllowedBookingTab(booking, requestedTab);
+    if (tab !== allowedTab && tab === "finance" && !focusReadiness) {
+      showToast("Finance needs Finance permission…");
+    }
     renderBookingDetail(booking);
-    setBookingDetailTab(tab, { updateHash: false });
+    setBookingDetailTab(allowedTab, { updateHash: false, scrollTop: !focusReadiness });
+    if (focusReadiness && allowedTab === "overview") {
+      window.scrollTo({ top: 0, behavior: "auto" });
+      scrollBookingOverviewReadiness();
+    } else {
+      scrollBookingDetailBodyToTop();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
     if (updateHash) {
-      const next = tab === "overview" ? `#bookings/${slug}` : `#bookings/${slug}/${tab}`;
+      const next = allowedTab === "overview" ? `#bookings/${slug}` : `#bookings/${slug}/${allowedTab}`;
       if (window.location.hash !== next) {
         if (push) history.pushState(null, "", next);
         else history.replaceState(null, "", next);
       }
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function parseBookingsHash() {
@@ -1226,7 +7983,8 @@
     if (parts.length <= 1 || parts[1] === "list") return { mode: "list" };
     const slug = parts[1];
     if (!getBookingBySlug(slug)) return { mode: "list" };
-    const tab = parts[2] && BOOKING_DETAIL_TABS[parts[2]] ? parts[2] : "overview";
+    let rawTab = parts[2] === "fulfilment" ? "overview" : parts[2];
+    const tab = rawTab && BOOKING_DETAIL_TABS[rawTab] ? rawTab : "overview";
     return { mode: "detail", slug, tab };
   }
 
@@ -1247,18 +8005,64 @@
     });
 
     const bookingListTabs = {
-      needs_action: true,
       upcoming: true,
       travelling: true,
       completed: true,
-      payments: true,
+      cancelled: true,
     };
     document.querySelectorAll("[data-bookings-tab]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        bookingsState.tab = bookingListTabs[btn.dataset.bookingsTab] ? btn.dataset.bookingsTab : "needs_action";
+        const routed = normalizeBookingsListTab(btn.dataset.bookingsTab);
+        const next = routed.tab;
+        const switchingArchive = bookingsListIsArchiveTab(next) !== bookingsListIsArchiveTab(bookingsState.tab);
+        bookingsState.tab = next;
         bookingsState.page = 0;
+        if (routed.issueFilter) bookingsState.issueFilter = routed.issueFilter;
+        if (switchingArchive) {
+          bookingsState.sort = bookingsListIsArchiveTab(next) ? "travel" : "priority";
+          bookingsState.attentionFilter = "all";
+          if (!routed.issueFilter) bookingsState.issueFilter = "all";
+          bookingsState.ownerFilter = "all";
+          bookingsState.departWindow = "all";
+          bookingsState.destinationFilter = "all";
+          bookingsState.sourceFilter = "all";
+          bookingsState.archiveWindow = next === "travelling" ? "all" : "30";
+        }
         renderBookingsList();
       });
+    });
+
+    document.getElementById("bookings-attention")?.addEventListener("change", (e) => {
+      bookingsState.attentionFilter = e.target.value || "all";
+      bookingsState.page = 0;
+      renderBookingsList();
+    });
+
+    document.querySelectorAll("[data-bookings-scope]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const next = btn.dataset.bookingsScope;
+        if (next !== "mine" && next !== "unassigned" && next !== "all") return;
+        if (getBookingsViewingAs() === "Member" && next === "all") return;
+        bookingsState.scope = next;
+        bookingsState.page = 0;
+        syncBookingsScopeControls();
+        renderBookingsList();
+      });
+    });
+
+    const onScopeMemberChange = (e) => {
+      bookingsState.scopeMember = e.target.value || "all";
+      bookingsState.page = 0;
+      syncBookingsScopeControls();
+      renderBookingsList();
+    };
+    document.getElementById("bookings-scope-member")?.addEventListener("change", onScopeMemberChange);
+    document.getElementById("bookings-archive-scope-member")?.addEventListener("change", onScopeMemberChange);
+
+    document.getElementById("bookings-issue")?.addEventListener("change", (e) => {
+      bookingsState.issueFilter = e.target.value || "all";
+      bookingsState.page = 0;
+      renderBookingsList();
     });
 
     const paymentsSearch = document.getElementById("payments-search");
@@ -1305,6 +8109,8 @@
     const search = document.getElementById("bookings-search");
     search?.addEventListener("input", () => {
       bookingsState.search = search.value;
+      const archiveSearch = document.getElementById("bookings-archive-search");
+      if (archiveSearch) archiveSearch.value = search.value;
       bookingsState.page = 0;
       renderBookingsList();
     });
@@ -1317,6 +8123,54 @@
       bookingsState.page = 0;
       renderBookingsList();
     });
+
+    const archiveSearch = document.getElementById("bookings-archive-search");
+    archiveSearch?.addEventListener("input", () => {
+      bookingsState.search = archiveSearch.value;
+      if (search) search.value = archiveSearch.value;
+      bookingsState.page = 0;
+      renderBookingsList();
+    });
+    document.getElementById("bookings-archive-attention")?.addEventListener("change", (e) => {
+      bookingsState.attentionFilter = e.target.value || "all";
+      bookingsState.page = 0;
+      renderBookingsList();
+    });
+    document.getElementById("bookings-archive-sort")?.addEventListener("change", (e) => {
+      bookingsState.sort = e.target.value || "travel";
+      bookingsState.page = 0;
+      renderBookingsList();
+    });
+    document.getElementById("bookings-archive-window")?.addEventListener("change", (e) => {
+      bookingsState.archiveWindow = e.target.value || "30";
+      bookingsState.page = 0;
+      renderBookingsList();
+    });
+    document.getElementById("bookings-archive-issue")?.addEventListener("change", (e) => {
+      bookingsState.issueFilter = e.target.value || "all";
+      bookingsState.page = 0;
+      renderBookingsList();
+    });
+
+    const bindFacetChange = (opsId, archiveId, key) => {
+      const apply = (e) => {
+        bookingsState[key] = e.target.value || "all";
+        bookingsState.page = 0;
+        syncBookingsFacetControls();
+        renderBookingsList();
+      };
+      document.getElementById(opsId)?.addEventListener("change", apply);
+      document.getElementById(archiveId)?.addEventListener("change", apply);
+    };
+    bindFacetChange("bookings-owner", "bookings-archive-owner", "ownerFilter");
+    bindFacetChange("bookings-depart", "bookings-archive-depart", "departWindow");
+    bindFacetChange("bookings-destination", "bookings-archive-destination", "destinationFilter");
+    bindFacetChange("bookings-source", "bookings-archive-source", "sourceFilter");
+
+    document.getElementById("bookings-archive-clear")?.addEventListener("click", clearBookingsFilters);
+
+    populateBookingsDestinationFilters();
+    syncBookingsFacetControls();
 
     document.getElementById("bookings-prev")?.addEventListener("click", () => {
       if (bookingsState.page > 0) {
@@ -1333,18 +8187,7 @@
       btn.addEventListener("click", () => setBookingDetailTab(btn.dataset.bookingTab));
     });
 
-    const notes = document.getElementById("booking-notes");
-    notes?.addEventListener("input", () => {
-      const booking = getBookingBySlug(bookingsState.detailSlug);
-      if (!booking) return;
-      const status = document.getElementById("booking-notes-status");
-      if (status) status.textContent = "Saving…";
-      window.clearTimeout(bookingNotesTimer);
-      bookingNotesTimer = window.setTimeout(() => {
-        booking.notes = notes.value;
-        if (status) status.textContent = "All changes saved";
-      }, 450);
-    });
+    applyBookingsScopeForRole(getBookingsViewingAs());
   }
 
   const MY_WORK_PERIOD_LABELS = {
@@ -2365,7 +9208,7 @@
     const url = new URL(window.location.href);
     url.searchParams.set("view", homeViewToParam(view));
     const hash = url.hash || "";
-    if (hash.startsWith("#team") || hash.startsWith("#bookings")) {
+    if (hash.startsWith("#team") || hash.startsWith("#bookings") || hash.startsWith("#queries")) {
       url.hash = "";
     }
     const next = `${url.pathname}${url.search}${url.hash}`;
@@ -2405,6 +9248,7 @@
       dashboardNew.hidden = !isNew;
       if (viewTeam) viewTeam.hidden = true;
       if (viewBookings) viewBookings.hidden = true;
+      if (viewQueries) viewQueries.hidden = true;
       if (homeAs) homeAs.hidden = false;
       if (viewingAs) viewingAs.hidden = false;
       setActiveNav("Home");
@@ -2523,8 +9367,12 @@
   function setViewingAs(role) {
     const next = role === "Admin" || role === "Member" ? role : "Owner";
     if (viewTeam) viewTeam.dataset.viewingAs = next;
+    if (viewBookings) viewBookings.dataset.viewingAs = next;
+    if (viewQueries) viewQueries.dataset.viewingAs = next;
     if (dashboardReturning) dashboardReturning.dataset.viewingAs = next;
     if (dashboardNew) dashboardNew.dataset.viewingAs = next;
+    applyBookingPersonaAccessFlags();
+    applyBookingsScopeForRole(next);
     document.querySelectorAll(".viewing-as-btn[data-viewing-as]").forEach((btn) => {
       btn.classList.toggle("is-active", btn.dataset.viewingAs === next);
     });
@@ -2538,10 +9386,26 @@
         updateTeamPageActions(activeTab || "overview");
       }
     }
+    if (currentShell === "bookings") {
+      if (bookingsState.detailSlug) {
+        const booking = getBookingBySlug(bookingsState.detailSlug);
+        if (booking && memberCanAccessBooking(booking)) renderBookingDetail(booking);
+        else {
+          showToast("This booking isn’t assigned to you…");
+          setBookingsListMode({ updateHash: true });
+        }
+      } else {
+        renderBookingsList();
+      }
+    }
+    if (currentShell === "queries") {
+      renderQueriesPipeline();
+    }
   }
 
   function showView(shell, options = {}) {
-    const next = shell === "team" ? "team" : shell === "bookings" ? "bookings" : "home";
+    const next =
+      shell === "team" ? "team" : shell === "bookings" ? "bookings" : shell === "queries" ? "queries" : "home";
     currentShell = next;
 
     if (next === "team") {
@@ -2549,6 +9413,7 @@
       dashboardNew.hidden = true;
       if (viewTeam) viewTeam.hidden = false;
       if (viewBookings) viewBookings.hidden = true;
+      if (viewQueries) viewQueries.hidden = true;
       if (homeAs) homeAs.hidden = true;
       if (viewingAs) viewingAs.hidden = false;
       setActiveNav("Team");
@@ -2565,6 +9430,7 @@
       dashboardNew.hidden = true;
       if (viewTeam) viewTeam.hidden = true;
       if (viewBookings) viewBookings.hidden = false;
+      if (viewQueries) viewQueries.hidden = true;
       if (homeAs) homeAs.hidden = true;
       if (viewingAs) viewingAs.hidden = false;
       setActiveNav("Bookings");
@@ -2582,8 +9448,39 @@
       return;
     }
 
+    if (next === "queries") {
+      dashboardReturning.hidden = true;
+      dashboardNew.hidden = true;
+      if (viewTeam) viewTeam.hidden = true;
+      if (viewBookings) viewBookings.hidden = true;
+      if (viewQueries) viewQueries.hidden = false;
+      if (homeAs) homeAs.hidden = true;
+      if (viewingAs) viewingAs.hidden = false;
+      setActiveNav("Queries");
+      if (breadcrumbRoot) breadcrumbRoot.textContent = "Sales";
+      document.title = "Paryatech — Queries";
+      if (options.create) {
+        queriesState.createOpen = true;
+        syncQueriesCreateMode();
+        resetQueriesCreateForm();
+      } else {
+        queriesState.createOpen = false;
+        syncQueriesCreateMode();
+      }
+      renderQueriesPipeline();
+      if (options.updateHash !== false) {
+        const nextHash = options.create ? "#queries/new" : "#queries";
+        if (window.location.hash !== nextHash) {
+          history.replaceState(null, "", nextHash);
+        }
+      }
+      window.scrollTo({ top: 0, behavior: options.smooth === false ? "auto" : "smooth" });
+      return;
+    }
+
     if (viewTeam) viewTeam.hidden = true;
     if (viewBookings) viewBookings.hidden = true;
+    if (viewQueries) viewQueries.hidden = true;
     if (breadcrumbRoot) breadcrumbRoot.textContent = "Workspace";
     const homeView = options.dashboardView || resolveView();
     applyView(homeView);
@@ -2591,7 +9488,7 @@
       syncHomeModeUrl(homeView, { replace: true });
     }
     const hash = window.location.hash || "";
-    if (hash.startsWith("#team") || hash.startsWith("#bookings")) {
+    if (hash.startsWith("#team") || hash.startsWith("#bookings") || hash.startsWith("#queries")) {
       const url = new URL(window.location.href);
       url.hash = "";
       history.replaceState(null, "", `${url.pathname}${url.search}`);
@@ -2805,11 +9702,14 @@
   }, 60000);
   initNewUserDashboard();
   initBookingsModule();
+  initQueriesModule();
   const bootHash = window.location.hash || "";
   if (bootHash.startsWith("#team")) {
     showView("team", { smooth: false });
   } else if (bootHash.startsWith("#bookings")) {
     showView("bookings", { smooth: false });
+  } else if (bootHash.startsWith("#queries")) {
+    showView("queries", { smooth: false, create: bootHash.startsWith("#queries/new") });
   } else {
     showView("home", { smooth: false, scrollTop: false });
   }
@@ -2826,6 +9726,12 @@
       showView("team", { smooth: false, updateHash: false });
     } else if (hash.startsWith("#bookings")) {
       showView("bookings", { smooth: false, updateHash: false });
+    } else if (hash.startsWith("#queries")) {
+      showView("queries", {
+        smooth: false,
+        updateHash: false,
+        create: hash.startsWith("#queries/new"),
+      });
     } else {
       showView("home", { smooth: false, scrollTop: false, syncHomeUrl: false });
       updateHomeModeUI(resolveView());
@@ -2842,6 +9748,12 @@
       showView("bookings", { smooth: false, updateHash: false });
     } else if (hash.startsWith("#team")) {
       showView("team", { smooth: false, updateHash: false });
+    } else if (hash.startsWith("#queries")) {
+      showView("queries", {
+        smooth: false,
+        updateHash: false,
+        create: hash.startsWith("#queries/new"),
+      });
     }
   });
 
@@ -2857,8 +9769,7 @@
         return;
       }
       if (target === "queries") {
-        setActiveNav("Queries");
-        openModal("modal-new-query");
+        openQueriesCreate();
         return;
       }
       if (target === "vendors") {
@@ -2897,6 +9808,11 @@
         return;
       }
 
+      if (name === "Queries") {
+        showView("queries");
+        return;
+      }
+
       if (name === "Home") {
         showView("home");
         applyDashboardFilter("");
@@ -2907,7 +9823,8 @@
       setActiveNav(name);
       showToast(`Opened ${name}`);
       if (name === "Inbox") {
-        if (currentShell === "team" || currentShell === "bookings") showView("home", { scrollTop: false });
+        if (currentShell === "team" || currentShell === "bookings" || currentShell === "queries")
+          showView("home", { scrollTop: false });
         applyDashboardFilter("");
         searchInput.value = "";
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -4904,6 +11821,10 @@
 
   document.querySelectorAll("[data-open-modal]").forEach((btn) => {
     btn.addEventListener("click", () => {
+      if (btn.dataset.openModal === "new-query") {
+        openQueriesCreate();
+        return;
+      }
       const id = `modal-${btn.dataset.openModal}`;
       openModal(id);
     });
@@ -5060,9 +11981,12 @@
     const data = new FormData(e.target);
     const dest = data.get("destination");
     closeModal(document.getElementById("modal-new-query"));
+    createQueryFromForm(data);
     e.target.reset();
     incrementDemoCount("queries");
     completeChecklistItem("query");
+    if (currentShell !== "queries") showView("queries");
+    else renderQueriesPipeline();
     showToast(`Query for “${dest}” created`);
   });
 
@@ -5122,6 +12046,8 @@
       showView("team");
     } else if (nav === "Bookings") {
       showView("bookings");
+    } else if (nav === "Queries") {
+      showView("queries");
     } else if (nav) {
       setActiveNav(nav);
     }
